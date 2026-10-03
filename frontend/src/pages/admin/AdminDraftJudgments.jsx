@@ -1,0 +1,1 @@
+export default function AdminDraftJudgments() { return <div className='p-8'><h1 className='text-2xl font-bold'>Draft Judgments</h1><p>Coming soon...</p></div> }

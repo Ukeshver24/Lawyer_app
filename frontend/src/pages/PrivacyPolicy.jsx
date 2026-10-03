@@ -1,0 +1,333 @@
+import React, { useEffect, useState } from 'react';
+import { 
+  ShieldCheck, Smartphone, Scale, ArrowLeft, Printer, HardDriveDownload, 
+  ShieldAlert, UserCheck, Search, Mail, Phone, MapPin, CheckCircle2, Lock, 
+  Shield, Key, Database, Trash2, HelpCircle, ChevronDown, Clock, Calendar, FileCheck
+} from 'lucide-react';
+import { Link } from 'react-router-dom';
+
+export default function PrivacyPolicy() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeSection, setActiveSection] = useState('section-1');
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const sections = document.querySelectorAll('section[id^="section-"]');
+      const scrollPos = window.scrollY + 140;
+
+      sections.forEach(sec => {
+        if (sec instanceof HTMLElement) {
+          const top = sec.offsetTop;
+          const height = sec.offsetHeight;
+          if (scrollPos >= top && scrollPos < top + height) {
+            setActiveSection(sec.id);
+          }
+        }
+      });
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const sectionsList = [
+    { id: 'section-1', title: '1. Scope & Data Fiduciary' },
+    { id: 'section-2', title: '2. Information We Collect' },
+    { id: 'section-3', title: '3. Mobile App Permissions' },
+    { id: 'section-4', title: '4. Zero-Storage PDF Engine' },
+    { id: 'section-5', title: '5. Lawful Grounds (DPDP)' },
+    { id: 'section-6', title: '6. Security & Encryption' },
+    { id: 'section-7', title: '7. Cookies & Local Storage' },
+    { id: 'section-8', title: '8. Third-Party Disclosures' },
+    { id: 'section-9', title: '9. Data Retention & Purge' },
+    { id: 'section-10', title: '10. User Rights & Deletion' },
+    { id: 'section-11', title: '11. Children’s Privacy' },
+    { id: 'section-12', title: '12. Grievance Officer' },
+  ];
+
+  const filteredSections = searchQuery.trim()
+    ? sectionsList.filter(s => s.title.toLowerCase().includes(searchQuery.toLowerCase()))
+    : sectionsList;
+
+  return (
+    <div className="min-h-screen bg-[#FAFBFF] text-slate-800 font-sans pb-20 selection:bg-blue-100 selection:text-blue-900">
+      
+      {/* Hero Header (Matches Website Luxury Hero) */}
+      <section className="relative py-14 sm:py-20 border-b border-[#D4AF37]/30 overflow-hidden bg-slate-950 flex items-center justify-center font-sans text-white">
+        
+        {/* Authentic Photo Background of Supreme Court of India */}
+        <div 
+          className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat transition-transform duration-1000 scale-105"
+          style={{ backgroundImage: "url('/supreme_court_india.jpg')" }}
+        ></div>
+
+        {/* Luxury Gradient Dark Overlay */}
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-[#0A1128]/90 via-[#0A1128]/80 to-[#070F1E]/95 backdrop-blur-[1px]"></div>
+
+        {/* Grid Pattern Overlay */}
+        <div className="absolute inset-0 z-0 opacity-[0.04] pointer-events-none bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:24px_24px]"></div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
+          
+          <div className="flex flex-wrap items-center gap-2.5 mb-4 text-xs font-semibold text-slate-300">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-500/25 text-blue-200 border border-blue-400/40 rounded-full text-[11px] font-mono shadow-xs backdrop-blur-md">
+              <ShieldCheck size={14} className="text-blue-300" />
+              DPDP Act 2023 & IT Act Compliant
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/25 text-emerald-200 border border-emerald-400/40 rounded-full text-[11px] font-mono shadow-xs backdrop-blur-md">
+              <Smartphone size={14} className="text-emerald-300" />
+              Web & Mobile Application
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-800/80 text-slate-300 border border-slate-700/80 rounded-full text-[11px] backdrop-blur-md">
+              Version 2.4.0
+            </span>
+          </div>
+
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-black font-cinzel text-white tracking-tight leading-tight max-w-4xl drop-shadow-2xl">
+            PRIVACY POLICY & <span className="bg-gradient-to-r from-sky-200 via-white to-blue-400 bg-clip-text text-transparent">DATA PROTECTION</span> CHARTER
+          </h1>
+          
+          <p className="mt-4 text-sm sm:text-base text-slate-200 max-w-3xl leading-relaxed drop-shadow">
+            This Privacy Policy explains how <strong>Digi Law Reporter</strong> (“DLR”, “we”, “our”) collects, protects, processes, and respects the digital personal data of users across our legal research web portal and mobile applications.
+          </p>
+
+          <div className="mt-8 pt-6 border-t border-slate-800/80 flex flex-wrap items-center gap-6 text-xs text-slate-300 font-medium">
+            <div className="flex items-center gap-2">
+              <Calendar size={15} className="text-blue-400" />
+              <span>Effective Date: <strong>September 28, 2026</strong></span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Clock size={15} className="text-blue-400" />
+              <span>Last Updated: <strong>September 28, 2026</strong></span>
+            </div>
+            <div className="flex items-center gap-2">
+              <FileCheck size={15} className="text-emerald-400" />
+              <span>Zero Document Persistence Guarantee</span>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* Summary Highlight Cards */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-2 relative z-20 print:hidden">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs flex items-start gap-4">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
+              <HardDriveDownload size={20} />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-[#0B1727]">Zero Disk Storage</h3>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                PDFs uploaded for citation analysis are parsed in-memory (RAM) and immediately expunged from the server.
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs flex items-start gap-4">
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
+              <ShieldAlert size={20} />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-[#0B1727]">No Intrusive Permissions</h3>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                We never request fine GPS location, contacts, microphone, or tracking identifiers in our mobile app.
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs flex items-start gap-4">
+            <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100">
+              <UserCheck size={20} />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-[#0B1727]">Full Rights & Deletion</h3>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                Users retain the statutory right to request a complete account deletion from the app settings in 1-click.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Grid */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
+
+          {/* Sticky Sidebar */}
+          <aside className="hidden lg:block lg:col-span-4 space-y-6 print:hidden">
+            <div className="sticky top-24 bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs space-y-4">
+              
+              <div>
+                <label className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 block mb-1.5">
+                  Search Privacy Policy
+                </label>
+                <div className="relative">
+                  <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input 
+                    type="text" 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search keywords (e.g., MPIN, DPDP)..." 
+                    className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:bg-white transition-all"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-xs font-extrabold font-cinzel uppercase tracking-wider text-[#0B1727] pb-2 border-b border-slate-100 flex items-center justify-between">
+                  <span>Table of Contents</span>
+                  <span className="text-[10px] font-sans font-normal text-slate-400">12 Sections</span>
+                </h4>
+                
+                <nav className="mt-3 space-y-1 text-xs max-h-[58vh] overflow-y-auto pr-1">
+                  {filteredSections.map(s => (
+                    <a
+                      key={s.id}
+                      href={`#${s.id}`}
+                      className={`block px-2.5 py-1.5 rounded-lg font-medium transition-colors ${
+                        activeSection === s.id
+                          ? 'bg-blue-50 text-blue-700 font-bold border-l-2 border-blue-600'
+                          : 'text-slate-600 hover:text-blue-600 hover:bg-slate-50'
+                      }`}
+                    >
+                      {s.title}
+                    </a>
+                  ))}
+                </nav>
+              </div>
+
+              <div className="p-3.5 bg-blue-50/70 border border-blue-100 rounded-xl space-y-2">
+                <div className="flex items-center gap-2 text-blue-900 font-bold text-xs">
+                  <Mail size={15} className="text-blue-600 shrink-0" />
+                  <span>Data Protection Helpdesk</span>
+                </div>
+                <p className="text-[11px] text-blue-800/80 leading-relaxed">
+                  Have privacy questions or need your data erased? Contact our Grievance Officer directly.
+                </p>
+                <a href="mailto:privacy@digilawreporter.in" className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-700 hover:text-blue-900 underline">
+                  <span>privacy@digilawreporter.in</span>
+                </a>
+              </div>
+
+            </div>
+          </aside>
+
+          {/* Policy Sections */}
+          <article className="lg:col-span-8 space-y-10">
+
+            {/* Section 1 */}
+            <section id="section-1" className="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-xs scroll-mt-24 space-y-4">
+              <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
+                <div className="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-xs font-mono">01</div>
+                <h2 className="text-lg sm:text-xl font-extrabold font-cinzel text-[#0B1727]">Scope, Applicability & Data Fiduciary</h2>
+              </div>
+              <div className="text-xs sm:text-sm text-slate-600 leading-relaxed space-y-3">
+                <p>
+                  This Privacy Policy applies to the web portal at <code>https://digilawreporter.in</code>, as well as the Digi Law Reporter mobile applications distributed on Google Play Store and Apple App Store.
+                </p>
+                <p>
+                  Under the <strong>Digital Personal Data Protection Act, 2023 (DPDP Act, India)</strong>, Digi Law Reporter operates as the <strong>Data Fiduciary</strong>, and registered users/practitioners act as the <strong>Data Principal</strong>.
+                </p>
+              </div>
+            </section>
+
+            {/* Section 2 */}
+            <section id="section-2" className="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-xs scroll-mt-24 space-y-4">
+              <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
+                <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-xs font-mono">02</div>
+                <h2 className="text-lg sm:text-xl font-extrabold font-cinzel text-[#0B1727]">Categories of Information We Collect</h2>
+              </div>
+              <div className="text-xs sm:text-sm text-slate-600 leading-relaxed space-y-4">
+                <p>
+                  We adhere strictly to data minimization:
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="p-4 bg-slate-50 border border-slate-200/80 rounded-xl space-y-2">
+                    <span className="font-bold text-xs text-slate-900 block">A. Account Information</span>
+                    <ul className="text-xs text-slate-600 space-y-1 list-disc list-inside">
+                      <li>Name and Mobile Number (Primary login identifier)</li>
+                      <li>Email Address (Optional)</li>
+                      <li>Date of Birth (For 2-Factor MPIN verification)</li>
+                      <li>4-Digit MPIN (Bcrypt Hashed)</li>
+                    </ul>
+                  </div>
+                  <div className="p-4 bg-slate-50 border border-slate-200/80 rounded-xl space-y-2">
+                    <span className="font-bold text-xs text-slate-900 block">B. Research Preferences</span>
+                    <ul className="text-xs text-slate-600 space-y-1 list-disc list-inside">
+                      <li>Bookmarked / Saved Precedents</li>
+                      <li>Search Query History</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Section 3 */}
+            <section id="section-3" className="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-xs scroll-mt-24 space-y-4">
+              <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
+                <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-xs font-mono">03</div>
+                <h2 className="text-lg sm:text-xl font-extrabold font-cinzel text-[#0B1727]">Mobile App Permissions (Android & iOS)</h2>
+              </div>
+              <div className="text-xs sm:text-sm text-slate-600 leading-relaxed space-y-3">
+                <p>
+                  In compliance with Google Play Developer Policy and Apple App Store Review Guidelines:
+                </p>
+                <ul className="list-disc list-inside space-y-1.5 pl-2 text-slate-700">
+                  <li><strong>INTERNET:</strong> Required to connect to the backend REST API for search.</li>
+                  <li><strong>POST_NOTIFICATIONS:</strong> Optional opt-in for landmark Supreme Court judgment alerts.</li>
+                  <li><strong>READ_MEDIA:</strong> Optional on-demand access when choosing to upload a PDF for in-memory extraction.</li>
+                </ul>
+              </div>
+            </section>
+
+            {/* Section 4 */}
+            <section id="section-4" className="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-xs scroll-mt-24 space-y-4">
+              <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
+                <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-xs font-mono">04</div>
+                <h2 className="text-lg sm:text-xl font-extrabold font-cinzel text-[#0B1727]">Zero-Storage In-Memory PDF Architecture</h2>
+              </div>
+              <div className="text-xs sm:text-sm text-slate-600 leading-relaxed space-y-3">
+                <p>
+                  When uploading a judgment PDF for text extraction, the file is processed strictly in Node.js RAM memory buffers and is wiped clean immediately after parsing. No uploaded user PDF is ever written to disk storage.
+                </p>
+              </div>
+            </section>
+
+            {/* Section 10 */}
+            <section id="section-10" className="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-xs scroll-mt-24 space-y-4">
+              <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
+                <div className="w-8 h-8 rounded-lg bg-red-600 text-white flex items-center justify-center font-bold text-xs font-mono">10</div>
+                <h2 className="text-lg sm:text-xl font-extrabold font-cinzel text-[#0B1727]">User Rights & 1-Click Account Deletion</h2>
+              </div>
+              <div className="text-xs sm:text-sm text-slate-600 leading-relaxed space-y-3">
+                <p>
+                  You can delete your account and all associated bookmarks permanently at any time via:
+                </p>
+                <div className="p-3.5 bg-red-50 text-red-900 border border-red-200 rounded-xl font-mono text-xs">
+                  App / Portal &rarr; Settings &rarr; Delete Account Permanently
+                </div>
+              </div>
+            </section>
+
+            {/* Section 12 */}
+            <section id="section-12" className="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-xs scroll-mt-24 space-y-4">
+              <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
+                <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-xs font-mono">12</div>
+                <h2 className="text-lg sm:text-xl font-extrabold font-cinzel text-[#0B1727]">Statutory Grievance Redressal Officer</h2>
+              </div>
+              <div className="p-5 bg-gradient-to-br from-slate-50 to-blue-50/50 border border-slate-200 rounded-2xl space-y-3 text-xs text-slate-700">
+                <p><strong>Grievance Redressal Officer:</strong> Digi Law Reporter Chambers & Legal Research Centre</p>
+                <p><strong>Chamber Address:</strong> Chamber No. 402, High Court Lawyers Block, Supreme Court Enclave, New Delhi - 110001</p>
+                <p><strong>Official Email:</strong> <a href="mailto:privacy@digilawreporter.in" className="text-blue-700 font-bold hover:underline">privacy@digilawreporter.in</a></p>
+                <p><strong>Helpline:</strong> +91 98765 43210</p>
+              </div>
+            </section>
+
+          </article>
+        </div>
+      </main>
+
+    </div>
+  );
+}

@@ -1,0 +1,1 @@
+export default function AdminArchivedJudgments() { return <div className='p-8'><h1 className='text-2xl font-bold'>Archived Judgments</h1><p>Coming soon...</p></div> }
