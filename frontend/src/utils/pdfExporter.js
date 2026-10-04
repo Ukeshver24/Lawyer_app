@@ -12,7 +12,8 @@ const getOriginalPdfUrl = (caseItem) => {
     return `${pdfPath}${sep}t=${timestamp}`;
   }
 
-  const baseUrl = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000').replace(/\/api\/?$/, '').replace(/\/$/, '');
+  const defaultOrigin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5000';
+  const baseUrl = (import.meta.env.VITE_API_BASE_URL || defaultOrigin).replace(/\/api\/?$/, '').replace(/\/$/, '');
   const normalizedPath = String(pdfPath).replace(/^\/+/, '');
 
   return `${baseUrl}/${normalizedPath}?t=${timestamp}`;

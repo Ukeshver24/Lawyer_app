@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Shield, Key, ArrowRight, Eye, EyeOff, ArrowLeft, X } from 'lucide-react';
+import { API_BASE_URL } from '../../config/api';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
@@ -26,7 +27,7 @@ export default function AdminLogin() {
     const isAuth = localStorage.getItem('adminAuth') === 'true';
 
     if (isAuth && token) {
-      fetch('http://localhost:5000/api/admin/session-status', {
+      fetch(`${API_BASE_URL}/admin/session-status`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'x-admin-session-id': sessionId || ''
@@ -56,7 +57,7 @@ export default function AdminLogin() {
     const cleanInput = email.trim().toLowerCase();
 
     try {
-      const res = await fetch('http://localhost:5000/api/admin/login', {
+      const res = await fetch(`${API_BASE_URL}/admin/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: cleanInput, username: cleanInput, password })
@@ -96,7 +97,7 @@ export default function AdminLogin() {
     setForgotMessage('');
 
     try {
-      const res = await fetch('http://localhost:5000/api/admin/forgot-password', {
+      const res = await fetch(`${API_BASE_URL}/admin/forgot-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: forgotEmail.trim() })

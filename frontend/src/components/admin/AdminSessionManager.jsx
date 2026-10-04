@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminSessionModal from './AdminSessionModal';
+import { API_BASE_URL } from '../../config/api';
 
 export default function AdminSessionManager({ children }) {
   const navigate = useNavigate();
@@ -20,7 +21,7 @@ export default function AdminSessionManager({ children }) {
 
     try {
       if (token) {
-        await fetch('http://localhost:5000/api/admin/logout', {
+        await fetch(`${API_BASE_URL}/admin/logout`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -93,7 +94,7 @@ export default function AdminSessionManager({ children }) {
         }
 
         try {
-          const res = await fetch('http://localhost:5000/api/admin/session-status', {
+          const res = await fetch(`${API_BASE_URL}/admin/session-status`, {
             headers: {
               'Authorization': `Bearer ${token}`,
               'x-admin-session-id': sessionId
@@ -132,7 +133,7 @@ export default function AdminSessionManager({ children }) {
     }
 
     try {
-      const res = await fetch('http://localhost:5000/api/admin/renew-session', {
+      const res = await fetch(`${API_BASE_URL}/admin/renew-session`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

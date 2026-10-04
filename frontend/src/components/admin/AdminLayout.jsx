@@ -3,6 +3,7 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, BookOpen, Users, Settings, LogOut, Menu, X, Bell, User, ChevronDown, ChevronRight, Plus, FileText, CheckCircle2, Home, Shield } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AdminSessionManager from './AdminSessionManager';
+import { API_BASE_URL } from '../../config/api';
 
 export default function AdminLayout() {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
@@ -69,7 +70,7 @@ export default function AdminLayout() {
     const sessionId = localStorage.getItem('adminSessionId');
     try {
       if (token) {
-        await fetch('http://localhost:5000/api/admin/logout', {
+        await fetch(`${API_BASE_URL}/admin/logout`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,

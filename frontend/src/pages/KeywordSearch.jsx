@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Search, BookOpen, FileText, Users, ChevronDown, AlertCircle } from 'lucide-react';
+import { API_BASE_URL } from '../config/api';
 
 const TAB_KEY_MAP = {
   keyword: 'Keyword Search',
@@ -58,8 +59,8 @@ export default function KeywordSearch() {
     const fetchCasesData = async () => {
       try {
         const [casesRes, courtsRes] = await Promise.all([
-          fetch('http://localhost:5000/api/public/search?tab=all'),
-          fetch('http://localhost:5000/api/public/courts')
+          fetch(`${API_BASE_URL}/public/search?tab=all`),
+          fetch(`${API_BASE_URL}/public/courts`)
         ]);
         const casesJson = await casesRes.json();
         if (casesJson.success && Array.isArray(casesJson.data) && casesJson.data.length > 0) {

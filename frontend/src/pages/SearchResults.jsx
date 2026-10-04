@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import UniversalLegalDocument from '../components/UniversalLegalDocument';
 import { downloadCaseAsPDF, printCaseAsPDF } from '../utils/pdfExporter';
 import { downloadCaseAsDOCX } from '../utils/docxExporter';
+import { API_BASE_URL } from '../config/api';
 import { 
   Search, ChevronDown, Download, FileText, Bookmark, BookmarkCheck, 
   Printer, Share2, Filter, Copy, Check, ZoomIn, ZoomOut, Scale, Landmark,
@@ -234,7 +235,7 @@ export default function SearchResults() {
       const identifier = getUserIdentifier();
       if (identifier) {
         try {
-          const res = await fetch(`http://localhost:5000/api/auth/saved-cases/${encodeURIComponent(identifier)}`);
+          const res = await fetch(`${API_BASE_URL}/auth/saved-cases/${encodeURIComponent(identifier)}`);
           const data = await res.json();
           if (data.status === 'success' && Array.isArray(data.data) && data.data.length > 0) {
             setSavedCases(data.data);
@@ -277,7 +278,7 @@ export default function SearchResults() {
     const identifier = getUserIdentifier();
     if (identifier) {
       try {
-        await fetch('http://localhost:5000/api/auth/saved-cases', {
+        await fetch(`${API_BASE_URL}/auth/saved-cases`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ identifier, cases: updated })
@@ -361,8 +362,8 @@ export default function SearchResults() {
       try {
         const activeTabCode = searchParams.get('tab') || 'keyword';
         const searchUrl = query && query.trim()
-          ? `http://localhost:5000/api/public/search?keyword=${encodeURIComponent(query.trim())}&tab=${encodeURIComponent(activeTabCode)}`
-          : `http://localhost:5000/api/public/search?tab=${encodeURIComponent(activeTabCode)}`;
+          ? `${API_BASE_URL}/public/search?keyword=${encodeURIComponent(query.trim())}&tab=${encodeURIComponent(activeTabCode)}`
+          : `${API_BASE_URL}/public/search?tab=${encodeURIComponent(activeTabCode)}`;
 
         const res = await fetch(searchUrl);
         const data = await res.json();

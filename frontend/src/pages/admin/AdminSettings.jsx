@@ -623,7 +623,7 @@ export default function AdminSettings() {
                   }
 
                   try {
-                    const res = await fetch('http://localhost:5000/api/admin/admins/1/password', {
+                    const res = await fetch(`${API_BASE_URL}/admin/admins/1/password`, {
                       method: 'PUT',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({ 

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Shield, Key, Eye, EyeOff, ArrowRight, CheckCircle2, AlertCircle } from 'lucide-react';
+import { API_BASE_URL } from '../../config/api';
 
 export default function AdminResetPassword() {
   const [searchParams] = useSearchParams();
@@ -24,7 +25,7 @@ export default function AdminResetPassword() {
       return;
     }
 
-    fetch(`http://localhost:5000/api/admin/validate-reset-token?token=${encodeURIComponent(token)}`)
+    fetch(`${API_BASE_URL}/admin/validate-reset-token?token=${encodeURIComponent(token)}`)
       .then(res => res.json())
       .then(data => {
         setValidatingToken(false);
@@ -61,7 +62,7 @@ export default function AdminResetPassword() {
     setLoading(true);
 
     try {
-      const res = await fetch('http://localhost:5000/api/admin/reset-password', {
+      const res = await fetch(`${API_BASE_URL}/admin/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token, password })

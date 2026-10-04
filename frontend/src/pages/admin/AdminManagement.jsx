@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Lock, Trash2, X, AlertTriangle, CheckCircle2, Eye, EyeOff, Key } from 'lucide-react';
+import { API_BASE_URL } from '../../config/api';
 
 const INITIAL_MOCK_ADMINS = [
   { id: '1', name: 'Main Admin', username: 'mainadmin', role: 'MAIN_ADMIN', password: 'mainpassword123' }
@@ -52,7 +53,7 @@ export default function AdminManagement() {
   useEffect(() => {
     const fetchAdmins = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/admin/admins');
+        const res = await fetch(`${API_BASE_URL}/admin/admins`);
         const data = await res.json();
         if (data.status === 'success' && Array.isArray(data.data) && data.data.length > 0) {
           setAdminsList(data.data);
@@ -98,7 +99,7 @@ export default function AdminManagement() {
     }
 
     try {
-      const res = await fetch('http://localhost:5000/api/admin/admins', {
+      const res = await fetch(`${API_BASE_URL}/admin/admins`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -158,7 +159,7 @@ export default function AdminManagement() {
     const cleanUsername = editedUsername.trim().toLowerCase();
 
     try {
-      await fetch(`http://localhost:5000/api/admin/admins/${adminToEditPassword.id}/password`, {
+      await fetch(`${API_BASE_URL}/admin/admins/${adminToEditPassword.id}/password`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: cleanUsername, password: editedPassword.trim() })
@@ -185,7 +186,7 @@ export default function AdminManagement() {
     if (adminToRemove.role === 'MAIN_ADMIN') return;
 
     try {
-      await fetch(`http://localhost:5000/api/admin/admins/${adminToRemove.id}`, {
+      await fetch(`${API_BASE_URL}/admin/admins/${adminToRemove.id}`, {
         method: 'DELETE'
       });
     } catch (err) {
