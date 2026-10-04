@@ -4,12 +4,13 @@ import logger from '../utils/logger.js';
 
 /**
  * Seeder / Initializer for Permanent Main Admin Account in PostgreSQL
- * Seeded Email: kavinselvaraj12@gmail.com
- * Initial Password: Kavin1122 (Bcrypt Hashed)
+ * Seeded Email / Username: digitallawreporter@gmail.com
+ * Initial Password: 191700 (Bcrypt Hashed)
  */
 export const seedMainAdmin = async () => {
-  const email = 'kavinselvaraj12@gmail.com';
-  const initialPassword = 'Kavin1122';
+  const email = 'digitallawreporter@gmail.com';
+  const username = 'digitallawreporter';
+  const initialPassword = '191700';
   const role = 'MAIN_ADMIN';
 
   try {
@@ -36,11 +37,18 @@ export const seedMainAdmin = async () => {
     // 1. Seed into PostgreSQL admins table
     const sqlAdmins = `
       INSERT INTO admins (name, username, email, password_hash, role)
-      VALUES ('Main Admin', 'mainadmin', $1, $2, $3)
+      VALUES ('Main Admin', $1, $2, $3, $4)
       ON CONFLICT (username) DO UPDATE 
       SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, role = EXCLUDED.role
     `;
-    await query(sqlAdmins, [email, password_hash, role]);
+    await query(sqlAdmins, [username, email, password_hash, role]);
+
+    // Also update any legacy mainadmin entry if present
+    await query(`
+      UPDATE admins 
+      SET email = $1, password_hash = $2 
+      WHERE username = 'mainadmin' OR role = 'MAIN_ADMIN'
+    `, [email, password_hash]);
 
     // 2. Seed into PostgreSQL users table for unified access
     const sqlUsers = `

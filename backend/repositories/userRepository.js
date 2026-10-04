@@ -4,7 +4,7 @@ import logger from '../utils/logger.js';
 const defaultSettings = {
   profile: {
     name: 'Main Admin',
-    email: 'kavinselvaraj12@gmail.com',
+    email: 'digitallawreporter@gmail.com',
     mobile: '+91 98765 43210'
   },
   office: {
