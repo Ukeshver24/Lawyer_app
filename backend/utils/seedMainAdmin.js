@@ -13,10 +13,22 @@ export const seedMainAdmin = async () => {
   const role = 'MAIN_ADMIN';
 
   try {
-    // 0. Ensure all required columns exist in users table
+    // 0. Ensure all required columns and tables exist
     await query(`
       ALTER TABLE users 
-      ADD COLUMN IF NOT EXISTS dob DATE;
+      ADD COLUMN IF NOT EXISTS dob DATE,
+      ADD COLUMN IF NOT EXISTS joined_date DATE DEFAULT CURRENT_DATE,
+      ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'Active';
+
+      ALTER TABLE cases 
+      ADD COLUMN IF NOT EXISTS pdf_file VARCHAR(255),
+      ADD COLUMN IF NOT EXISTS pdf_file_path VARCHAR(255);
+
+      CREATE TABLE IF NOT EXISTS user_saved_cases (
+        user_identifier VARCHAR(100) PRIMARY KEY,
+        cases JSONB DEFAULT '[]'::jsonb,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
     `);
 
     const password_hash = await bcrypt.hash(initialPassword, 10);

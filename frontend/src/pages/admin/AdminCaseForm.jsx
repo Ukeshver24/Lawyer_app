@@ -1023,6 +1023,20 @@ export default function AdminCaseForm() {
   const stripHtml = (str) => {
     if (!str || typeof str !== 'string') return '';
     return str
+      .replace(/Digitally\s+signed\s+by[^\n<]*/gi, '')
+      .replace(/Signature\s+Not\s+Verified[^\n<]*/gi, '')
+      .replace(/Signature\s+Valid[^\n<]*/gi, '')
+      .replace(/Date:\s*\d{4}\.\d{2}\.\d{2}[^\n<]*/gi, '')
+      .replace(/Reason:[^\n<]*/gi, '')
+      .replace(/Location:[^\n<]*/gi, '')
+      .replace(/https?:\/\/[^\s]*\/qr\/[^\s<]*/gi, '')
+      .replace(/[\uFFFD\u200B\uFEFF]/g, '')
+      .replace(/(?:^|\s)[\?？]\s*(?=[A-Z\.\s]{3,40},\s*J\.?|\.{3,}|…|Date|New Delhi|[A-Z][a-z]+)/gi, ' ')
+      .replace(/(?:^|\s)[\?？]\s*(?:$|\s)/g, ' ')
+      .replace(/\s*[\?？]\s*([A-Z\.\s]{3,40},\s*J\.?)/gi, ' $1')
+      .replace(/\s*[\?？]\s*$/g, '')
+      .replace(/^\s*[\?？]\s*/g, '')
+      .replace(/\s+[\?？]\s+/g, ' ')
       .replace(/<[^>]*>/g, '')
       .replace(/&nbsp;/g, ' ')
       .replace(/&amp;/g, '&')
@@ -1207,6 +1221,8 @@ export default function AdminCaseForm() {
         diaryNumber: ext.diaryNumber || prev.diaryNumber,
         act: ext.act || prev.act,
         section: ext.section || prev.section,
+        pdf_file: ext.pdf_file || prev.pdf_file || '',
+        pdf_file_path: ext.pdf_file_path || prev.pdf_file_path || '',
         summary: stripHtml(ext.summary || prev.summary),
         judgmentText: formatJustifiedParagraphs(ext.judgmentText || prev.judgmentText)
       }));
@@ -1471,6 +1487,8 @@ export default function AdminCaseForm() {
         judgmentText: activeData.judgmentText || '',
         content: activeData.judgmentText || '',
         judgment_text: activeData.judgmentText || '',
+        pdf_file: activeData.pdf_file || activeData.pdf_file_path || '',
+        pdf_file_path: activeData.pdf_file_path || activeData.pdf_file || '',
         status: finalStatus,
         citations: citationsList
       };

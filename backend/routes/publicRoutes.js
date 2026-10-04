@@ -8,6 +8,9 @@ const router = express.Router();
 router.get('/courts', getCourts);
 router.get('/home', getHomeData);
 router.get('/search', searchJudgments);
+router.get('/cases/search', searchJudgments);
+router.get('/cases', searchJudgments);
+router.get('/cases/:id', getJudgmentDetail);
 router.get('/judgment/:id', getJudgmentDetail);
 router.get('/settings', getSettings);
 

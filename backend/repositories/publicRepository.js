@@ -36,7 +36,7 @@ export const searchCasesFromDb = async (params) => {
   }
 
   let sql = `
-    SELECT id, case_number, title, petitioner, respondent, court, judgment_date, year, act, section, head_note, judgment_text, citations
+    SELECT id, case_number, title, petitioner, respondent, court, judgment_date, year, act, section, head_note, judgment_text, citations, pdf_file, pdf_file_path
     FROM cases 
     WHERE status = 'Published'
   `;
@@ -85,7 +85,7 @@ export const searchCasesFromDb = async (params) => {
       const courtTarget = (params.court || (courtInBracketsMatch ? courtInBracketsMatch[1] : null) || '').trim().toLowerCase();
 
       const res = await query(`
-        SELECT id, case_number, title, petitioner, respondent, court, judgment_date, year, act, section, head_note, judgment_text, citations
+        SELECT id, case_number, title, petitioner, respondent, court, judgment_date, year, act, section, head_note, judgment_text, citations, pdf_file, pdf_file_path
         FROM cases 
         WHERE status = 'Published'
         ORDER BY judgment_date DESC
@@ -252,3 +252,4 @@ export const getJudgmentByIdFromDb = async (id) => {
   }
   return (res && res.rows && res.rows.length > 0) ? res.rows[0] : null;
 };
+

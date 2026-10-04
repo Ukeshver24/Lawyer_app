@@ -122,6 +122,20 @@ export default function UniversalLegalDocument({
   const renderFormattedBlock = (textString, customStyle = {}, isItalic = false) => {
     if (!textString) return null;
     const cleanStr = String(textString).trim()
+      .replace(/Digitally\s+signed\s+by[^\n<]*/gi, '')
+      .replace(/Signature\s+Not\s+Verified[^\n<]*/gi, '')
+      .replace(/Signature\s+Valid[^\n<]*/gi, '')
+      .replace(/Date:\s*\d{4}\.\d{2}\.\d{2}[^\n<]*/gi, '')
+      .replace(/Reason:[^\n<]*/gi, '')
+      .replace(/Location:[^\n<]*/gi, '')
+      .replace(/https?:\/\/[^\s]*\/qr\/[^\s<]*/gi, '')
+      .replace(/[\uFFFD\u200B\uFEFF]/g, '')
+      .replace(/(?:^|\s)[\?？]\s*(?=[A-Z\.\s]{3,40},\s*J\.?|\.{3,}|…|Date|New Delhi|[A-Z][a-z]+)/gi, ' ')
+      .replace(/(?:^|\s)[\?？]\s*(?:$|\s)/g, ' ')
+      .replace(/\s*[\?？]\s*([A-Z\.\s]{3,40},\s*J\.?)/gi, ' $1')
+      .replace(/\s*[\?？]\s*$/g, '')
+      .replace(/^\s*[\?？]\s*/g, '')
+      .replace(/\s+[\?？]\s+/g, ' ')
       .replace(/&nbsp;/gi, ' ')
       .replace(/&amp;/gi, '&')
       .replace(/&lt;/gi, '<')
@@ -221,96 +235,100 @@ export default function UniversalLegalDocument({
         </div>
       </div>
 
-      {/* 2. COURT & JURISDICTION (Formal Law Report Precedent Header) */}
-      {court && (
-        <div className="text-center pt-2 space-y-1">
-          <h1 className="text-lg sm:text-xl font-bold uppercase tracking-wider text-slate-950 leading-snug">
-            IN THE {court}
-          </h1>
-          {jurisdiction && (
-            <div className="text-xs uppercase font-sans text-slate-600 tracking-wider">
-              ( {jurisdiction} )
+      {/* 2. COURT & JURISDICTION (Only shown if NOT already present in authentic court body) */}
+      {!hasFullEmbeddedCourtLayout && (
+        <>
+          {court && (
+            <div className="text-center pt-2 space-y-1">
+              <h1 className="text-lg sm:text-xl font-bold uppercase tracking-wider text-slate-950 leading-snug">
+                IN THE {court}
+              </h1>
+              {jurisdiction && (
+                <div className="text-xs uppercase font-sans text-slate-600 tracking-wider">
+                  ( {jurisdiction} )
+                </div>
+              )}
             </div>
           )}
-        </div>
-      )}
 
-      {/* 3. PARTY NAMES (Petitioner vs. Respondent) */}
-      {(petitioner || respondent || rawTitle) && (
-        <div className="text-center py-3 my-1 space-y-2">
-          {petitioner && respondent ? (
-            <div className="space-y-1.5 max-w-xl mx-auto">
-              <div className="text-base sm:text-lg font-bold text-slate-950 leading-snug">
-                {petitioner} <span className="font-normal text-xs text-slate-600 italic font-sans ml-1">. . . Appellant(s);</span>
-              </div>
-              <div className="text-xs italic font-serif text-slate-600 py-0.5 tracking-widest uppercase">
-                — Versus —
-              </div>
-              <div className="text-base sm:text-lg font-bold text-slate-950 leading-snug">
-                {respondent} <span className="font-normal text-xs text-slate-600 italic font-sans ml-1">. . . Respondent(s).</span>
-              </div>
-            </div>
-          ) : (
-            <div className="text-base sm:text-lg font-bold text-slate-950 leading-snug max-w-xl mx-auto">
-              {rawTitle}
+          {/* 3. PARTY NAMES (Petitioner vs. Respondent) */}
+          {(petitioner || respondent || rawTitle) && (
+            <div className="text-center py-3 my-1 space-y-2">
+              {petitioner && respondent ? (
+                <div className="space-y-1.5 max-w-xl mx-auto">
+                  <div className="text-base sm:text-lg font-bold text-slate-950 leading-snug">
+                    {petitioner} <span className="font-normal text-xs text-slate-600 italic font-sans ml-1">. . . Appellant(s);</span>
+                  </div>
+                  <div className="text-xs italic font-serif text-slate-600 py-0.5 tracking-widest uppercase">
+                    — Versus —
+                  </div>
+                  <div className="text-base sm:text-lg font-bold text-slate-950 leading-snug">
+                    {respondent} <span className="font-normal text-xs text-slate-600 italic font-sans ml-1">. . . Respondent(s).</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-base sm:text-lg font-bold text-slate-950 leading-snug max-w-xl mx-auto">
+                  {rawTitle}
+                </div>
+              )}
             </div>
           )}
-        </div>
-      )}
 
-      {/* 4. CASE NO. & DECIDED DATE LINE */}
-      {(caseNumber || formattedDate) && (
-        <div className="text-center text-xs font-serif text-slate-800 italic pt-0.5">
-          {caseNumber && <span className="font-semibold">{caseNumber}</span>}
-          {caseNumber && formattedDate && <span>, </span>}
-          {formattedDate && <span>decided on {formattedDate}</span>}
-        </div>
-      )}
+          {/* 4. CASE NO. & DECIDED DATE LINE */}
+          {(caseNumber || formattedDate) && (
+            <div className="text-center text-xs font-serif text-slate-800 italic pt-0.5">
+              {caseNumber && <span className="font-semibold">{caseNumber}</span>}
+              {caseNumber && formattedDate && <span>, </span>}
+              {formattedDate && <span>decided on {formattedDate}</span>}
+            </div>
+          )}
 
-      {/* 5. BENCH / CORAM LINE */}
-      {bench && (
-        <div className="text-center text-xs text-slate-900 font-semibold pt-0.5">
-          Before <span className="uppercase tracking-wide font-sans text-[11px]">{bench}</span>
-        </div>
-      )}
+          {/* 5. BENCH / CORAM LINE */}
+          {bench && (
+            <div className="text-center text-xs text-slate-900 font-semibold pt-0.5">
+              Before <span className="uppercase tracking-wide font-sans text-[11px]">{bench}</span>
+            </div>
+          )}
 
-      {/* 6. DEDICATED CITATIONS SECTION (MANDATORY ALL CITATIONS DISPLAY) */}
-      {allCitations.length > 0 && (
-        <div className="my-4 p-3.5 sm:p-4 bg-slate-50 border border-slate-300 rounded-sm">
-          <div className="flex items-center justify-between pb-1.5 mb-2.5 border-b border-slate-200">
-            <h2 className="text-[11px] font-bold font-sans tracking-widest text-[#0B1727] uppercase flex items-center gap-2">
-              <span>CITATIONS</span>
-            </h2>
-            <span className="text-[10px] font-sans font-semibold text-slate-600 bg-slate-200/90 px-2 py-0.5 rounded-full">
-              {allCitations.length} {allCitations.length === 1 ? 'Citation' : 'Citations'} Added
-            </span>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {allCitations.map((cit, idx) => (
-              <div 
-                key={idx} 
-                className="inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-slate-300 rounded text-xs font-mono font-bold text-slate-900 shadow-2xs"
-              >
-                <span className="text-primary-700">{formatCitationItem(cit)}</span>
+          {/* 6. DEDICATED CITATIONS SECTION */}
+          {allCitations.length > 0 && (
+            <div className="my-4 p-3.5 sm:p-4 bg-slate-50 border border-slate-300 rounded-sm">
+              <div className="flex items-center justify-between pb-1.5 mb-2.5 border-b border-slate-200">
+                <h2 className="text-[11px] font-bold font-sans tracking-widest text-[#0B1727] uppercase flex items-center gap-2">
+                  <span>CITATIONS</span>
+                </h2>
+                <span className="text-[10px] font-sans font-semibold text-slate-600 bg-slate-200/90 px-2 py-0.5 rounded-full">
+                  {allCitations.length} {allCitations.length === 1 ? 'Citation' : 'Citations'} Added
+                </span>
               </div>
-            ))}
-          </div>
-        </div>
+              <div className="flex flex-wrap gap-2">
+                {allCitations.map((cit, idx) => (
+                  <div 
+                    key={idx} 
+                    className="inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-slate-300 rounded text-xs font-mono font-bold text-slate-900 shadow-2xs"
+                  >
+                    <span className="text-primary-700">{formatCitationItem(cit)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 7. ACT & SECTION REFERENCE LINE */}
+          {(doc.act || doc.section) && (
+            <div className="text-center text-xs font-serif text-slate-800 pt-1">
+              {doc.act && <span className="font-bold text-slate-900">{doc.act}</span>}
+              {doc.act && doc.section && <span className="text-slate-500 font-sans mx-1.5">—</span>}
+              {doc.section && <span className="font-semibold text-slate-800">{doc.section}</span>}
+            </div>
+          )}
+
+          <div className="border-t border-slate-900 my-4"></div>
+        </>
       )}
 
-      {/* 7. ACT & SECTION REFERENCE LINE */}
-      {(doc.act || doc.section) && (
-        <div className="text-center text-xs font-serif text-slate-800 pt-1">
-          {doc.act && <span className="font-bold text-slate-900">{doc.act}</span>}
-          {doc.act && doc.section && <span className="text-slate-500 font-sans mx-1.5">—</span>}
-          {doc.section && <span className="font-semibold text-slate-800">{doc.section}</span>}
-        </div>
-      )}
-
-      <div className="border-t border-slate-900 my-4"></div>
-
-      {/* 7. HEADNOTE SECTION (BOX CONTAINER FORMAT) */}
-      {headNote && (
+      {/* 7. HEADNOTE SECTION (Only if present and not already embedded in body) */}
+      {headNote && !fullContent.includes(headNote.trim().substring(0, 50)) && (
         <div className="my-6">
           <div className="border border-slate-300 rounded-sm p-5 bg-slate-50/70 shadow-xs space-y-2">
             <div className="text-xs font-bold font-sans uppercase tracking-widest text-slate-950 border-b border-slate-300 pb-2 mb-2">
@@ -324,7 +342,18 @@ export default function UniversalLegalDocument({
       )}
 
       {/* 8. JUDGMENT DELIVERY & BODY SECTION */}
-      {fullContent && (
+      {Array.isArray(doc.pages) && doc.pages.length > 0 ? (
+        <div className="space-y-8 pt-1">
+          {doc.pages.map((pg, idx) => (
+            <div 
+              key={idx}
+              className="court-page-sheet bg-white p-2 sm:p-4 rounded-sm space-y-4 border-b border-slate-200 last:border-b-0"
+            >
+              {renderFormattedBlock(pg.html, textInlineStyle, false)}
+            </div>
+          ))}
+        </div>
+      ) : fullContent ? (
         <div className="space-y-4 pt-1">
           {!hasFullEmbeddedCourtLayout && (
             <>
@@ -347,7 +376,7 @@ export default function UniversalLegalDocument({
             {renderFormattedBlock(fullContent, textInlineStyle, false)}
           </div>
         </div>
-      )}
+      ) : null}
 
       {/* 9. FINAL ORDER & DISPOSITION */}
       {orderContent && (

@@ -3,13 +3,13 @@ import { GoogleGenAI } from '@google/genai';
 
 /**
  * AI-Powered Multimodal Legal Judgment Extractor
- * Uses Gemini Vision if GEMINI_API_KEY / GOOGLE_API_KEY is present
+ * Uses Gemini Vision for 100% exact page-by-page replication of the original court judgment PDF.
  */
 async function extractWithGeminiAI(pdfBuffer) {
   const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
   if (!apiKey) return null;
 
-  const models = ['gemini-3.8-flash', 'gemini-3.5-flash', 'gemini-flash-latest'];
+  const models = ['gemini-3.8-flash', 'gemini-3.1-pro-preview', 'gemini-2.5-flash-preview'];
   const base64Pdf = pdfBuffer.toString('base64');
 
   for (const model of models) {
@@ -28,40 +28,62 @@ async function extractWithGeminiAI(pdfBuffer) {
                 }
               },
               {
-                text: `You are an expert Indian Legal Precedent and Supreme Court Judgment Extractor for Digital Law Reporter.
-Extract all details from this court judgment PDF into a strict JSON object with this exact structure:
+                text: `You are an expert Indian Legal Precedent and Supreme Court Judgment Document Formatter for Digital Law Reporter.
+Analyze the attached Indian Supreme Court / High Court judgment PDF and extract every single page with 100% textual, structural, and visual fidelity into a strict JSON structure.
+
+JSON STRUCTURE:
 {
-  "title": "Main Appellant/Petitioner vs. Main Respondent",
-  "petitioner": "Primary Appellant or Petitioner name (EXACT full name, WITHOUT trailing '... APPELLANT(S)')",
-  "respondent": "Primary Respondent name (EXACT full name, WITHOUT trailing '... RESPONDENT(S)')",
-  "court": "Full name of court (e.g., Supreme Court of India, High Court of Delhi)",
-  "year": "YYYY (4 digits)",
+  "title": "Primary Appellant/Petitioner vs. Primary Respondent",
+  "petitioner": "Full Name of Appellant / Petitioner (without '... APPELLANT(S)')",
+  "respondent": "Full Name of Respondent (without '... RESPONDENT(S)')",
+  "court": "Supreme Court of India (or High Court Name)",
+  "year": "YYYY",
   "judgmentDate": "YYYY-MM-DD",
-  "bench": "Hon'ble Judges / Coram names",
-  "caseNumber": "e.g., Crl. A. @ SLP (Crl.) No. 4333 of 2026 or Criminal Appeal No. 5789 of 2022 (DO NOT append page numbers)",
+  "bench": "Hon'ble Judge names",
+  "caseNumber": "Full Appeal / SLP Number (e.g. Crl. A. @ SLP (Crl.) No. 4333 of 2026)",
   "diaryNumber": "Diary Number if present",
   "totalPages": 14,
-  "act": "Primary Act or Code (e.g., Bharatiya Nagarik Suraksha Sanhita, 2023 or Code of Criminal Procedure, 1973)",
-  "section": "Key Sections referenced (e.g., Section 167 or Section 187)",
-  "summary": "Comprehensive legal headnote / editorial synopsis summarizing the case facts, the legal question, the comparative provisions, and the final decision / ratio decidendi (2-3 structured paragraphs)",
+  "act": "Primary Act(s) (e.g. Bharatiya Nagarik Suraksha Sanhita, 2023 / Code of Criminal Procedure, 1973)",
+  "section": "Key Sections referenced (e.g. Section 167 CrPC / Section 187 BNSS)",
+  "summary": "Comprehensive editorial headnote / synopsis summarizing facts, questions of law, and the final decision (2-3 structured paragraphs)",
   "citations": [
-    { "year": "2026", "month": "04", "court": "SC", "number": "2026 INSC 666", "equivalentText": "" }
+    { "year": "2026", "month": "", "court": "SC", "number": "2026 INSC 666", "equivalentText": "" }
   ],
   "pages": [
     {
       "pageNum": 1,
-      "html": "<p style=\"text-align: justify; text-justify: inter-word; margin-bottom: 16px; line-height: 1.85; font-family: 'Times New Roman', serif; font-size: 15px; color: #0f172a;\"><strong>1.</strong> Leave granted...</p>"
+      "html": "... exact HTML for Page 1 ..."
     }
   ],
   "extractedTablesCount": 1
 }
-CRITICAL RULES:
-1. Divide the output into EXACT individual pages in the "pages" array corresponding 1-to-1 with the PDF pages (pageNum: 1, 2, 3, etc.).
-2. If there are statutory comparison tables (e.g., CrPC vs BNSS, IPC vs BNS), extract them with full content in exact multi-column HTML: <div class=\"dlr-table-container my-6 overflow-x-auto\"><table class=\"dlr-extracted-table\" style=\"width: 100%; border-collapse: collapse; margin: 20px 0; font-family: 'Times New Roman', serif; font-size: 14.5px; border: 1.5px solid #334155;\"><thead><tr style=\"background-color: #f1f5f9; border-bottom: 2px solid #334155;\"><th style=\"border: 1px solid #94a3b8; padding: 12px 14px; text-align: left; font-weight: bold; width: 50%;\">Section 167 CrPC</th><th style=\"border: 1px solid #94a3b8; padding: 12px 14px; text-align: left; font-weight: bold; width: 50%;\">Section 187 BNSS</th></tr></thead><tbody><tr><td style=\"border: 1px solid #cbd5e1; padding: 12px 14px; vertical-align: top; text-align: justify; line-height: 1.6;\">...</td><td style=\"border: 1px solid #cbd5e1; padding: 12px 14px; vertical-align: top; text-align: justify; line-height: 1.6;\">...</td></tr></tbody></table></div>.
-3. Format footnotes at page bottom in <div class="dlr-footnote-container" style="margin-top: 24px; padding-top: 8px; border-top: 1px solid #475569; width: 35%;"><sup>1</sup> Footnote text</div>.
-4. Include authentic running footers at page bottom in <div class="dlr-page-running-footer" style="display: flex; justify-content: space-between; font-size: 13px; color: #475569; border-top: 1px solid #e2e8f0;"><span>Crl. A. @ SLP ...</span><span>Page X of Y</span></div>.
-5. NEVER include QR codes or digital signature verification stamps (e.g. 'Digitally signed by', 'Signature Not Verified', '?').
-6. Add underline styling to <u>REPORTABLE</u>, <u>CRIMINAL APPEAL NO...</u>, <u>J U D G M E N T</u>, and judge signature name.
+
+CRITICAL FORMATTING & EXTRACTION RULES:
+1. Divide the output into EXACT 1-to-1 individual pages in the "pages" array (pageNum: 1, 2, 3... totalPages) matching each physical page of the PDF.
+2. STRICT OMISSIONS / SCRUBBING:
+   - NEVER include any QR codes or barcode text.
+   - NEVER include digital signature certification boxes (e.g., "Digitally signed by...", "Signature Not Verified", "Date:...", "Reason:...").
+   - NEVER include question mark symbols ('?' or '\\uFFFD') near judge signatures, dates, or names.
+3. PAGE 1 LAYOUT:
+   - Top Citation & Reportability Header: <div style="display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-family: 'Times New Roman', serif; font-size: 15px; margin-bottom: 24px;"><span>2026 INSC 666</span><span style="text-decoration: underline; letter-spacing: 1px;"><u>REPORTABLE</u></span></div>
+   - Court Header (Centered): <div style="text-align: center; font-weight: bold; font-size: 16px; margin: 12px 0 4px; font-family: 'Times New Roman', serif;">IN THE SUPREME COURT OF INDIA</div><div style="text-align: center; font-weight: bold; font-size: 15px; margin-bottom: 12px; font-family: 'Times New Roman', serif;">CRIMINAL APPELLATE JURISDICTION</div>
+   - Appeal Heading (Centered, Underlined): <div style="text-align: center; font-weight: bold; font-size: 15px; margin-bottom: 4px; font-family: 'Times New Roman', serif;"><u>CRIMINAL APPEAL NO. ____ OF 2026</u></div><div style="text-align: center; font-size: 14px; margin-bottom: 20px; font-family: 'Times New Roman', serif;">(@ Special Leave Petition (Crl.) NO. 4333 OF 2026)</div>
+   - Parties: <div style="display: flex; justify-content: space-between; align-items: baseline; font-weight: bold; font-size: 15px; margin: 12px 0; font-family: 'Times New Roman', serif;"><span>SHAURYA SUNIL KUMAR SINGH</span><span style="font-style: italic;">... APPELLANT(S)</span></div>
+   - VERSUS (Centered): <div style="text-align: center; font-weight: bold; font-size: 14px; letter-spacing: 2px; margin: 16px 0; font-family: 'Times New Roman', serif;">VERSUS</div>
+   - Respondent: <div style="display: flex; justify-content: space-between; align-items: baseline; font-weight: bold; font-size: 15px; margin: 12px 0; font-family: 'Times New Roman', serif;"><span>CENTRAL BUREAU OF INVESTIGATION</span><span style="font-style: italic;">... RESPONDENT(S)</span></div>
+   - JUDGMENT Title (Centered, spaced): <div style="text-align: center; font-weight: bold; font-size: 18px; letter-spacing: 4px; margin: 28px 0 16px; font-family: 'Times New Roman', serif;">J U D G M E N T</div>
+   - Author Judge: <div style="font-weight: bold; font-size: 15px; margin-bottom: 16px; font-family: 'Times New Roman', serif;"><u>SANJAY KAROL, J.</u></div>
+   - Numbered paragraphs: <p style="text-align: justify; text-justify: inter-word; line-height: 1.85; margin-bottom: 16px; font-family: 'Times New Roman', serif; font-size: 15px;"><strong>1.</strong> Leave granted.</p>
+4. STATUTORY COMPARISON TABLES:
+   Render side-by-side comparative statute tables with full content in clean multi-column HTML:
+   <div class="dlr-table-container my-6 overflow-x-auto"><table class="dlr-extracted-table" style="width: 100%; border-collapse: collapse; margin: 16px 0; font-family: 'Times New Roman', serif; font-size: 14.5px; border: 1.5px solid #334155;"><thead><tr style="background-color: #f1f5f9; border-bottom: 2px solid #334155;"><th style="border: 1px solid #94a3b8; padding: 10px 14px; text-align: left; font-weight: bold; width: 50%;">Section 167 CrPC</th><th style="border: 1px solid #94a3b8; padding: 10px 14px; text-align: left; font-weight: bold; width: 50%;">Section 187 BNSS</th></tr></thead><tbody><tr><td style="border: 1px solid #cbd5e1; padding: 10px 14px; vertical-align: top; text-align: justify; line-height: 1.6;">...</td><td style="border: 1px solid #cbd5e1; padding: 10px 14px; vertical-align: top; text-align: justify; line-height: 1.6;">...</td></tr></tbody></table></div>
+5. FOOTNOTES & RUNNING FOOTERS:
+   - Footnotes at bottom of respective page: <div class="dlr-footnote-container" style="margin-top: 24px; padding-top: 8px; border-top: 1px solid #475569; width: 35%;"><sup>1</sup> Hereinafter 'subject FIR'.</div>
+   - Running footer at bottom of EVERY page: <div class="dlr-page-running-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 24px; padding-top: 8px; font-size: 13px; font-family: 'Times New Roman', serif; color: #475569; border-top: 1px solid #e2e8f0;"><span>Crl. A. @ SLP (Crl.) No. 4333 of 2026</span><span>Page X of Y</span></div>
+6. SIGNATURE BLOCK (Last Page):
+   <div style="margin-top: 40px; text-align: right; font-family: 'Times New Roman', serif; font-size: 15px;"><p style="margin-bottom: 4px;">…………………………………………………… J.</p><p style="font-weight: bold; margin-bottom: 30px;">(SANJAY KAROL)</p><p style="margin-bottom: 4px;">…………………………………………………… J.</p><p style="font-weight: bold;">(NONGMEIKAPAM KOTISWAR SINGH)</p></div>
+   <div style="margin-top: 20px; font-family: 'Times New Roman', serif; font-size: 15px;"><p>New Delhi</p><p>July 1, 2026</p></div>
+
 Return ONLY raw valid JSON.`
               }
             ]
@@ -75,25 +97,48 @@ Return ONLY raw valid JSON.`
       const rawText = response.text ? response.text.trim() : '';
       const cleanJson = rawText.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
       const parsed = JSON.parse(cleanJson);
+
       if (parsed && parsed.title) {
+        // Scrub summary
         if (parsed.summary) {
           parsed.summary = parsed.summary
             .replace(/<[^>]*>/g, '')
             .replace(/&nbsp;/g, ' ')
-            .replace(/&amp;/g, '&')
-            .replace(/&lt;/g, '<')
-            .replace(/&gt;/g, '>')
-            .replace(/&quot;/g, '"')
-            .replace(/&#39;/g, "'")
+            .replace(/\s*[\?？\uFFFD]\s*/g, ' ')
             .replace(/\s+/g, ' ')
             .trim();
         }
+
+        // Scrub all page HTMLs
         if (Array.isArray(parsed.pages) && parsed.pages.length > 0) {
+          parsed.pages = parsed.pages.map(page => {
+            let html = page.html || '';
+            html = html
+              .replace(/[\uFFFD\u200B\uFEFF]/g, '')
+              .replace(/(?:^|\s)[\?？]\s*(?=[A-Z\.\s]{3,40},\s*J\.?|\.{3,}|…|Date|New Delhi|[A-Z][a-z]+)/gi, ' ')
+              .replace(/\s*[\?？]\s*$/g, '')
+              .replace(/^\s*[\?？]\s*/g, '')
+              .replace(/<img[^>]*>/gi, '') // Strip any stray images or QR tags
+              .trim();
+            return {
+              ...page,
+              html
+            };
+          });
+
           parsed.judgmentText = parsed.pages.map(p => p.html).filter(Boolean).join('\n');
           parsed.totalPages = parsed.pages.length;
         } else if (parsed.judgmentText) {
-          parsed.pages = [{ pageNum: 1, html: parsed.judgmentText }];
+          let html = parsed.judgmentText
+            .replace(/[\uFFFD\u200B\uFEFF]/g, '')
+            .replace(/(?:^|\s)[\?？]\s*(?=[A-Z\.\s]{3,40},\s*J\.?|\.{3,}|…|Date|New Delhi|[A-Z][a-z]+)/gi, ' ')
+            .replace(/\s*[\?？]\s*$/g, '')
+            .replace(/^\s*[\?？]\s*/g, '')
+            .trim();
+          parsed.pages = [{ pageNum: 1, html }];
+          parsed.judgmentText = html;
         }
+
         return parsed;
       }
     } catch (err) {
@@ -114,7 +159,19 @@ export async function extractJudgmentFromBuffer(pdfBuffer) {
     throw new Error('Invalid PDF buffer provided for extraction');
   }
 
-  // 1. Instant High-Precision In-Memory Engine (Runs in <150ms with Zero Network Delay)
+  // 1. Primary Engine: High-Precision Gemini Vision AI (100% exact page reproduction)
+  if (process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY) {
+    try {
+      const aiResult = await extractWithGeminiAI(pdfBuffer);
+      if (aiResult && aiResult.title && Array.isArray(aiResult.pages) && aiResult.pages.length > 0) {
+        return aiResult;
+      }
+    } catch (e) {
+      console.warn('Gemini extraction fallback:', e.message);
+    }
+  }
+
+  // 2. Fallback Engine: Instant In-Memory PDF Parser
   const uint8 = new Uint8Array(pdfBuffer);
   const loadingTask = pdfjsLib.getDocument({
     data: uint8,
@@ -178,7 +235,7 @@ export async function extractJudgmentFromBuffer(pdfBuffer) {
     fullPlainText += (fullPlainText ? '\n\n' : '') + pageStr;
   }
 
-  // Instant Path: Digital court PDF with text layer (Lightning speed < 150ms)
+  // Format body & metadata
   if (fullPlainText.trim().length >= 50) {
     const { htmlBody, extractedTablesCount, pages } = reconstructStructuredBody(pagesData);
     const metadata = extractLegalMetadata(fullPlainText, pagesData);
@@ -197,14 +254,7 @@ export async function extractJudgmentFromBuffer(pdfBuffer) {
     };
   }
 
-  // 2. Fallback Path: Only for completely scanned image PDFs with NO selectable text layer
-  if (process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY) {
-    const aiResult = await extractWithGeminiAI(pdfBuffer);
-    if (aiResult && aiResult.title) {
-      return aiResult;
-    }
-  }
-  // Default fallback if no readable text layer
+  // Default fallback if empty
   return {
     title: '',
     court: 'Supreme Court of India',
@@ -322,18 +372,25 @@ function reconstructStructuredBody(pagesData) {
     for (let idx = 0; idx < lines.length; idx++) {
       const line = lines[idx];
       const items = line.items || [];
-      const text = line.lineText.trim();
+      // Clean invisible and corrupt glyphs (e.g. signature question mark artifacts)
+      let text = line.lineText
+        .replace(/[\uFFFD\u200B\uFEFF]/g, '')
+        .replace(/(?:^|\s)[\?？]\s*(?=[A-Z\.\s]{3,40},\s*J\.?|\.{3,}|…|Date|New Delhi|[A-Z][a-z]+)/gi, ' ')
+        .replace(/\s*[\?？]\s*$/g, '')
+        .replace(/^\s*[\?？]\s*/g, '')
+        .replace(/\s+[\?？]\s+/g, ' ')
+        .trim();
 
       if (!text) continue;
 
-      // 1. DIGITAL SIGNATURE / STAMP FILTER: Drop digital verification stamp, certificates & question marks
-      const isSigTrigger = /Digitally\s+signed|Signature\s+Not\s+Verified|Signature\s+Valid/i.test(text);
+      // 1. DIGITAL SIGNATURE / QR CODE / STAMP FILTER: Drop digital verification stamp, certificates & question marks
+      const isSigTrigger = /Digitally\s+signed|Signature\s+Not\s+Verified|Signature\s+Valid|QR\s*Code|Scan\s+to\s+verify|https?:\/\/[^\s]*\/qr\//i.test(text);
       if (isSigTrigger) {
-        sigBoxLinesRemaining = 5;
+        sigBoxLinesRemaining = 4;
         continue;
       }
       if (sigBoxLinesRemaining > 0) {
-        if (/^(?:Date\s*:|Reason\s*:|Location\s*:|[A-Z\s]{3,35}$|[\?\uFFFD]$)/i.test(text) && !/^\d+\./.test(text)) {
+        if (/^(?:Date\s*:|Reason\s*:|Location\s*:|[A-Z\s]{3,35}$|[\?\uFFFD]$)/i.test(text) && !/^\d+[\.\)]/.test(text)) {
           sigBoxLinesRemaining--;
           continue;
         } else {
@@ -344,10 +401,11 @@ function reconstructStructuredBody(pagesData) {
         continue;
       }
 
-      // 2. RUNNING FOOTER PRESERVATION: Capture running case footer and page number at page bottom
-      const isBottomRunningFooter = (idx >= lines.length - 3 || /Page\s*\d+\s*of\s*\d+/i.test(text)) && (
-        /(?:Page\s*\d+\s*(?:of\s*\d+)?|\b\d+\s*of\s*\d+\b)$/i.test(text) ||
-        /^(?:Crl\.|Civ\.|Writ|Appeal|SLP|Diary|Special\s*Leave)\s*.*?No\.?\s*[0-9\/\w\-]+/i.test(text)
+      // 2. RUNNING FOOTER PRESERVATION: Capture running case footer and page number at page bottom only
+      const isBottomRunningFooter = (idx >= lines.length - 2) && (
+        /Page\s*\d+\s*(?:of\s*\d+)?/i.test(text) ||
+        /^\d+\s*of\s*\d+$/i.test(text) ||
+        (/^(?:Crl\.|Civ\.|Writ|Appeal|SLP|Diary|Special\s*Leave)\s*.*?No\.?\s*[0-9\/\w\-]+/i.test(text) && /(?:Page\s*\d+|\b\d+\s*of\s*\d+\b)/i.test(text))
       );
 
       if (isBottomRunningFooter) {

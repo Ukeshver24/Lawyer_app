@@ -46,11 +46,25 @@ app.use((req, res, next) => {
   next();
 });
 
-// Serve uploads folder statically with caching
-const uploadBase = process.env.UPLOAD_PATH || 'uploads/';
-app.use(`/${uploadBase}`, express.static(path.join(__dirname, uploadBase), {
-  maxAge: '1d',
-  immutable: true
+// Serve uploads folder statically with zero caching to guarantee fresh sanitized PDFs
+const uploadDir = path.join(__dirname, 'uploads');
+app.use('/uploads', express.static(uploadDir, {
+  etag: false,
+  maxAge: 0,
+  setHeaders: (res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+  }
+}));
+app.use('/api/uploads', express.static(uploadDir, {
+  etag: false,
+  maxAge: 0,
+  setHeaders: (res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+  }
 }));
 
 // Health check

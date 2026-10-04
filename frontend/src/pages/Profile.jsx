@@ -56,20 +56,23 @@ export default function Profile() {
     return parts[0].slice(0, 2).toUpperCase();
   };
 
-  // Helper to format DOB into human-friendly format (e.g. 13 Jul 2007)
+  // Helper to format DOB into human-friendly format (e.g. 24 Jul 2007)
   const formatDob = (dobStr) => {
     if (!dobStr) return '';
     try {
       const s = String(dobStr).trim();
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
         const [y, m, d] = s.slice(0, 10).split('-');
-        const date = new Date(parseInt(y, 10), parseInt(m, 10) - 1, parseInt(d, 10));
-        return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+        const monthIdx = parseInt(m, 10) - 1;
+        const dayNum = parseInt(d, 10);
+        return `${dayNum} ${monthNames[monthIdx] || m} ${y}`;
       }
       if (/^\d{2}\/\d{2}\/\d{4}/.test(s)) {
         const [d, m, y] = s.split('/');
-        const date = new Date(parseInt(y, 10), parseInt(m, 10) - 1, parseInt(d, 10));
-        return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+        const monthIdx = parseInt(m, 10) - 1;
+        const dayNum = parseInt(d, 10);
+        return `${dayNum} ${monthNames[monthIdx] || m} ${y}`;
       }
       return dobStr;
     } catch {

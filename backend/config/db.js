@@ -10,7 +10,10 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.join(__dirname, '../.env') });
 dotenv.config();
 
-const { Pool } = pkg;
+const { Pool, types } = pkg;
+
+// Force PostgreSQL DATE (OID 1082) to return exact raw string 'YYYY-MM-DD' without UTC timezone shifts
+types.setTypeParser(1082, (str) => str);
 
 const poolConfig = process.env.DATABASE_URL
   ? { connectionString: process.env.DATABASE_URL, max: 20, idleTimeoutMillis: 30000, connectionTimeoutMillis: 5000 }

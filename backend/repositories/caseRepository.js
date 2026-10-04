@@ -13,6 +13,7 @@ export const getAllCasesFromDb = async ({ status, limit = 50, offset = 0 }) => {
     SELECT 
       id, case_number, title, petitioner, respondent, court, 
       judgment_date, year, act, section, head_note, status, citations, 
+      pdf_file, pdf_file_path,
       created_at, updated_at 
     FROM cases
   `;
@@ -57,7 +58,8 @@ export const getCaseByIdFromDb = async (id) => {
 export const createCaseInDb = async (caseData) => {
   const {
     caseNumber, title, petitioner, respondent, court, judgmentDate,
-    year, act, section, headNote, judgmentText, status, citations
+    year, act, section, headNote, judgmentText, status, citations,
+    pdf_file, pdf_file_path
   } = caseData;
 
   const validDate = judgmentDate && String(judgmentDate).trim().length >= 8 
@@ -68,55 +70,10 @@ export const createCaseInDb = async (caseData) => {
   const sql = `
     INSERT INTO cases (
       case_number, title, petitioner, respondent, court, judgment_date,
-      year, act, section, head_note, judgment_text, status, citations
+      year, act, section, head_note, judgment_text, status, citations,
+      pdf_file, pdf_file_path
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13::jsonb)
-    RETURNING *
-  `;
-
-  const values = [
-    caseNumber,
-    title,
-    petitioner || null,
-    respondent || null,
-    court || 'Supreme Court of India',
-    validDate,
-    validYear,
-    act || null,
-    section || null,
-    headNote || null,
-    judgmentText || null,
-    status || 'Published',
-    JSON.stringify(citations || [])
-  ];
-
-  const res = await query(sql, values);
-  fastCache.invalidatePrefix('cases:');
-  fastCache.invalidatePrefix('search:');
-  return res.rows[0];
-};
-
-// Update case precedent in PostgreSQL
-export const updateCaseInDb = async (id, caseData) => {
-  const {
-    caseNumber, title, petitioner, respondent, court, judgmentDate,
-    year, act, section, headNote, judgmentText, status, citations
-  } = caseData;
-
-  const numericId = parseInt(id, 10);
-  const validDate = judgmentDate && String(judgmentDate).trim().length >= 8 
-    ? String(judgmentDate).trim() 
-    : new Date().toISOString().split('T')[0];
-  const validYear = parseInt(year || (validDate ? validDate.substring(0, 4) : '2026'), 10) || new Date().getFullYear();
-
-  const sql = `
-    UPDATE cases
-    SET 
-      case_number = $1, title = $2, petitioner = $3, respondent = $4,
-      court = $5, judgment_date = $6, year = $7, act = $8, section = $9,
-      head_note = $10, judgment_text = $11, status = $12, citations = $13::jsonb,
-      updated_at = CURRENT_TIMESTAMP
-    WHERE id = $14 OR id::text = $15
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13::jsonb, $14, $15)
     RETURNING *
   `;
 
@@ -134,6 +91,58 @@ export const updateCaseInDb = async (id, caseData) => {
     judgmentText || null,
     status || 'Published',
     JSON.stringify(citations || []),
+    pdf_file || pdf_file_path || null,
+    pdf_file_path || pdf_file || null
+  ];
+
+  const res = await query(sql, values);
+  fastCache.invalidatePrefix('cases:');
+  fastCache.invalidatePrefix('search:');
+  return res.rows[0];
+};
+
+// Update case precedent in PostgreSQL
+export const updateCaseInDb = async (id, caseData) => {
+  const {
+    caseNumber, title, petitioner, respondent, court, judgmentDate,
+    year, act, section, headNote, judgmentText, status, citations,
+    pdf_file, pdf_file_path
+  } = caseData;
+
+  const numericId = parseInt(id, 10);
+  const validDate = judgmentDate && String(judgmentDate).trim().length >= 8 
+    ? String(judgmentDate).trim() 
+    : new Date().toISOString().split('T')[0];
+  const validYear = parseInt(year || (validDate ? validDate.substring(0, 4) : '2026'), 10) || new Date().getFullYear();
+
+  const sql = `
+    UPDATE cases
+    SET 
+      case_number = $1, title = $2, petitioner = $3, respondent = $4,
+      court = $5, judgment_date = $6, year = $7, act = $8, section = $9,
+      head_note = $10, judgment_text = $11, status = $12, citations = $13::jsonb,
+      pdf_file = COALESCE($14, pdf_file), pdf_file_path = COALESCE($15, pdf_file_path),
+      updated_at = CURRENT_TIMESTAMP
+    WHERE id = $16 OR id::text = $17
+    RETURNING *
+  `;
+
+  const values = [
+    caseNumber,
+    title,
+    petitioner || null,
+    respondent || null,
+    court || 'Supreme Court of India',
+    validDate,
+    validYear,
+    act || null,
+    section || null,
+    headNote || null,
+    judgmentText || null,
+    status || 'Published',
+    JSON.stringify(citations || []),
+    pdf_file || pdf_file_path || null,
+    pdf_file_path || pdf_file || null,
     isNaN(numericId) ? 0 : numericId,
     String(id)
   ];
