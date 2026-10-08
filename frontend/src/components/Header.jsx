@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { LogOut, User, Menu, X, ArrowLeft } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Header() {
   const [user, setUser] = useState(null);
@@ -27,11 +28,6 @@ export default function Header() {
     return () => window.removeEventListener('storage', updateUser);
   }, [location.pathname]);
 
-  // Close mobile menu on route change
-  useEffect(() => {
-    setIsMobileMenuOpen(false);
-  }, [location.pathname]);
-
   const handleLogout = () => {
     setUser(null);
     localStorage.removeItem('user');
@@ -47,9 +43,10 @@ export default function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs print:hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-14">
+    <>
+      <header className="fixed top-0 left-0 right-0 z-50 w-full bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs print:hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-14">
            
            {/* Left: Original Logo Image */}
            <div className="flex items-center">
@@ -137,11 +134,19 @@ export default function Header() {
 
         </div>
       </div>
+    </header>
 
-      {/* Mobile Navigation Menu Dropdown */}
+    {/* Mobile Navigation Horizontal Sub-Bar */}
+    <AnimatePresence>
       {!isAuthPage && isMobileMenuOpen && (
-        <div className="md:hidden bg-white border-b border-slate-200 px-4 pt-3 pb-5 space-y-3 shadow-lg animate-in slide-in-from-top duration-200">
-          <nav className="flex flex-col space-y-1">
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.15 }}
+          className="fixed top-14 left-0 right-0 z-[9999] bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-md py-2.5 px-3 md:hidden overflow-x-auto"
+        >
+          <div className="flex items-center justify-end gap-1.5 max-w-full ml-auto px-4 min-w-max">
             {navItems.map((item) => {
               const isActive = location.pathname === item.path ||
                 (item.path === '/' && location.pathname === '/') ||
@@ -150,49 +155,46 @@ export default function Header() {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`px-3 py-2.5 rounded-lg text-sm font-bold transition-colors ${
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap ${
                     isActive
-                      ? 'bg-blue-50 text-blue-700'
-                      : 'text-slate-700 hover:bg-slate-50 hover:text-blue-600'
+                      ? 'bg-primary-600 text-white shadow-xs'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-primary-700'
                   }`}
                 >
                   {item.label}
                 </Link>
               );
             })}
-          </nav>
 
-          {user ? (
-            <div className="pt-2 border-t border-slate-100 space-y-2">
-              <Link
-                to="/profile"
-                className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-blue-50 text-blue-700 text-xs font-bold transition-colors cursor-pointer"
-              >
-                <User size={15} />
-                <span>My Profile ({user.name ? user.name.split(' ')[0] : 'User'})</span>
-              </Link>
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 text-xs font-bold transition-colors cursor-pointer"
-              >
-                <LogOut size={15} />
-                <span>Logout</span>
-              </button>
-            </div>
-          ) : (
-            <div className="pt-2 border-t border-slate-100">
-              <Link
-                to="/login"
-                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-primary-600 text-white text-sm font-bold transition-colors"
-              >
-                <User size={16} />
-                <span>Sign In / Register</span>
-              </Link>
-            </div>
-          )}
-        </div>
+            {/* User Action Items when logged in */}
+            {user && (
+              <>
+                <span className="text-slate-300 font-light mx-0.5">•</span>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <Link
+                    to="/profile"
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-blue-50 text-blue-700 text-xs font-bold hover:bg-blue-100 transition-colors whitespace-nowrap"
+                  >
+                    <User size={13} />
+                    <span>Profile</span>
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-red-50 text-red-600 hover:bg-red-100 text-xs font-bold transition-colors cursor-pointer whitespace-nowrap"
+                  >
+                    <LogOut size={13} />
+                    <span>Logout</span>
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </motion.div>
       )}
-    </header>
+    </AnimatePresence>
+
+    <div className="h-14 w-full shrink-0 pointer-events-none opacity-0 print:hidden" aria-hidden="true" />
+    </>
   );
 }

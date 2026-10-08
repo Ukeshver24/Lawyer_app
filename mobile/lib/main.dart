@@ -5,9 +5,14 @@ import 'package:digi_law_reporter_mobile/providers/search_provider.dart';
 import 'package:digi_law_reporter_mobile/providers/bookmark_provider.dart';
 import 'package:digi_law_reporter_mobile/theme/app_theme.dart';
 import 'package:digi_law_reporter_mobile/screens/splash_screen.dart';
+import 'package:digi_law_reporter_mobile/services/fcm_service.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Firebase Cloud Messaging for Push Notifications
+  await FCMService.initialize();
+  
   runApp(const DigiLawReporterApp());
 }
 
@@ -39,6 +44,7 @@ class DigiLawReporterApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => BookmarkProvider()),
       ],
       child: MaterialApp(
+        navigatorKey: FCMService.navigatorKey,
         title: 'Digi Law Reporter',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,

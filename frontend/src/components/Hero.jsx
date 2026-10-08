@@ -35,9 +35,11 @@ export default function Hero() {
       <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center w-full space-y-8 md:space-y-10">
         
         {/* 1. Header Badge */}
-        <div className="inline-flex items-center gap-2 px-4.5 py-1.5 rounded-full bg-primary-600/90 border border-primary-400/40 text-white text-xs md:text-sm font-semibold shadow-xl backdrop-blur-md animate-fade-in">
-          <ShieldCheck size={16} className="text-white" />
-          <span className="tracking-widest uppercase text-[11px] md:text-xs font-bold text-white">SUPREME COURT OF INDIA & HIGH COURTS VERIFIED REPOSITORY</span>
+        <div className="inline-flex items-center justify-center gap-2 sm:gap-2.5 px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl sm:rounded-full bg-primary-600/90 border border-primary-400/40 text-white shadow-xl backdrop-blur-md animate-fade-in max-w-[92vw] sm:max-w-full">
+          <ShieldCheck size={16} className="text-white shrink-0 sm:w-[18px] sm:h-[18px]" />
+          <span className="tracking-wide uppercase text-[10px] sm:text-[11px] md:text-xs font-bold text-white leading-snug sm:leading-normal text-center">
+            SUPREME COURT OF INDIA & HIGH COURTS VERIFIED REPOSITORY
+          </span>
         </div>
 
         {/* 2. Main Title with Unique Cinzel Font */}

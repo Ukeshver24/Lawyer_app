@@ -14,7 +14,11 @@ import {
   AlertCircle, 
   ShieldCheck, 
   ArrowRight,
-  UserPlus
+  UserPlus,
+  Scale,
+  BookOpen,
+  Sparkles,
+  CheckCircle2
 } from 'lucide-react';
 import { API_BASE_URL } from '../config/api';
 
@@ -206,35 +210,29 @@ export default function Login({ initialMode = 'login' }) {
   };
 
   return (
-    <div className="flex-1 flex items-center justify-center p-3 sm:p-4 w-full font-jakarta relative my-auto min-h-[calc(100vh-4rem)]">
+    <div className="flex-1 flex flex-col items-center justify-center w-full font-jakarta relative my-auto bg-white sm:bg-transparent p-0 sm:p-6">
       <motion.div 
         layout
-        initial={{ opacity: 0, scale: 0.97 }}
-        animate={{ opacity: 1, scale: 1 }}
+        initial={{ opacity: 0, y: 10, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.2 }}
-        className="w-full max-w-[410px] sm:max-w-[430px] bg-white rounded-2xl shadow-xl border border-slate-200/90 overflow-hidden relative my-auto"
+        className="w-full min-h-[calc(100vh-3.5rem)] sm:min-h-0 sm:max-w-[410px] bg-white sm:rounded-3xl shadow-none sm:shadow-xl border-0 sm:border sm:border-slate-200/90 overflow-hidden relative my-auto flex flex-col justify-center"
       >
-        <div className="p-5 sm:p-6">
+        <div className="p-5 sm:p-7 flex flex-col justify-center my-auto w-full">
 
           {/* Dynamic Header */}
           <div className="text-center mb-4 sm:mb-5">
-            <div className="w-11 h-11 bg-primary-50 text-primary-600 border border-primary-100 rounded-xl flex items-center justify-center mx-auto mb-2 shadow-2xs">
-              {mode === 'login' && <LogIn size={22} />}
-              {mode === 'register' && <UserPlus size={22} />}
-              {mode === 'forgot' && <KeyRound size={22} />}
+            <div className="w-11 h-11 sm:w-12 sm:h-12 bg-primary-50 text-primary-600 border border-primary-100 rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto mb-2.5 shadow-2xs">
+              {mode === 'login' && <LogIn size={22} className="sm:w-6 sm:h-6" />}
+              {mode === 'register' && <UserPlus size={22} className="sm:w-6 sm:h-6" />}
+              {mode === 'forgot' && <KeyRound size={22} className="sm:w-6 sm:h-6" />}
             </div>
             
-            <h2 className="text-xl font-bold text-slate-900 mb-0.5 tracking-tight font-jakarta">
-              {mode === 'login' && 'Fast MPIN Access'}
-              {mode === 'register' && 'Create Subscriber Account'}
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight font-jakarta">
+              {mode === 'login' && 'Login'}
+              {mode === 'register' && 'Create Account'}
               {mode === 'forgot' && 'Reset 4-Digit MPIN'}
             </h2>
-            
-            <p className="text-slate-500 text-[11px] sm:text-xs font-normal max-w-xs mx-auto leading-relaxed">
-              {mode === 'login' && 'Enter your 10-digit mobile number and 4-digit MPIN.'}
-              {mode === 'register' && 'Register your details with DOB & set a 4-digit MPIN.'}
-              {mode === 'forgot' && 'Verify Mobile & Date of Birth to set a new 4-digit MPIN.'}
-            </p>
           </div>
 
           {/* Feedback Alerts */}
@@ -275,15 +273,15 @@ export default function Login({ initialMode = 'login' }) {
                 exit={{ opacity: 0, x: 10 }}
                 transition={{ duration: 0.18 }}
                 onSubmit={handleLoginSubmit} 
-                className="space-y-3 sm:space-y-3.5"
+                className="space-y-4 sm:space-y-5"
               >
                 {/* Mobile Number */}
                 <div>
-                  <label className="block text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                  <label className="block text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
                     Mobile Number
                   </label>
                   <div className="relative">
-                    <Phone size={16} className="absolute left-3.5 top-2.5 text-slate-400" />
+                    <Phone size={16} className="absolute left-3.5 top-3 text-slate-400" />
                     <input 
                       type="tel" 
                       required 
@@ -292,15 +290,15 @@ export default function Login({ initialMode = 'login' }) {
                       pattern="[0-9]*"
                       value={formData.mobile} 
                       onChange={e => setFormData({ ...formData, mobile: e.target.value.replace(/\D/g, '').slice(0, 10) })} 
-                      className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-600 focus:border-primary-600 outline-none transition-all bg-slate-50 focus:bg-white text-xs sm:text-sm font-semibold text-slate-900 tracking-wider placeholder:text-[11px] sm:placeholder:text-xs placeholder:font-normal placeholder:tracking-normal placeholder:text-slate-400" 
+                      className="w-full pl-10 pr-3.5 py-2.5 sm:py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-600 focus:border-primary-600 outline-none transition-all bg-slate-50 focus:bg-white text-xs sm:text-sm font-semibold text-slate-900 tracking-wider placeholder:text-[11px] sm:placeholder:text-xs placeholder:font-normal placeholder:tracking-normal placeholder:text-slate-400" 
                       placeholder="10-digit mobile number" 
                     />
                   </div>
                 </div>
 
                 {/* 4-Digit MPIN */}
-                <div>
-                  <div className="flex justify-between items-center mb-1">
+                <div className="pt-0.5">
+                  <div className="flex justify-between items-center mb-1.5">
                     <label className="block text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-700">
                       4-Digit MPIN
                     </label>
@@ -313,7 +311,7 @@ export default function Login({ initialMode = 'login' }) {
                     </button>
                   </div>
                   <div className="relative">
-                    <Lock size={16} className="absolute left-3.5 top-2.5 text-slate-400" />
+                    <Lock size={16} className="absolute left-3.5 top-3 text-slate-400" />
                     <input 
                       type={showMpin ? 'text' : 'password'} 
                       required 
@@ -322,13 +320,13 @@ export default function Login({ initialMode = 'login' }) {
                       pattern="[0-9]*"
                       value={formData.mpin} 
                       onChange={e => setFormData({ ...formData, mpin: e.target.value.replace(/\D/g, '').slice(0, 4) })} 
-                      className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-600 focus:border-primary-600 outline-none transition-all bg-slate-50 focus:bg-white text-xs sm:text-sm font-semibold text-slate-900 tracking-widest placeholder:text-[10px] sm:placeholder:text-xs placeholder:font-normal placeholder:tracking-normal placeholder:text-slate-400" 
+                      className="w-full pl-10 pr-10 py-2.5 sm:py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-600 focus:border-primary-600 outline-none transition-all bg-slate-50 focus:bg-white text-xs sm:text-sm font-semibold text-slate-900 tracking-widest placeholder:text-[10px] sm:placeholder:text-xs placeholder:font-normal placeholder:tracking-normal placeholder:text-slate-400" 
                       placeholder="••••" 
                     />
                     <button
                       type="button"
                       onClick={() => setShowMpin(!showMpin)}
-                      className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                      className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
                       tabIndex={-1}
                       title={showMpin ? 'Hide MPIN' : 'Show MPIN'}
                     >
@@ -341,15 +339,15 @@ export default function Login({ initialMode = 'login' }) {
                 <button 
                   type="submit" 
                   disabled={loading} 
-                  className="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-2.75 sm:py-3 rounded-xl transition-all active:scale-[0.98] shadow-md hover:shadow-primary-500/25 flex justify-center items-center gap-2 mt-2 text-xs sm:text-sm cursor-pointer disabled:opacity-70"
+                  className="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-3 sm:py-3.5 rounded-xl transition-all active:scale-[0.98] shadow-md hover:shadow-primary-500/25 flex justify-center items-center gap-2 mt-6 sm:mt-7 text-xs sm:text-sm cursor-pointer disabled:opacity-70"
                 >
                   {loading ? 'Authenticating...' : 'Login to Search'}
-                  {!loading && <ArrowRight size={15} />}
+                  {!loading && <ArrowRight size={16} />}
                 </button>
 
                 {/* Switch to Register */}
                 <div className="mt-3 pt-3 border-t border-slate-100 text-center">
-                  <p className="text-slate-600 text-xs">
+                  <p className="text-slate-600 text-xs sm:text-sm">
                     Don't have an account?{' '}
                     <button
                       type="button"
@@ -372,7 +370,7 @@ export default function Login({ initialMode = 'login' }) {
                 exit={{ opacity: 0, x: -10 }}
                 transition={{ duration: 0.18 }}
                 onSubmit={handleRegisterSubmit} 
-                className="space-y-2.5 sm:space-y-3"
+                className="space-y-3 sm:space-y-3.5"
               >
                 {/* Full Name */}
                 <div>
@@ -380,13 +378,13 @@ export default function Login({ initialMode = 'login' }) {
                     Full Name
                   </label>
                   <div className="relative">
-                    <User size={16} className="absolute left-3.5 top-2.5 text-slate-400" />
+                    <User size={16} className="absolute left-3.5 top-3 text-slate-400" />
                     <input 
                       type="text" 
                       required 
                       value={formData.name} 
                       onChange={e => setFormData({ ...formData, name: e.target.value })} 
-                      className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-600 focus:border-primary-600 outline-none transition-all bg-slate-50 focus:bg-white text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-[11px] sm:placeholder:text-xs placeholder:font-normal placeholder:text-slate-400" 
+                      className="w-full pl-10 pr-3.5 py-2.5 sm:py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-600 focus:border-primary-600 outline-none transition-all bg-slate-50 focus:bg-white text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-[11px] sm:placeholder:text-xs placeholder:font-normal placeholder:text-slate-400" 
                       placeholder="e.g. Adv. Rajesh Sharma" 
                     />
                   </div>
@@ -398,7 +396,7 @@ export default function Login({ initialMode = 'login' }) {
                     Mobile Number
                   </label>
                   <div className="relative">
-                    <Phone size={16} className="absolute left-3.5 top-2.5 text-slate-400" />
+                    <Phone size={16} className="absolute left-3.5 top-3 text-slate-400" />
                     <input 
                       type="tel" 
                       required 
@@ -407,7 +405,7 @@ export default function Login({ initialMode = 'login' }) {
                       pattern="[0-9]*"
                       value={formData.mobile} 
                       onChange={e => setFormData({ ...formData, mobile: e.target.value.replace(/\D/g, '').slice(0, 10) })} 
-                      className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-600 focus:border-primary-600 outline-none transition-all bg-slate-50 focus:bg-white text-xs sm:text-sm font-semibold text-slate-900 tracking-wider placeholder:text-[11px] sm:placeholder:text-xs placeholder:font-normal placeholder:tracking-normal placeholder:text-slate-400" 
+                      className="w-full pl-10 pr-3.5 py-2.5 sm:py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-600 focus:border-primary-600 outline-none transition-all bg-slate-50 focus:bg-white text-xs sm:text-sm font-semibold text-slate-900 tracking-wider placeholder:text-[11px] sm:placeholder:text-xs placeholder:font-normal placeholder:tracking-normal placeholder:text-slate-400" 
                       placeholder="10-digit mobile number" 
                     />
                   </div>
@@ -419,7 +417,7 @@ export default function Login({ initialMode = 'login' }) {
                     Date of Birth (DD/MM/YYYY)
                   </label>
                   <div className="relative">
-                    <Calendar size={16} className="absolute left-3.5 top-2.5 text-slate-400" />
+                    <Calendar size={16} className="absolute left-3.5 top-3 text-slate-400" />
                     <input 
                       type="text" 
                       required 
@@ -427,7 +425,7 @@ export default function Login({ initialMode = 'login' }) {
                       inputMode="numeric"
                       value={formData.dob} 
                       onChange={handleDobChange} 
-                      className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-600 focus:border-primary-600 outline-none transition-all bg-slate-50 focus:bg-white text-xs sm:text-sm font-semibold text-slate-900 tracking-wider placeholder:text-[11px] sm:placeholder:text-xs placeholder:font-normal placeholder:tracking-normal placeholder:text-slate-400" 
+                      className="w-full pl-10 pr-3.5 py-2.5 sm:py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-600 focus:border-primary-600 outline-none transition-all bg-slate-50 focus:bg-white text-xs sm:text-sm font-semibold text-slate-900 tracking-wider placeholder:text-[11px] sm:placeholder:text-xs placeholder:font-normal placeholder:tracking-normal placeholder:text-slate-400" 
                       placeholder="DD/MM/YYYY" 
                     />
                   </div>
@@ -439,7 +437,7 @@ export default function Login({ initialMode = 'login' }) {
                     Set 4-Digit MPIN
                   </label>
                   <div className="relative">
-                    <Lock size={16} className="absolute left-3.5 top-2.5 text-slate-400" />
+                    <Lock size={16} className="absolute left-3.5 top-3 text-slate-400" />
                     <input 
                       type={showMpin ? 'text' : 'password'} 
                       required 
@@ -448,13 +446,13 @@ export default function Login({ initialMode = 'login' }) {
                       pattern="[0-9]*"
                       value={formData.mpin} 
                       onChange={e => setFormData({ ...formData, mpin: e.target.value.replace(/\D/g, '').slice(0, 4) })} 
-                      className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-600 focus:border-primary-600 outline-none transition-all bg-slate-50 focus:bg-white text-xs sm:text-sm font-semibold text-slate-900 tracking-widest placeholder:text-[10px] sm:placeholder:text-xs placeholder:font-normal placeholder:tracking-normal placeholder:text-slate-400" 
+                      className="w-full pl-10 pr-10 py-2.5 sm:py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-600 focus:border-primary-600 outline-none transition-all bg-slate-50 focus:bg-white text-xs sm:text-sm font-semibold text-slate-900 tracking-widest placeholder:text-[10px] sm:placeholder:text-xs placeholder:font-normal placeholder:tracking-normal placeholder:text-slate-400" 
                       placeholder="Enter 4-digit MPIN" 
                     />
                     <button
                       type="button"
                       onClick={() => setShowMpin(!showMpin)}
-                      className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                      className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
                       tabIndex={-1}
                       title={showMpin ? 'Hide MPIN' : 'Show MPIN'}
                     >
@@ -467,15 +465,15 @@ export default function Login({ initialMode = 'login' }) {
                 <button 
                   type="submit" 
                   disabled={loading} 
-                  className="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-2.75 sm:py-3 rounded-xl transition-all active:scale-[0.98] shadow-md hover:shadow-primary-500/25 flex justify-center items-center gap-2 mt-2 text-xs sm:text-sm cursor-pointer disabled:opacity-70"
+                  className="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-3 sm:py-3.5 rounded-xl transition-all active:scale-[0.98] shadow-md hover:shadow-primary-500/25 flex justify-center items-center gap-2 mt-2 text-xs sm:text-sm cursor-pointer disabled:opacity-70"
                 >
                   {loading ? 'Creating Account...' : 'Register & Access'}
-                  {!loading && <ArrowRight size={15} />}
+                  {!loading && <ArrowRight size={16} />}
                 </button>
 
                 {/* Switch to Login */}
-                <div className="mt-2.5 pt-2.5 border-t border-slate-100 text-center">
-                  <p className="text-slate-600 text-xs">
+                <div className="mt-3 pt-3 border-t border-slate-100 text-center">
+                  <p className="text-slate-600 text-xs sm:text-sm">
                     Already have an MPIN?{' '}
                     <button
                       type="button"
@@ -498,7 +496,7 @@ export default function Login({ initialMode = 'login' }) {
                 exit={{ opacity: 0, x: -10 }}
                 transition={{ duration: 0.18 }}
                 onSubmit={handleForgotSubmit} 
-                className="space-y-2.5 sm:space-y-3"
+                className="space-y-3 sm:space-y-3.5"
               >
                 {/* Mobile Number */}
                 <div>
@@ -506,7 +504,7 @@ export default function Login({ initialMode = 'login' }) {
                     Registered Mobile Number
                   </label>
                   <div className="relative">
-                    <Phone size={16} className="absolute left-3.5 top-2.5 text-slate-400" />
+                    <Phone size={16} className="absolute left-3.5 top-3 text-slate-400" />
                     <input 
                       type="tel" 
                       required 
@@ -515,7 +513,7 @@ export default function Login({ initialMode = 'login' }) {
                       pattern="[0-9]*"
                       value={formData.mobile} 
                       onChange={e => setFormData({ ...formData, mobile: e.target.value.replace(/\D/g, '').slice(0, 10) })} 
-                      className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-600 focus:border-primary-600 outline-none transition-all bg-slate-50 focus:bg-white text-xs sm:text-sm font-semibold text-slate-900 tracking-wider placeholder:text-[11px] sm:placeholder:text-xs placeholder:font-normal placeholder:tracking-normal placeholder:text-slate-400" 
+                      className="w-full pl-10 pr-3.5 py-2.5 sm:py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-600 focus:border-primary-600 outline-none transition-all bg-slate-50 focus:bg-white text-xs sm:text-sm font-semibold text-slate-900 tracking-wider placeholder:text-[11px] sm:placeholder:text-xs placeholder:font-normal placeholder:tracking-normal placeholder:text-slate-400" 
                       placeholder="10-digit mobile number" 
                     />
                   </div>
@@ -527,7 +525,7 @@ export default function Login({ initialMode = 'login' }) {
                     Registered Date of Birth (DD/MM/YYYY)
                   </label>
                   <div className="relative">
-                    <Calendar size={16} className="absolute left-3.5 top-2.5 text-slate-400" />
+                    <Calendar size={16} className="absolute left-3.5 top-3 text-slate-400" />
                     <input 
                       type="text" 
                       required 
@@ -535,7 +533,7 @@ export default function Login({ initialMode = 'login' }) {
                       inputMode="numeric"
                       value={formData.dob} 
                       onChange={handleDobChange} 
-                      className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-600 focus:border-primary-600 outline-none transition-all bg-slate-50 focus:bg-white text-xs sm:text-sm font-semibold text-slate-900 tracking-wider placeholder:text-[11px] sm:placeholder:text-xs placeholder:font-normal placeholder:tracking-normal placeholder:text-slate-400" 
+                      className="w-full pl-10 pr-3.5 py-2.5 sm:py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-600 focus:border-primary-600 outline-none transition-all bg-slate-50 focus:bg-white text-xs sm:text-sm font-semibold text-slate-900 tracking-wider placeholder:text-[11px] sm:placeholder:text-xs placeholder:font-normal placeholder:tracking-normal placeholder:text-slate-400" 
                       placeholder="DD/MM/YYYY" 
                     />
                   </div>
@@ -547,7 +545,7 @@ export default function Login({ initialMode = 'login' }) {
                     Set New 4-Digit MPIN
                   </label>
                   <div className="relative">
-                    <Lock size={16} className="absolute left-3.5 top-2.5 text-slate-400" />
+                    <Lock size={16} className="absolute left-3.5 top-3 text-slate-400" />
                     <input 
                       type={showMpin ? 'text' : 'password'} 
                       required 
@@ -556,13 +554,13 @@ export default function Login({ initialMode = 'login' }) {
                       pattern="[0-9]*"
                       value={formData.newMpin} 
                       onChange={e => setFormData({ ...formData, newMpin: e.target.value.replace(/\D/g, '').slice(0, 4) })} 
-                      className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-600 focus:border-primary-600 outline-none transition-all bg-slate-50 focus:bg-white text-xs sm:text-sm font-semibold text-slate-900 tracking-widest placeholder:text-[10px] sm:placeholder:text-xs placeholder:font-normal placeholder:tracking-normal placeholder:text-slate-400" 
+                      className="w-full pl-10 pr-10 py-2.5 sm:py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-600 focus:border-primary-600 outline-none transition-all bg-slate-50 focus:bg-white text-xs sm:text-sm font-semibold text-slate-900 tracking-widest placeholder:text-[10px] sm:placeholder:text-xs placeholder:font-normal placeholder:tracking-normal placeholder:text-slate-400" 
                       placeholder="Enter new 4-digit MPIN" 
                     />
                     <button
                       type="button"
                       onClick={() => setShowMpin(!showMpin)}
-                      className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                      className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
                       tabIndex={-1}
                       title={showMpin ? 'Hide MPIN' : 'Show MPIN'}
                     >
@@ -575,15 +573,15 @@ export default function Login({ initialMode = 'login' }) {
                 <button 
                   type="submit" 
                   disabled={loading} 
-                  className="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-2.75 sm:py-3 rounded-xl transition-all active:scale-[0.98] shadow-md hover:shadow-primary-500/25 flex justify-center items-center gap-2 mt-2 text-xs sm:text-sm cursor-pointer disabled:opacity-70"
+                  className="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-3 sm:py-3.5 rounded-xl transition-all active:scale-[0.98] shadow-md hover:shadow-primary-500/25 flex justify-center items-center gap-2 mt-2 text-xs sm:text-sm cursor-pointer disabled:opacity-70"
                 >
                   {loading ? 'Verifying & Resetting...' : 'Reset MPIN & Login'}
-                  {!loading && <RotateCcw size={15} />}
+                  {!loading && <RotateCcw size={16} />}
                 </button>
 
                 {/* Switch to Login */}
-                <div className="mt-2.5 pt-2.5 border-t border-slate-100 text-center">
-                  <p className="text-slate-600 text-xs">
+                <div className="mt-3 pt-3 border-t border-slate-100 text-center">
+                  <p className="text-slate-600 text-xs sm:text-sm">
                     Remembered your MPIN?{' '}
                     <button
                       type="button"
@@ -598,14 +596,6 @@ export default function Login({ initialMode = 'login' }) {
             )}
 
           </AnimatePresence>
-
-          {/* Footer note */}
-          <div className="mt-3 pt-2.5 border-t border-slate-100 text-center">
-            <div className="inline-flex items-center gap-1.5 text-[10px] sm:text-[11px] text-slate-500 font-medium">
-              <ShieldCheck size={14} className="text-emerald-500" />
-              <span>Strictly secured with 4-Digit MPIN authentication.</span>
-            </div>
-          </div>
 
         </div>
       </motion.div>

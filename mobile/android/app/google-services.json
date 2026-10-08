@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "103824360503",
+    "project_id": "law-reporter-bad36",
+    "storage_bucket": "law-reporter-bad36.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:103824360503:android:b04030dcfe9b024a55abb2",
+        "android_client_info": {
+          "package_name": "com.tech.law_reporter"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDY2MpPM7MHDcobGFtHfl2Tl2O5pNC1ERI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

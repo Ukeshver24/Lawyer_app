@@ -4,6 +4,7 @@ import {
 } from '../repositories/caseRepository.js';
 import judgmentRepository from '../repositories/judgmentRepository.js';
 import logger from '../utils/logger.js';
+import { notifyMobileAppNewJudgement } from '../services/fcmService.js';
 
 // GET /api/cases
 export const getCases = async (req, res) => {
@@ -84,6 +85,20 @@ export const createCase = async (req, res) => {
     }
 
     const newCase = await createCaseInDb(req.body);
+
+    // Fire FCM push notification to Mobile App if Published
+    if (newCase && (newCase.status === 'Published' || req.body.status === 'Published')) {
+      notifyMobileAppNewJudgement({
+        id: newCase.id,
+        caseNumber: newCase.case_number || req.body.caseNumber,
+        title: newCase.title || req.body.title,
+        petitioner: newCase.petitioner || req.body.petitioner,
+        respondent: newCase.respondent || req.body.respondent,
+        court: newCase.court || req.body.court,
+        citation: newCase.citation || req.body.citation
+      }).catch(err => logger.error('FCM notification dispatch error:', err));
+    }
+
     res.status(201).json({ success: true, message: 'Case created successfully', data: newCase });
   } catch (error) {
     logger.error('Failed to create case:', error);
@@ -141,6 +156,20 @@ export const updateCase = async (req, res) => {
     if (!updatedCase) {
       return res.status(404).json({ success: false, message: 'Case record not found' });
     }
+
+    // Fire FCM push notification if updated to Published
+    if (updatedCase && (updatedCase.status === 'Published' || status === 'Published')) {
+      notifyMobileAppNewJudgement({
+        id: updatedCase.id,
+        caseNumber: updatedCase.case_number || req.body.caseNumber,
+        title: updatedCase.title || req.body.title,
+        petitioner: updatedCase.petitioner || req.body.petitioner,
+        respondent: updatedCase.respondent || req.body.respondent,
+        court: updatedCase.court || req.body.court,
+        citation: updatedCase.citation || req.body.citation
+      }).catch(err => logger.error('FCM notification dispatch error:', err));
+    }
+
     res.json({ success: true, message: 'Case updated successfully', data: updatedCase });
   } catch (error) {
     logger.error(`Failed to update case ID ${req.params.id}:`, error);
@@ -169,6 +198,19 @@ export const toggleCaseStatus = async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
     const updated = await updateCaseStatusInDb(id, status);
+
+    if (updated && status === 'Published') {
+      notifyMobileAppNewJudgement({
+        id: updated.id,
+        caseNumber: updated.case_number,
+        title: updated.title,
+        petitioner: updated.petitioner,
+        respondent: updated.respondent,
+        court: updated.court,
+        citation: updated.citation
+      }).catch(err => logger.error('FCM notification dispatch error:', err));
+    }
+
     res.json({ success: true, message: `Case status updated to ${status}`, data: updated });
   } catch (error) {
     logger.error(`Failed to toggle status for case ID ${req.params.id}:`, error);

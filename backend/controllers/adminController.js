@@ -4,6 +4,7 @@ import logger from '../utils/logger.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import adminSessionService from '../services/adminSessionService.js';
+import { notifyMobileAppNewJudgement } from '../services/fcmService.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -285,6 +286,18 @@ export const uploadJudgment = async (req, res) => {
 
     const insertedId = await judgmentRepository.createJudgment(judgmentData);
     
+    // Dispatch FCM Push Notification to Mobile App users
+    if (insertedId) {
+      notifyMobileAppNewJudgement({
+        id: insertedId,
+        title: title,
+        petitioner: petitioner_name,
+        respondent: respondent_name,
+        court: court_name,
+        citation: citation
+      }).catch(err => logger.error('FCM notification dispatch error:', err));
+    }
+
     res.json({
       status: 'success',
       message: 'Judgment uploaded successfully',
