@@ -210,15 +210,15 @@ export default function Login({ initialMode = 'login' }) {
   };
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center w-full font-jakarta relative my-auto bg-white sm:bg-transparent p-0 sm:p-6">
+    <div className="flex-1 flex flex-col items-center justify-center w-full font-jakarta relative my-auto bg-slate-100/70 px-4 py-8 sm:p-6 min-h-[calc(100vh-3.5rem)]">
       <motion.div 
         layout
-        initial={{ opacity: 0, y: 10, scale: 0.98 }}
+        initial={{ opacity: 0, y: 12, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.2 }}
-        className="w-full min-h-[calc(100vh-3.5rem)] sm:min-h-0 sm:max-w-[410px] bg-white sm:rounded-3xl shadow-none sm:shadow-xl border-0 sm:border sm:border-slate-200/90 overflow-hidden relative my-auto flex flex-col justify-center"
+        className="w-full max-w-[420px] bg-white rounded-2xl sm:rounded-3xl shadow-lg sm:shadow-xl border border-slate-200/90 overflow-hidden relative my-auto flex flex-col"
       >
-        <div className="p-5 sm:p-7 flex flex-col justify-center my-auto w-full">
+        <div className="p-6 sm:p-8 flex flex-col justify-center my-auto w-full">
 
           {/* Dynamic Header */}
           <div className="text-center mb-4 sm:mb-5">
