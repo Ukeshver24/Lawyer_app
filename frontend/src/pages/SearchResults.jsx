@@ -10,7 +10,7 @@ import {
   LayoutDashboard, Volume2, VolumeX, Highlighter, Mail, X, ExternalLink,
   ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight, SlidersHorizontal,
   FolderBookmark, Sparkles, CheckCircle2, AlertTriangle, Eye,
-  Play, Pause, RotateCcw, Square
+  Play, Pause, RotateCcw, Square, ArrowLeft
 } from 'lucide-react';
 
 // Authentic Social Media Brand SVG Icons
@@ -521,9 +521,23 @@ export default function SearchResults() {
           </div>
         </div>
 
-        {/* Right: Dashboard Button & Saved Cases Library Button */}
+        {/* Right: Back Button, Dashboard Button & Saved Cases Library Button */}
         <div className="flex items-center gap-2">
           
+          {/* Back Button to Keyword Search */}
+          <button
+            onClick={() => {
+              const tab = searchParams.get('tab') || 'keyword';
+              const q = searchParams.get('q') || '';
+              navigate(`/search/keyword?tab=${tab}${q ? `&q=${encodeURIComponent(q)}` : ''}`);
+            }}
+            className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-700 transition-colors shadow-xs cursor-pointer"
+            title="Return to Keyword Search Page"
+          >
+            <ArrowLeft size={14} className="text-blue-400" />
+            <span>Back</span>
+          </button>
+
           {/* Dashboard Button next to Saved Cases */}
           <button
             onClick={() => navigate('/search')}
