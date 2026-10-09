@@ -20,7 +20,7 @@ export default function SearchDashboard() {
   };
 
   return (
-    <div className="relative flex-1 flex flex-col items-center justify-center py-8 sm:py-12 md:py-16 px-4 md:px-6 w-full font-jakarta bg-slate-50">
+    <div className="relative flex-1 flex flex-col items-center justify-start min-h-[calc(100vh-3.5rem)] py-4 sm:py-8 md:py-12 px-4 md:px-6 w-full font-jakarta bg-slate-50 overflow-x-hidden">
       
       {/* Exact User Uploaded Legal Search Background Image */}
       <div 
@@ -28,19 +28,20 @@ export default function SearchDashboard() {
         style={{ backgroundImage: "url('/legal_search_bg.png')" }}
       ></div>
 
-      {/* Top Left Back to Home Button (Directly below logo & name) */}
-      <div className="absolute top-4 left-4 sm:left-6 lg:left-8 z-20">
-        <button
-          onClick={() => navigate('/')}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200/90 bg-white/95 hover:bg-white text-slate-700 hover:text-blue-700 font-bold text-xs transition-all shadow-xs hover:shadow-md cursor-pointer backdrop-blur-xs"
-          title="Return to Home"
-        >
-          <ArrowLeft size={15} />
-          <span>Back to Home</span>
-        </button>
-      </div>
+      <div className="relative z-10 max-w-5xl mx-auto w-full flex flex-col my-auto">
 
-      <div className="relative z-10 max-w-5xl mx-auto w-full flex flex-col items-center my-auto">
+        {/* Top Left Back to Home Button - Placed neatly at top-left below App Bar */}
+        <div className="w-full flex items-center justify-start mb-4 sm:mb-6">
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-slate-200/90 bg-white/95 hover:bg-white text-slate-700 hover:text-blue-700 font-bold text-xs transition-all shadow-xs hover:shadow-md cursor-pointer backdrop-blur-xs"
+            title="Return to Home"
+          >
+            <ArrowLeft size={15} />
+            <span>Back to Home</span>
+          </button>
+        </div>
 
         {/* Dashboard Header */}
         <div className="text-center mb-6 md:mb-8 w-full">
