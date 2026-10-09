@@ -2,6 +2,7 @@ import React, { useEffect, Suspense, lazy } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import ProtectedRoute from './components/ProtectedRoute';
 
 // High-Tech Route-Based Code Splitting
 // Public & Subscriber Pages (Lazy loaded for instant initial render)
@@ -100,11 +101,12 @@ function App() {
               <Route path="/childsafety" element={<ChildSafety />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/search" element={<Search />} />
-              <Route path="/search/keyword" element={<KeywordSearch />} />
-              <Route path="/search/results" element={<SearchResults />} />
-              <Route path="/judgment/:id" element={<Judgment />} />
+              {/* Protected User Routes (Requires Login) */}
+              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+              <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
+              <Route path="/search/keyword" element={<ProtectedRoute><KeywordSearch /></ProtectedRoute>} />
+              <Route path="/search/results" element={<ProtectedRoute><SearchResults /></ProtectedRoute>} />
+              <Route path="/judgment/:id" element={<ProtectedRoute><Judgment /></ProtectedRoute>} />
               
               {/* Admin Auth */}
               <Route path="/admin" element={<AdminLogin />} />

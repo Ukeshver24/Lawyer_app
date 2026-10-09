@@ -57,7 +57,7 @@ export default function Header() {
 
   const navItems = [
     { label: 'Home', path: '/', icon: Home },
-    { label: 'Legal Search', path: '/search', icon: Search },
+    ...(user ? [{ label: 'Legal Search', path: '/search', icon: Search }] : []),
     { label: 'About Us', path: '/about', icon: Info },
     { label: 'Contact', path: '/contact', icon: Phone },
   ];
