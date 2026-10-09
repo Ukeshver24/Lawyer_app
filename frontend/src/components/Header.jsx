@@ -292,9 +292,9 @@ export default function Header() {
                 </div>
               </div>
 
-              {/* Drawer Bottom Actions: Logout / Admin Link */}
-              <div className="p-3 border-t border-slate-100 bg-slate-50/50 space-y-1.5">
-                {user ? (
+              {/* Drawer Bottom Actions: Logout */}
+              {user && (
+                <div className="p-3 border-t border-slate-100 bg-slate-50/50">
                   <button
                     type="button"
                     onClick={handleLogout}
@@ -305,20 +305,8 @@ export default function Header() {
                       <span>Log Out</span>
                     </div>
                   </button>
-                ) : null}
-
-                <Link
-                  to="/admin/login"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
-                >
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck size={15} className="text-slate-400" />
-                    <span>Admin Portal</span>
-                  </div>
-                  <ChevronRight size={14} className="text-slate-300" />
-                </Link>
-              </div>
+                </div>
+              )}
             </motion.aside>
           </>
         )}
