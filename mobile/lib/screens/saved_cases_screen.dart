@@ -3,9 +3,28 @@ import 'package:provider/provider.dart';
 import '../widgets/app_header.dart';
 import '../widgets/case_card.dart';
 import '../providers/bookmark_provider.dart';
+import '../providers/auth_provider.dart';
 
-class SavedCasesScreen extends StatelessWidget {
+class SavedCasesScreen extends StatefulWidget {
   const SavedCasesScreen({super.key});
+
+  @override
+  State<SavedCasesScreen> createState() => _SavedCasesScreenState();
+}
+
+class _SavedCasesScreenState extends State<SavedCasesScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final user = authProvider.currentUser;
+      if (user != null && user.mobile.isNotEmpty) {
+        Provider.of<BookmarkProvider>(context, listen: false)
+            .loadSavedCases(user.mobile);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -86,6 +105,7 @@ class SavedCasesScreen extends StatelessWidget {
                         return CaseCard(
                           caseItem: savedList[index],
                           showBookmark: true,
+                          showUnsaveButton: true,
                         );
                       },
                     ),

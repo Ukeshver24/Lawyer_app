@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/app_toast.dart';
 import 'signup_screen.dart';
-import 'home_screen.dart';
 import 'main_navigation_screen.dart';
 
 class LoginScreen extends StatefulWidget {

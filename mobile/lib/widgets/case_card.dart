@@ -10,11 +10,13 @@ import 'app_toast.dart';
 class CaseCard extends StatelessWidget {
   final CaseModel caseItem;
   final bool showBookmark;
+  final bool showUnsaveButton;
 
   const CaseCard({
     super.key,
     required this.caseItem,
     this.showBookmark = false,
+    this.showUnsaveButton = false,
   });
 
   String _cleanText(String raw) {
@@ -60,6 +62,16 @@ class CaseCard extends StatelessWidget {
         ),
       );
     }
+  }
+
+  void _onUnsaveTap(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final bookmarkProvider =
+        Provider.of<BookmarkProvider>(context, listen: false);
+    final userMobile = authProvider.currentUser?.mobile ?? '';
+
+    bookmarkProvider.unsaveCase(caseItem, userMobile);
+    AppToast.showInfo(context, 'Judgment removed from saved list');
   }
 
   @override
@@ -139,7 +151,43 @@ class CaseCard extends StatelessWidget {
                         ],
                       ),
                     ),
-                    if (showBookmark)
+                    const SizedBox(width: 8),
+                    if (showUnsaveButton)
+                      InkWell(
+                        borderRadius: BorderRadius.circular(6),
+                        onTap: () => _onUnsaveTap(context),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFEF2F2),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: const Color(0xFFFECACA)),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.bookmark_remove_rounded,
+                                size: 14,
+                                color: Color(0xFFDC2626),
+                              ),
+                              SizedBox(width: 4),
+                              Text(
+                                'Unsave',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFFDC2626),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    else if (showBookmark)
                       IconButton(
                         constraints: const BoxConstraints(),
                         padding: EdgeInsets.zero,
@@ -172,39 +220,79 @@ class CaseCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 14),
 
-                // 3. View Full Judgment Action Button (Compact & Short)
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 13,
-                      vertical: 7,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF0F172A),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'View Full Judgment',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: -0.2,
+                // 3. Action Buttons Row: [Unsave] and [View Full Judgment]
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    if (showUnsaveButton)
+                      InkWell(
+                        borderRadius: BorderRadius.circular(8),
+                        onTap: () => _onUnsaveTap(context),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 11,
+                            vertical: 7,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFEF2F2),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: const Color(0xFFFECACA)),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.bookmark_remove_rounded,
+                                size: 14,
+                                color: Color(0xFFDC2626),
+                              ),
+                              SizedBox(width: 5),
+                              Text(
+                                'Unsave',
+                                style: TextStyle(
+                                  color: Color(0xFFDC2626),
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: -0.2,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        SizedBox(width: 5),
-                        Icon(
-                          Icons.arrow_forward_rounded,
-                          color: Color(0xFF60A5FA),
-                          size: 13,
-                        ),
-                      ],
+                      )
+                    else
+                      const SizedBox.shrink(),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 13,
+                        vertical: 7,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0F172A),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'View Full Judgment',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.2,
+                            ),
+                          ),
+                          SizedBox(width: 5),
+                          Icon(
+                            Icons.arrow_forward_rounded,
+                            color: Color(0xFF60A5FA),
+                            size: 13,
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ],
             ),

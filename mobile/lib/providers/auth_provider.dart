@@ -10,6 +10,7 @@ class AuthProvider extends ChangeNotifier {
   String? _errorMessage;
 
   UserModel? get user => _user;
+  UserModel? get currentUser => _user;
   bool get isAuthenticated => _user != null;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
@@ -139,7 +140,7 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final identifier = _user!.mobile.isNotEmpty ? _user!.mobile : (_user!.id ?? '');
+      final identifier = _user!.mobile.isNotEmpty ? _user!.mobile : _user!.id;
       final success = await ApiService.deleteAccount(identifier);
 
       if (success) {

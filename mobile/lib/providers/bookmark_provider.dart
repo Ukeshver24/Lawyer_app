@@ -41,7 +41,10 @@ class BookmarkProvider extends ChangeNotifier {
     }
   }
 
-  void toggleSaveCase(CaseModel caseItem) {
+  void toggleSaveCase(CaseModel caseItem, [String? userIdentifier]) {
+    if (userIdentifier != null && userIdentifier.trim().isNotEmpty) {
+      _identifier = userIdentifier.trim();
+    }
     if (_savedCases.containsKey(caseItem.id)) {
       _savedCases.remove(caseItem.id);
     } else {
@@ -50,6 +53,17 @@ class BookmarkProvider extends ChangeNotifier {
 
     notifyListeners();
     _persistSavedCases();
+  }
+
+  void unsaveCase(CaseModel caseItem, [String? userIdentifier]) {
+    if (userIdentifier != null && userIdentifier.trim().isNotEmpty) {
+      _identifier = userIdentifier.trim();
+    }
+    if (_savedCases.containsKey(caseItem.id)) {
+      _savedCases.remove(caseItem.id);
+      notifyListeners();
+      _persistSavedCases();
+    }
   }
 
   Future<void> _persistSavedCases() async {

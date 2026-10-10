@@ -7,7 +7,6 @@ import '../widgets/app_header.dart';
 import '../widgets/app_toast.dart';
 import '../widgets/case_card.dart';
 import 'signup_screen.dart';
-import 'home_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -309,7 +308,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                 ),
               )
             else
-              ...savedCases.map((c) => CaseCard(caseItem: c)),
+              ...savedCases
+                  .map((c) => CaseCard(caseItem: c, showUnsaveButton: true)),
 
             const SizedBox(height: 30),
             const Center(

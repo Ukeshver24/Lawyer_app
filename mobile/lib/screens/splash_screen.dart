@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/search_provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/bookmark_provider.dart';
 import 'main_navigation_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -23,6 +24,7 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _initializeApp() async {
     final searchProvider = Provider.of<SearchProvider>(context, listen: false);
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final bookmarkProvider = Provider.of<BookmarkProvider>(context, listen: false);
     
     // Initial data fetch, load saved user session, & minimum 1.5s delay for smooth brand logo display
     await Future.wait([
@@ -30,6 +32,12 @@ class _SplashScreenState extends State<SplashScreen> {
       searchProvider.performSearch(),
       Future.delayed(const Duration(milliseconds: 1600)),
     ]);
+
+    if (authProvider.currentUser != null &&
+        authProvider.currentUser!.mobile.trim().isNotEmpty) {
+      await bookmarkProvider
+          .loadSavedCases(authProvider.currentUser!.mobile.trim());
+    }
 
     if (mounted) {
       Navigator.pushReplacement(
