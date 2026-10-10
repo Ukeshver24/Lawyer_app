@@ -15,10 +15,27 @@ let messaging = null;
 
 // Initialize Firebase Admin SDK using ES module exports
 try {
-  if (fs.existsSync(serviceAccountPath)) {
-    const rawData = fs.readFileSync(serviceAccountPath, 'utf8');
-    const serviceAccount = JSON.parse(rawData);
+  let serviceAccount = null;
 
+  if (process.env.FIREBASE_SERVICE_ACCOUNT_BASE64) {
+    try {
+      const decoded = Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_BASE64, 'base64').toString('utf8');
+      serviceAccount = JSON.parse(decoded);
+    } catch (e) {
+      logger.error('Failed to parse FIREBASE_SERVICE_ACCOUNT_BASE64:', e);
+    }
+  } else if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    try {
+      serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    } catch (e) {
+      logger.error('Failed to parse FIREBASE_SERVICE_ACCOUNT:', e);
+    }
+  } else if (fs.existsSync(serviceAccountPath)) {
+    const rawData = fs.readFileSync(serviceAccountPath, 'utf8');
+    serviceAccount = JSON.parse(rawData);
+  }
+
+  if (serviceAccount) {
     if (getApps().length === 0) {
       firebaseApp = initializeApp({
         credential: cert(serviceAccount)
@@ -30,7 +47,7 @@ try {
     messaging = getMessaging(firebaseApp);
     logger.info(`🔥 Firebase Admin SDK Initialized Successfully for project: ${serviceAccount.project_id || 'law-reporter-bad36'}`);
   } else {
-    logger.warn('⚠️ firebase-service-account.json not found in backend/config/. Firebase FCM notifications will be skipped.');
+    logger.warn('⚠️ Firebase credentials not found (checked file and environment variables). Firebase FCM notifications will be skipped.');
   }
 } catch (err) {
   logger.error('❌ Failed to initialize Firebase Admin SDK:', err);

@@ -35,7 +35,14 @@ class FCMService {
 
       debugPrint('📱 FCM Notification Permission: ${settings.authorizationStatus}');
 
-      // 2. Subscribe to general legal updates topic
+      // 2. Set foreground presentation options
+      await messaging.setForegroundNotificationPresentationOptions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+
+      // 3. Subscribe to general legal updates topic
       await messaging.subscribeToTopic('all_judgments');
       debugPrint('📱 Subscribed to topic: all_judgments');
 
