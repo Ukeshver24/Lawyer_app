@@ -1,5 +1,5 @@
 import React from 'react';
-import { Scale, Mail, Phone, MapPin, ShieldCheck } from 'lucide-react';
+import { Scale, Mail, Phone, MapPin, ShieldCheck, Smartphone } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function Footer() {
@@ -30,6 +30,16 @@ export default function Footer() {
             <h4 className="font-bold mb-4 text-sm text-white uppercase tracking-wider border-b border-primary-800 pb-2">Quick Navigation</h4>
             <ul className="space-y-2.5 text-xs text-blue-200/80">
               <li><Link to="/" className="hover:text-white transition-colors">Home</Link></li>
+              <li>
+                <a 
+                  href="/digi-law-reporter.apk" 
+                  download="digi-law-reporter.apk"
+                  className="text-emerald-400 hover:text-emerald-300 font-semibold transition-colors flex items-center gap-1.5"
+                >
+                  <Smartphone size={13} className="text-emerald-400" />
+                  <span>Download Android App</span>
+                </a>
+              </li>
               <li><Link to="/about" className="hover:text-white transition-colors">About Us</Link></li>
               <li><Link to="/contact" className="hover:text-white transition-colors">Contact</Link></li>
               <li><Link to="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link></li>

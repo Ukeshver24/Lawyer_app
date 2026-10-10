@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
   LogOut, User, Menu, X, ArrowLeft, Home, Search, 
-  Info, Phone, Bookmark, ShieldCheck, ChevronRight, Scale
+  Info, Phone, Bookmark, ShieldCheck, ChevronRight, Scale, Smartphone, Download
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -288,6 +288,22 @@ export default function Header() {
                         </Link>
                       </>
                     )}
+                    {/* Download Native Android Mobile App */}
+                    <a
+                      href="/digi-law-reporter.apk"
+                      download="digi-law-reporter.apk"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-medium transition-all text-emerald-800 bg-emerald-50/90 hover:bg-emerald-100 border border-emerald-200/80 mt-2 shadow-2xs"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Smartphone size={19} className="text-emerald-600" />
+                        <div>
+                          <span className="font-bold block text-emerald-950">Install Mobile App</span>
+                          <span className="text-[10px] text-emerald-700 block">Download Android APK</span>
+                        </div>
+                      </div>
+                      <Download size={16} className="text-emerald-700" />
+                    </a>
                   </nav>
                 </div>
               </div>
