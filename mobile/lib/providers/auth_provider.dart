@@ -16,11 +16,11 @@ class AuthProvider extends ChangeNotifier {
   String get userName => _user?.name ?? '';
 
   AuthProvider() {
-    _loadSavedUser();
+    loadSavedUser();
   }
 
   // Load saved session on app startup
-  Future<void> _loadSavedUser() async {
+  Future<void> loadSavedUser() async {
     final prefs = await SharedPreferences.getInstance();
     final userString = prefs.getString('user');
 
@@ -129,5 +129,34 @@ class AuthProvider extends ChangeNotifier {
     await prefs.remove('user');
 
     notifyListeners();
+  }
+
+  // Permanently delete user account
+  Future<bool> deleteAccount() async {
+    if (_user == null) return false;
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final identifier = _user!.mobile.isNotEmpty ? _user!.mobile : (_user!.id ?? '');
+      final success = await ApiService.deleteAccount(identifier);
+
+      if (success) {
+        await logout();
+      } else {
+        _errorMessage = 'Failed to delete account. Please try again.';
+      }
+
+      _isLoading = false;
+      notifyListeners();
+      return success;
+    } catch (e) {
+      debugPrint('Delete account error: $e');
+      _errorMessage = 'An error occurred while deleting account.';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
   }
 }

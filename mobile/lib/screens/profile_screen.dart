@@ -34,6 +34,91 @@ class _ProfileScreenState extends State<ProfileScreen>
     }
   }
 
+  void _showDeleteConfirmationDialog(
+      BuildContext context, AuthProvider authProvider) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded,
+                color: AppColors.errorRed, size: 24),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Delete Account Permanently?',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: const Text(
+          'Warning: This action is permanent and cannot be undone. All your personal data, saved judgments, and bookmarks will be completely erased from the database.',
+          style: TextStyle(
+            fontSize: 13,
+            color: AppColors.textSecondary,
+            height: 1.4,
+          ),
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        actions: [
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: const Text('Cancel',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () async {
+                    Navigator.pop(ctx);
+                    final success = await authProvider.deleteAccount();
+                    if (context.mounted) {
+                      if (success) {
+                        AppToast.showSuccess(context,
+                            'Your account has been permanently deleted.');
+                      } else {
+                        AppToast.showError(
+                            context,
+                            authProvider.errorMessage ??
+                                'Failed to delete account.');
+                      }
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.errorRed,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: const Text(
+                    'Delete Forever',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -131,6 +216,35 @@ class _ProfileScreenState extends State<ProfileScreen>
                         style: TextStyle(
                           color: AppColors.errorRed,
                           fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Delete Account Action with Warning Confirmation
+                  SizedBox(
+                    width: double.infinity,
+                    child: TextButton.icon(
+                      onPressed: () {
+                        _showDeleteConfirmationDialog(context, authProvider);
+                      },
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        backgroundColor: const Color(0xFFFEF2F2),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          side: const BorderSide(color: Color(0xFFFECACA)),
+                        ),
+                      ),
+                      icon: const Icon(Icons.delete_forever_rounded,
+                          color: AppColors.errorRed, size: 16),
+                      label: const Text(
+                        'Delete Account Permanently',
+                        style: TextStyle(
+                          color: AppColors.errorRed,
+                          fontSize: 12,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -247,10 +361,6 @@ class _DirectLoginFormState extends State<_DirectLoginForm> {
 
       if (success && mounted) {
         AppToast.showSuccess(context, 'Signed in successfully.');
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
-        );
       }
     }
   }

@@ -415,7 +415,7 @@ export default function Profile() {
               </div>
             </div>
 
-            {/* Quick Session Log Out */}
+            {/* Quick Session Log Out & Permanent Account Deletion */}
             <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={handleLogout}
@@ -424,6 +424,17 @@ export default function Profile() {
               >
                 <LogOut size={12} className="text-slate-500" />
                 <span>Log Out</span>
+              </button>
+              <button
+                onClick={() => {
+                  setDeleteError(null);
+                  setShowDeleteModal(true);
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 text-[11px] font-bold transition-all active:scale-95 cursor-pointer shadow-2xs"
+                title="Permanently delete your registered account and bookmarks"
+              >
+                <Trash2 size={12} className="text-red-500" />
+                <span>Delete Account</span>
               </button>
             </div>
           </div>

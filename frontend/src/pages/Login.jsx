@@ -43,6 +43,19 @@ export default function Login({ initialMode = 'login' }) {
 
   const navigate = useNavigate();
 
+  // If user is already authenticated, redirect immediately to search
+  useEffect(() => {
+    const raw = localStorage.getItem('user');
+    if (raw) {
+      try {
+        const u = JSON.parse(raw);
+        if (u && (u.id || u.mobile)) {
+          navigate('/search', { replace: true });
+        }
+      } catch (e) {}
+    }
+  }, [navigate]);
+
   // Helper to switch modes cleanly
   const switchMode = (newMode) => {
     setError(null);

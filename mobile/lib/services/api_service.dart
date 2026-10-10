@@ -260,6 +260,23 @@ class ApiService {
 
     return [];
   }
+
+  // 6. Delete User Account Permanently
+  static Future<bool> deleteAccount(String identifier) async {
+    try {
+      final response = await http
+          .delete(
+            Uri.parse('${ApiConfig.baseUrl}/auth/account/${Uri.encodeComponent(identifier)}'),
+            headers: {'Content-Type': 'application/json'},
+          )
+          .timeout(const Duration(seconds: 10));
+
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('Delete Account Exception: $e');
+      return false;
+    }
+  }
 }
 
 
