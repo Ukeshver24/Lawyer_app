@@ -57,9 +57,9 @@ export default function Header() {
 
   const navItems = [
     { label: 'Home', path: '/', icon: Home },
-    ...(user ? [{ label: 'Legal Search', path: '/search', icon: Search }] : []),
     { label: 'About Us', path: '/about', icon: Info },
     { label: 'Contact', path: '/contact', icon: Phone },
+    { label: 'Search', path: user ? '/search' : '/login', icon: Search },
   ];
 
   return (
@@ -92,63 +92,66 @@ export default function Header() {
               </Link>
             </div>
 
-            {/* Desktop Navigation Links */}
-            {!isAuthPage && (
-              <nav className="hidden md:flex items-center space-x-6 lg:space-x-8">
-                {navItems.map((item) => {
-                  const isActive = location.pathname === item.path || 
-                    (item.path === '/' && location.pathname === '/') ||
-                    (item.path === '/search' && location.pathname.startsWith('/search'));
-                  return (
-                    <Link
-                      key={item.path}
-                      to={item.path}
-                      className={`relative text-sm transition-colors py-1 border-b-2 font-medium ${
-                        isActive 
-                          ? 'text-blue-700 font-bold border-blue-600' 
-                          : 'text-slate-700 border-transparent hover:text-blue-600 hover:border-blue-400/30'
-                      }`}
-                    >
-                      {item.label}
-                    </Link>
-                  );
-                })}
-              </nav>
-            )}
-
-            {/* Right: Auth Page Back Button OR User Actions */}
-            <div className="flex items-center space-x-2.5 sm:space-x-4">
-              {isAuthPage ? (
-                <Link
-                  to="/"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition-all shadow-2xs cursor-pointer"
-                  title="Return to Home Page"
-                >
-                  <ArrowLeft size={14} className="text-slate-500" />
-                  <span>Back to Home</span>
-                </Link>
-              ) : (
-                user ? (
-                  <div className="flex items-center gap-2">
-                    {/* Circular Initial Avatar (Navigates to /profile) */}
-                    <Link 
-                      to="/profile"
-                      className="w-9 h-9 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm flex items-center justify-center shadow-xs hover:shadow-md hover:scale-105 transition-all cursor-pointer ring-2 ring-blue-100 hover:ring-blue-300"
-                      title={`Signed in as ${user.name || 'User'} - Click to view profile`}
-                    >
-                      {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
-                    </Link>
-                  </div>
-                ) : (
-                  <Link 
-                    to="/login" 
-                    className="border border-slate-300 text-slate-800 hover:text-blue-600 hover:border-blue-500 hover:bg-blue-50/50 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition-all shadow-xs"
-                  >
-                    <User size={15} className="text-blue-600" />
-                    <span>Login</span>
-                  </Link>
-                )
+            {/* Right Group: Desktop Nav Links close to Login / User Profile */}
+            <div className="flex items-center gap-5 lg:gap-7">
+              {/* Desktop Navigation Links */}
+              {!isAuthPage && (
+                <nav className="hidden md:flex items-center space-x-5 lg:space-x-7">
+                  {navItems.map((item) => {
+                    const isActive = location.pathname === item.path || 
+                      (item.path === '/' && location.pathname === '/') ||
+                      (item.path.startsWith('/search') && location.pathname.startsWith('/search'));
+                    return (
+                      <Link
+                        key={item.label}
+                        to={item.path}
+                        className={`relative text-sm transition-colors py-1 border-b-2 font-medium ${
+                          isActive 
+                            ? 'text-blue-700 font-bold border-blue-600' 
+                            : 'text-slate-700 border-transparent hover:text-blue-600 hover:border-blue-400/30'
+                        }`}
+                      >
+                        {item.label}
+                      </Link>
+                    );
+                  })}
+                </nav>
               )}
+
+              {/* Right: Auth Page Back Button OR User Actions */}
+              <div className="flex items-center space-x-2.5 sm:space-x-4">
+                {isAuthPage ? (
+                  <Link
+                    to="/"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition-all shadow-2xs cursor-pointer"
+                    title="Return to Home Page"
+                  >
+                    <ArrowLeft size={14} className="text-slate-500" />
+                    <span>Back to Home</span>
+                  </Link>
+                ) : (
+                  user ? (
+                    <div className="flex items-center gap-2">
+                      {/* Circular Initial Avatar (Navigates to /profile) */}
+                      <Link 
+                        to="/profile"
+                        className="w-9 h-9 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm flex items-center justify-center shadow-xs hover:shadow-md hover:scale-105 transition-all cursor-pointer ring-2 ring-blue-100 hover:ring-blue-300"
+                        title={`Signed in as ${user.name || 'User'} - Click to view profile`}
+                      >
+                        {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                      </Link>
+                    </div>
+                  ) : (
+                    <Link 
+                      to="/login" 
+                      className="border border-slate-300 text-slate-800 hover:text-blue-600 hover:border-blue-500 hover:bg-blue-50/50 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition-all shadow-xs"
+                    >
+                      <User size={15} className="text-blue-600" />
+                      <span>Login</span>
+                    </Link>
+                  )
+                )}
+              </div>
             </div>
 
           </div>
