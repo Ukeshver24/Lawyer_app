@@ -225,25 +225,23 @@ class _ProfileScreenState extends State<ProfileScreen>
                   // Delete Account Action with Warning Confirmation
                   SizedBox(
                     width: double.infinity,
-                    child: TextButton.icon(
+                    child: OutlinedButton.icon(
                       onPressed: () {
                         _showDeleteConfirmationDialog(context, authProvider);
                       },
-                      style: TextButton.styleFrom(
+                      style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 10),
-                        backgroundColor: const Color(0xFFFEF2F2),
+                        side: const BorderSide(color: AppColors.errorRed),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          side: const BorderSide(color: Color(0xFFFECACA)),
-                        ),
+                            borderRadius: BorderRadius.circular(10)),
                       ),
-                      icon: const Icon(Icons.delete_forever_rounded,
+                      icon: const Icon(Icons.delete_outline_rounded,
                           color: AppColors.errorRed, size: 16),
                       label: const Text(
                         'Delete Account Permanently',
                         style: TextStyle(
                           color: AppColors.errorRed,
-                          fontSize: 12,
+                          fontSize: 13,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
