@@ -13,5 +13,6 @@ void main() {
   testWidgets('App smoke test', (WidgetTester tester) async {
     await tester.pumpWidget(const DigiLawReporterApp());
     expect(find.byType(DigiLawReporterApp), findsOneWidget);
+    await tester.pump(const Duration(seconds: 3));
   });
 }

@@ -11,13 +11,13 @@ export default function UniversalLegalDocument({
   searchQuery = '', 
   isHighlightingEnabled = true 
 }) {
-  if (!doc) return null;
+  const safeDoc = doc || {};
 
   // 1. Data Normalization & Dynamic Extraction
-  const rawTitle = doc.title || doc.case_name || doc.name || '';
+  const rawTitle = safeDoc.title || safeDoc.case_name || safeDoc.name || '';
   
-  let petitioner = doc.petitioner_name || doc.petitioner || '';
-  let respondent = doc.respondent_name || doc.respondent || '';
+  let petitioner = safeDoc.petitioner_name || safeDoc.petitioner || '';
+  let respondent = safeDoc.respondent_name || safeDoc.respondent || '';
 
   if (!petitioner && !respondent && rawTitle) {
     const splitMatch = rawTitle.split(/\s*(?:v\.?|vs\.?|VERSUS|V\/S)\s*/i);
@@ -27,33 +27,33 @@ export default function UniversalLegalDocument({
     }
   }
 
-  const court = doc.court_name || doc.court || doc.jurisdiction || '';
-  const bench = doc.bench || doc.coram || doc.judges || doc.author || '';
-  const caseNumber = doc.case_number || doc.caseNumber || doc.appeal_number || doc.petition_number || '';
-  const jurisdiction = doc.jurisdiction_type || doc.jurisdictionType || '';
+  const court = safeDoc.court_name || safeDoc.court || safeDoc.jurisdiction || '';
+  const bench = safeDoc.bench || safeDoc.coram || safeDoc.judges || safeDoc.author || '';
+  const caseNumber = safeDoc.case_number || safeDoc.caseNumber || safeDoc.appeal_number || safeDoc.petition_number || '';
+  const jurisdiction = safeDoc.jurisdiction_type || safeDoc.jurisdictionType || '';
 
   // 2. Extract All Citations into a clean array
   const allCitations = useMemo(() => {
     let list = [];
-    if (Array.isArray(doc.citations)) {
-      list = doc.citations;
-    } else if (typeof doc.citations === 'string') {
+    if (Array.isArray(safeDoc.citations)) {
+      list = safeDoc.citations;
+    } else if (typeof safeDoc.citations === 'string') {
       try {
-        const parsed = JSON.parse(doc.citations);
+        const parsed = JSON.parse(safeDoc.citations);
         if (Array.isArray(parsed)) list = parsed;
         else if (parsed) list = [parsed];
       } catch (e) {
-        list = doc.citations.split(',').map(s => s.trim()).filter(Boolean);
+        list = safeDoc.citations.split(',').map(s => s.trim()).filter(Boolean);
       }
     }
     
-    // Fallback: if empty, check doc.citation or doc.citations_string
-    if (list.length === 0 && (doc.citation || doc.citations_string)) {
-      const single = doc.citation || doc.citations_string;
+    // Fallback: if empty, check safeDoc.citation or safeDoc.citations_string
+    if (list.length === 0 && (safeDoc.citation || safeDoc.citations_string)) {
+      const single = safeDoc.citation || safeDoc.citations_string;
       list = [single];
     }
     return list;
-  }, [doc.citations, doc.citation, doc.citations_string]);
+  }, [safeDoc.citations, safeDoc.citation, safeDoc.citations_string]);
 
   // Formatter for individual citation entry
   const formatCitationItem = (cit) => {
@@ -92,17 +92,19 @@ export default function UniversalLegalDocument({
     }
   }
 
-  const documentType = (doc.document_type || doc.category || doc.type || 'JUDGMENT').toUpperCase();
-  const headNote = doc.head_note || doc.headnote || doc.summary || doc.abstract || '';
-  const fullContent = doc.content || doc.judgment_text || doc.judgmentText || doc.body || '';
-  const orderContent = doc.order || doc.disposition || '';
-  const authorJudge = doc.author || doc.judge || '';
+  const documentType = (safeDoc.document_type || safeDoc.category || safeDoc.type || 'JUDGMENT').toUpperCase();
+  const headNote = safeDoc.head_note || safeDoc.headnote || safeDoc.summary || safeDoc.abstract || '';
+  const fullContent = safeDoc.content || safeDoc.judgment_text || safeDoc.judgmentText || safeDoc.body || '';
+  const orderContent = safeDoc.order || safeDoc.disposition || '';
+  const authorJudge = safeDoc.author || safeDoc.judge || '';
 
   // Smart Check: Does fullContent already include the authentic court cause title & judgment title?
   const hasFullEmbeddedCourtLayout = useMemo(() => {
     if (!fullContent) return false;
     return /IN\s+THE\s+SUPREME\s+COURT|IN\s+THE\s+HIGH\s+COURT|CRIMINAL\s+APPELLATE|CIVIL\s+APPELLATE|—\s*VERSUS\s*—|J\s*U\s*D\s*G\s*M\s*E\s*N\s*T/i.test(fullContent);
   }, [fullContent]);
+
+  if (!doc) return null;
 
   // Helper for highlighting keywords without breaking HTML
   const highlightText = (text) => {
