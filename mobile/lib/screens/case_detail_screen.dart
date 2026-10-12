@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import '../config/api_config.dart';
 import '../models/case_model.dart';
 import '../providers/bookmark_provider.dart';
 import '../services/pdf_generator.dart';
@@ -711,7 +712,7 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
     final rawParagraphs = _parseParagraphs(c.content);
 
     final nowStr = DateFormat('dd/MM/yyyy, hh:mm a').format(DateTime.now()).toLowerCase();
-    final judgmentUrl = 'https://www.digilawreporter.in/judgment/${c.id}';
+    final judgmentUrl = ApiConfig.getJudgmentWebUrl(c.id);
 
     // A4 sheet geometry calculation
     final screenWidth = MediaQuery.of(context).size.width;

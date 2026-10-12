@@ -17,7 +17,10 @@ export const downloadCaseAsDOCX = async (caseItem, showToast = () => {}) => {
   if (!caseItem) return;
 
   const caseId = caseItem.id || caseItem._id || '1';
-  const canonicalUrl = `https://www.digilawreporter.in/case/${caseId}`;
+  const defaultOrigin = typeof window !== 'undefined' && window.location.origin 
+    ? window.location.origin 
+    : 'https://law.gradixtech.com';
+  const canonicalUrl = `${defaultOrigin}/judgment/${caseId}`;
 
   // 1. Generate QR Code Buffer
   let qrImageBuffer = null;

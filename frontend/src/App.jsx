@@ -106,7 +106,8 @@ function App() {
               <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
               <Route path="/search/keyword" element={<ProtectedRoute><KeywordSearch /></ProtectedRoute>} />
               <Route path="/search/results" element={<ProtectedRoute><SearchResults /></ProtectedRoute>} />
-              <Route path="/judgment/:id" element={<ProtectedRoute><Judgment /></ProtectedRoute>} />
+              {/* Public Scannable Judgment Route (Accessible via QR Code verification) */}
+              <Route path="/judgment/:id" element={<Judgment />} />
               
               {/* Admin Auth */}
               <Route path="/admin" element={<AdminLogin />} />

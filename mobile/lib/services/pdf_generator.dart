@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import '../config/api_config.dart';
 import '../models/case_model.dart';
 
 class PdfGeneratorService {
@@ -56,7 +57,7 @@ class PdfGeneratorService {
 
     final now = DateTime.now();
     final dateStr = DateFormat('dd/MM/yyyy, hh:mm a').format(now).toLowerCase();
-    final canonicalUrl = 'https://www.digilawreporter.in/judgment/${caseItem.id}';
+    final canonicalUrl = ApiConfig.getJudgmentWebUrl(caseItem.id);
 
     final petitioner = cleanText(caseItem.displayPetitioner.toUpperCase());
     final respondent = cleanText(caseItem.displayRespondent.toUpperCase());

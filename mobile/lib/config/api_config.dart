@@ -37,4 +37,11 @@ class ApiConfig {
 
   // Public endpoints
   static String get healthUrl => '$baseUrl/health';
+
+  // Web Judgment Portal Base URL (for QR code scanning and direct PDF access)
+  static String get webBaseUrl => 'https://law.gradixtech.com';
+
+  static String getJudgmentWebUrl(String caseId) {
+    return '$webBaseUrl/judgment/$caseId';
+  }
 }
