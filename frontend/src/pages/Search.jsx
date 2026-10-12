@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Search, BookOpen, FileText, Users, ArrowLeft } from 'lucide-react';
+import { Search, BookOpen, FileText, Users } from 'lucide-react';
 
 export default function SearchDashboard() {
   const navigate = useNavigate();
@@ -27,19 +27,6 @@ export default function SearchDashboard() {
         className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-100 pointer-events-none"
         style={{ backgroundImage: "url('/legal_search_bg.png')" }}
       ></div>
-
-      {/* Top Left Back to Home Button - Anchored at top-left without pushing center content */}
-      <div className="absolute top-4 left-4 sm:top-5 sm:left-6 md:left-8 z-20">
-        <button
-          type="button"
-          onClick={() => navigate('/')}
-          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-slate-200/90 bg-white/95 hover:bg-white text-slate-700 hover:text-blue-700 font-bold text-xs transition-all shadow-xs hover:shadow-md cursor-pointer backdrop-blur-xs"
-          title="Return to Home"
-        >
-          <ArrowLeft size={15} />
-          <span>Back to Home</span>
-        </button>
-      </div>
 
       <div className="relative z-10 max-w-5xl mx-auto w-full flex flex-col items-center -mt-6 sm:-mt-10 md:-mt-14">
 
