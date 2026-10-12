@@ -15,7 +15,7 @@ export default function Footer() {
                   <Scale size={20} />
                 </div>
                 <span className="text-xl font-black text-white tracking-tight">
-                  DIGI LAW <span className="text-blue-400">REPORTER</span>
+                  DIGITAL LAWYER <span className="text-blue-400">REPORTER</span>
                 </span>
              </div>
              <p className="text-blue-200/80 text-xs leading-relaxed">
@@ -79,7 +79,7 @@ export default function Footer() {
         </div>
 
         <div className="text-center pt-4 border-t border-primary-900/80 text-xs text-blue-300/60">
-          © {new Date().getFullYear()} Digital Law Reporter. All rights reserved.
+          © {new Date().getFullYear()} Digital Lawyer Reporter. All rights reserved.
         </div>
       </div>
     </footer>

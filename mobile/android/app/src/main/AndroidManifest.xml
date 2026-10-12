@@ -7,9 +7,10 @@
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
 
     <application
-        android:label="Digi Law Reporter"
+        android:label="Digital Lawyer Reporter"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round">
 
         <!-- Default FCM notification channel for Android 8.0+ -->
         <meta-data

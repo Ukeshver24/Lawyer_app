@@ -46,7 +46,7 @@ class AboutScreen extends StatelessWidget {
             const SizedBox(height: 12),
 
             const Text(
-              'About Digi Law Reporter',
+              'About Digital Lawyer Reporter',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.w900,
@@ -56,7 +56,7 @@ class AboutScreen extends StatelessWidget {
             const SizedBox(height: 8),
 
             const Text(
-              'Digi Law Reporter is India\'s premier verified legal research platform, serving advocates, judicial officers, and legal scholars with sub-second search accuracy across Supreme Court and High Court judgments.',
+              'Digital Lawyer Reporter is India\'s premier verified legal research platform, serving advocates, judicial officers, and legal scholars with sub-second search accuracy across Supreme Court and High Court judgments.',
               style: TextStyle(
                 fontSize: 13,
                 color: Color(0xFF475569),
@@ -100,7 +100,7 @@ class AboutScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'DIGITAL LAW REPORTER INDIA',
+                    'DIGITAL LAWYER REPORTER INDIA',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w900,

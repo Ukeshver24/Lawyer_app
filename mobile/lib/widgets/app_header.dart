@@ -87,7 +87,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
           ),
           children: [
             TextSpan(
-                text: 'Digi Law ', style: TextStyle(color: Color(0xFF0F172A))),
+                text: 'Digital Lawyer ', style: TextStyle(color: Color(0xFF0F172A))),
             TextSpan(
                 text: 'Reporter', style: TextStyle(color: Color(0xFF1D4ED8))),
           ],

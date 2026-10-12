@@ -312,7 +312,7 @@ class _ProfileScreenState extends State<ProfileScreen>
             const SizedBox(height: 30),
             const Center(
               child: Text(
-                'Digital Law Reporter Mobile v1.0.0',
+                'Digital Lawyer Reporter Mobile v1.0.0',
                 style: TextStyle(fontSize: 11, color: AppColors.textMuted),
               ),
             ),
@@ -418,7 +418,7 @@ class _DirectLoginFormState extends State<_DirectLoginForm> {
                   ),
                   const SizedBox(height: 18),
                   const Text(
-                    'Welcome to Digi Law',
+                    'Welcome to Digital Lawyer',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 22,

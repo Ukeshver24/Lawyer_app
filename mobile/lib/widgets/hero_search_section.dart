@@ -48,7 +48,7 @@ class HeroSearchSection extends StatelessWidget {
                     Icon(Icons.balance_rounded, size: 12, color: Color(0xFF1D4ED8)),
                     SizedBox(width: 4),
                     Text(
-                      'DIGI LAW REPORTER',
+                      'DIGITAL LAWYER REPORTER',
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w800,

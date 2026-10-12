@@ -45,7 +45,7 @@ class DigiLawReporterApp extends StatelessWidget {
       ],
       child: MaterialApp(
         navigatorKey: FCMService.navigatorKey,
-        title: 'Digi Law Reporter',
+        title: 'Digital Lawyer Reporter',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         scrollBehavior: const AppScrollBehavior(),
