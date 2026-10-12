@@ -59,7 +59,7 @@ export default function Header() {
     { label: 'Home', path: '/', icon: Home },
     { label: 'About Us', path: '/about', icon: Info },
     { label: 'Contact', path: '/contact', icon: Phone },
-    { label: 'Search', path: user ? '/search' : '/login', icon: Search },
+    ...(user ? [{ label: 'Search', path: '/search', icon: Search }] : []),
   ];
 
   return (
