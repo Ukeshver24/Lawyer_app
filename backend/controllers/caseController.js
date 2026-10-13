@@ -8,6 +8,7 @@ import {
 import judgmentRepository from '../repositories/judgmentRepository.js';
 import logger from '../utils/logger.js';
 import { notifyMobileAppNewJudgement } from '../services/fcmService.js';
+import { stampJudgmentPdf } from '../utils/pdfStamper.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -52,6 +53,8 @@ export const getCasePdf = async (req, res) => {
       const cleanPath = pdfPath.replace(/^uploads[\\\/]/, '').replace(/^[\\\/]+/, '');
       const fullPath = path.join(__dirname, '../uploads', cleanPath);
       if (fs.existsSync(fullPath)) {
+        // Stamp authentic scannable QR code on Page 1 top-left so camera scan opens the PDF
+        await stampJudgmentPdf(fullPath, caseItem.id);
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `inline; filename="DLR_Judgment_${caseItem.id}.pdf"`);
         return fs.createReadStream(fullPath).pipe(res);
@@ -119,6 +122,13 @@ export const createCase = async (req, res) => {
     }
 
     const newCase = await createCaseInDb(req.body);
+
+    // Stamp authentic scannable QR code on PDF so scanning immediately opens the PDF
+    if (newCase && (newCase.pdf_file || newCase.pdf_file_path)) {
+      const cleanPath = (newCase.pdf_file_path || newCase.pdf_file).replace(/^uploads[\\\/]/, '').replace(/^[\\\/]+/, '');
+      const fullPath = path.join(__dirname, '../uploads', cleanPath);
+      await stampJudgmentPdf(fullPath, newCase.id);
+    }
 
     // Fire FCM push notification to Mobile App if Published
     if (newCase && (newCase.status === 'Published' || req.body.status === 'Published')) {
@@ -189,6 +199,13 @@ export const updateCase = async (req, res) => {
     const updatedCase = await updateCaseInDb(id, req.body);
     if (!updatedCase) {
       return res.status(404).json({ success: false, message: 'Case record not found' });
+    }
+
+    // Stamp authentic scannable QR code on PDF so scanning immediately opens the PDF
+    if (updatedCase && (updatedCase.pdf_file || updatedCase.pdf_file_path)) {
+      const cleanPath = (updatedCase.pdf_file_path || updatedCase.pdf_file).replace(/^uploads[\\\/]/, '').replace(/^[\\\/]+/, '');
+      const fullPath = path.join(__dirname, '../uploads', cleanPath);
+      await stampJudgmentPdf(fullPath, updatedCase.id);
     }
 
     // Fire FCM push notification if updated to Published
