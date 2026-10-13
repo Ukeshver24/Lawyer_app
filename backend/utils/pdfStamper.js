@@ -36,25 +36,25 @@ export async function stampJudgmentPdf(filePath, caseId) {
     });
     const qrImage = await pdfDoc.embedPng(qrPngBuffer);
 
-    // Standard Supreme Court Page 1 top-left QR code position
+    // Exact Supreme Court Page 1 top-left QR code bounding box
     const scaleX = pageWidth / 612;
     const scaleY = pageHeight / 792;
 
-    const qrX = 50 * scaleX;
-    const qrY = 716 * scaleY;
-    const qrW = 73 * scaleX;
-    const qrH = 73 * scaleY;
+    const qrX = 60.5 * scaleX;
+    const qrY = 720.0 * scaleY;
+    const qrW = 66.0 * scaleX;
+    const qrH = 66.0 * scaleY;
 
     // 1. Cover old Supreme Court plain-text QR code with clean white box
     page.drawRectangle({
-      x: qrX - 2,
-      y: qrY - 2,
-      width: qrW + 4,
-      height: qrH + 4,
+      x: qrX - 1.5,
+      y: qrY - 1.5,
+      width: qrW + 3.0,
+      height: qrH + 3.0,
       color: rgb(1, 1, 1)
     });
 
-    // 2. Draw our interactive high-resolution QR code
+    // 2. Draw our interactive high-resolution QR code cleanly positioned above citation
     page.drawImage(qrImage, {
       x: qrX,
       y: qrY,
