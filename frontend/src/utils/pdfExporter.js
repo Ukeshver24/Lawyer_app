@@ -1,6 +1,7 @@
 import { jsPDF } from 'jspdf';
 import html2pdf from 'html2pdf.js';
 import QRCode from 'qrcode';
+import { API_BASE_URL } from '../config/api';
 
 export const getOriginalPdfUrl = (caseItem) => {
   const pdfPath = caseItem?.pdf_file_path || caseItem?.pdf_file;
@@ -12,11 +13,14 @@ export const getOriginalPdfUrl = (caseItem) => {
     return `${pdfPath}${sep}t=${timestamp}`;
   }
 
+  // Derive target origin from API_BASE_URL (points to port 5000 on localhost, or live server on prod)
   const defaultOrigin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5000';
-  const baseUrl = (import.meta.env.VITE_API_BASE_URL || defaultOrigin).replace(/\/api\/?$/, '').replace(/\/$/, '');
+  const backendBase = (import.meta.env.VITE_API_BASE_URL || API_BASE_URL || defaultOrigin)
+    .replace(/\/api\/?$/, '')
+    .replace(/\/$/, '');
   const normalizedPath = String(pdfPath).replace(/^\/+/, '');
 
-  return `${baseUrl}/${normalizedPath}?t=${timestamp}`;
+  return `${backendBase}/${normalizedPath}?t=${timestamp}`;
 };
 
 /**
@@ -785,39 +789,34 @@ export const downloadCaseAsPDF = async (caseItem, elementId = 'printable-judgmen
   const downloadFileName = `Digital_Law_Reporter_Case_${caseId}_${Date.now()}.pdf`;
   showToast(`Preparing authentic PDF judgment file...`);
 
-  // 1. Prefer the sanitized uploaded judgment PDF (100% exact alignment, zero QR, zero question mark)
+  // 1. Prefer the sanitized uploaded judgment PDF (verify valid PDF content and size)
   const originalPdfUrl = getOriginalPdfUrl(caseItem);
   if (originalPdfUrl) {
     try {
       const resp = await fetch(originalPdfUrl);
-      if (resp.ok) {
+      const contentType = resp.headers.get('content-type') || '';
+      // Ensure response is actually a binary PDF and not an SPA fallback HTML file (which is <5KB)
+      if (resp.ok && (contentType.includes('application/pdf') || contentType.includes('octet-stream'))) {
         const blob = await resp.blob();
-        const blobUrl = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = blobUrl;
-        link.download = downloadFileName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(blobUrl);
-        showToast(`Official PDF judgment file downloaded successfully!`);
-        return;
+        if (blob.size > 5000) {
+          const blobUrl = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = blobUrl;
+          link.download = downloadFileName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(blobUrl);
+          showToast(`Official PDF judgment file downloaded successfully!`);
+          return;
+        }
       }
     } catch (e) {
-      console.warn('Direct blob fetch failed, falling back to anchor link:', e);
-      const link = document.createElement('a');
-      link.href = originalPdfUrl;
-      link.target = '_blank';
-      link.download = downloadFileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      showToast(`Downloading official PDF judgment file...`);
-      return;
+      console.warn('Direct PDF blob fetch failed, falling back to vector PDF generation:', e);
     }
   }
 
-  // 2. Vector PDF Model fallback
+  // 2. Vector PDF Model fallback (builds complete high-res A4 legal PDF with 100% full content)
   try {
     const doc = await buildVectorLegalPDF(caseItem);
     doc.save(downloadFileName);
@@ -850,29 +849,51 @@ export const downloadCaseAsPDF = async (caseItem, elementId = 'printable-judgmen
 };
 
 /**
- * Print Action: Uses the clean PDF model with 100% exact alignment and autoPrint
+ * Print Action: Cleanly triggers native print dialog on the authentic legal document
+ * Never leaves a blank page or unrendered tab.
  */
 export const printCaseAsPDF = async (caseItem, elementId = 'printable-judgment-document', showToast = () => { }) => {
   if (!caseItem) return;
 
-  showToast("Opening document for printing...");
+  showToast("Opening print dialog...");
 
-  // 1. Prefer the sanitized uploaded judgment PDF (100% exact alignment, zero QR, zero question mark)
+  // 1. If original PDF file exists and is valid, load into hidden iframe to trigger print dialog directly
   const originalPdfUrl = getOriginalPdfUrl(caseItem);
   if (originalPdfUrl) {
-    window.open(originalPdfUrl, '_blank');
-    showToast("Opening official judgment PDF for printing...");
-    return;
+    try {
+      const resp = await fetch(originalPdfUrl);
+      const contentType = resp.headers.get('content-type') || '';
+      if (resp.ok && (contentType.includes('application/pdf') || contentType.includes('octet-stream'))) {
+        const blob = await resp.blob();
+        if (blob.size > 5000) {
+          const blobUrl = window.URL.createObjectURL(blob);
+          const printIframe = document.createElement('iframe');
+          printIframe.style.position = 'fixed';
+          printIframe.style.right = '0';
+          printIframe.style.bottom = '0';
+          printIframe.style.width = '0';
+          printIframe.style.height = '0';
+          printIframe.style.border = '0';
+          printIframe.src = blobUrl;
+          document.body.appendChild(printIframe);
+          printIframe.onload = () => {
+            setTimeout(() => {
+              try {
+                printIframe.contentWindow.focus();
+                printIframe.contentWindow.print();
+              } catch (e) {
+                window.print();
+              }
+            }, 300);
+          };
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn("Direct PDF print fetch failed, falling back to document print:", e);
+    }
   }
 
-  // 2. Vector PDF fallback
-  try {
-    const doc = await buildVectorLegalPDF(caseItem);
-    doc.autoPrint();
-    const blobUrl = doc.output('bloburl');
-    window.open(blobUrl, '_blank');
-  } catch (nativeErr) {
-    console.error("Native print error, falling back to window.print():", nativeErr);
-    window.print();
-  }
+  // 2. Direct browser print on clean printable legal document
+  window.print();
 };

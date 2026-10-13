@@ -4,6 +4,19 @@ import react from '@vitejs/plugin-react';
 // High-Tech Vite Performance Config for Instant Millisecond Responses
 export default defineConfig({
   plugins: [react()],
+  server: {
+    port: 5173,
+    proxy: {
+      '/uploads': {
+        target: 'http://localhost:5000',
+        changeOrigin: true
+      },
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true
+      }
+    }
+  },
   build: {
     cssCodeSplit: true,
     chunkSizeWarningLimit: 700,
