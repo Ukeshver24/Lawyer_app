@@ -714,7 +714,7 @@ export const buildVectorLegalPDF = async (caseItem) => {
   const defaultOrigin = typeof window !== 'undefined' && window.location.origin 
     ? window.location.origin 
     : 'https://law.gradixtech.com';
-  const canonicalUrl = `${defaultOrigin}/judgment/${caseId}`;
+  const canonicalUrl = `${defaultOrigin}/judgment/${caseId}?open_pdf=1`;
 
   let qrDataUrl = null;
   try {

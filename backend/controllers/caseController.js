@@ -1,3 +1,6 @@
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { 
   getAllCasesFromDb, getCaseByIdFromDb, createCaseInDb, updateCaseInDb, 
   deleteCaseFromDb, updateCaseStatusInDb 
@@ -5,6 +8,9 @@ import {
 import judgmentRepository from '../repositories/judgmentRepository.js';
 import logger from '../utils/logger.js';
 import { notifyMobileAppNewJudgement } from '../services/fcmService.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // GET /api/cases
 export const getCases = async (req, res) => {
@@ -29,6 +35,34 @@ export const getCaseById = async (req, res) => {
   } catch (error) {
     logger.error(`Failed to fetch case ID ${req.params.id}:`, error);
     res.status(500).json({ success: false, message: 'Server error fetching case' });
+  }
+};
+
+// GET /api/cases/:id/pdf - Stream authentic PDF directly to client or redirect
+export const getCasePdf = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const caseItem = await getCaseByIdFromDb(id);
+    if (!caseItem) {
+      return res.status(404).json({ success: false, message: 'Case record not found' });
+    }
+
+    const pdfPath = caseItem.pdf_file_path || caseItem.pdf_file;
+    if (pdfPath) {
+      const cleanPath = pdfPath.replace(/^uploads[\\\/]/, '').replace(/^[\\\/]+/, '');
+      const fullPath = path.join(__dirname, '../uploads', cleanPath);
+      if (fs.existsSync(fullPath)) {
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `inline; filename="DLR_Judgment_${caseItem.id}.pdf"`);
+        return fs.createReadStream(fullPath).pipe(res);
+      }
+    }
+
+    // Fallback: If no physical PDF file exists on server, redirect to web judgment route
+    return res.redirect(`/judgment/${id}`);
+  } catch (error) {
+    logger.error(`Failed to fetch PDF for case ID ${req.params.id}:`, error);
+    res.status(500).json({ success: false, message: 'Server error retrieving case PDF' });
   }
 };
 

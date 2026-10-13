@@ -2,7 +2,7 @@ import express from 'express';
 import multer from 'multer';
 import { extractJudgmentFromBuffer } from '../utils/pdfExtractor.js';
 import { sanitizePdfBuffer } from '../utils/pdfSanitizer.js';
-import { getCases, getCaseById, createCase, updateCase, deleteCase, toggleCaseStatus } from '../controllers/caseController.js';
+import { getCases, getCaseById, getCasePdf, createCase, updateCase, deleteCase, toggleCaseStatus } from '../controllers/caseController.js';
 import { checkCitation } from '../controllers/adminController.js';
 
 const router = express.Router();
@@ -65,6 +65,7 @@ router.get('/check-citation', checkCitation);
 router.get('/', getCases);
 router.post('/', createCase);
 router.get('/:id', getCaseById);
+router.get('/:id/pdf', getCasePdf);
 router.put('/:id', updateCase);
 router.delete('/:id', deleteCase);
 router.put('/:id/status', toggleCaseStatus);

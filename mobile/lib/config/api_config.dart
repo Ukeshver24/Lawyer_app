@@ -42,6 +42,6 @@ class ApiConfig {
   static String get webBaseUrl => 'https://law.gradixtech.com';
 
   static String getJudgmentWebUrl(String caseId) {
-    return '$webBaseUrl/judgment/$caseId';
+    return '$webBaseUrl/judgment/$caseId?open_pdf=1';
   }
 }
