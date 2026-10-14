@@ -2120,15 +2120,6 @@ export default function AdminCaseForm() {
                   <CheckCircle2 size={14} />
                   <span>Save to Form</span>
                 </button>
-
-                <button
-                  type="button"
-                  onClick={handleApplyAndPublish}
-                  className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-[#0B1727] hover:bg-slate-800 text-white font-semibold text-xs rounded-lg transition-all shadow-xs cursor-pointer"
-                >
-                  <Check size={14} />
-                  <span>Save & Publish</span>
-                </button>
               </div>
             </div>
 
