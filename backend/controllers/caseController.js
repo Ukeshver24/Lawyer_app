@@ -50,7 +50,7 @@ export const getCasePdf = async (req, res) => {
 
     const pdfPath = caseItem.pdf_file_path || caseItem.pdf_file;
     if (pdfPath) {
-      const cleanPath = pdfPath.replace(/^uploads[\\\/]/, '').replace(/^[\\\/]+/, '');
+      const cleanPath = String(pdfPath).replace(/^[\\\/]+/, '').replace(/^uploads[\\\/]/i, '').replace(/^[\\\/]+/, '');
       const fullPath = path.join(__dirname, '../uploads', cleanPath);
       if (fs.existsSync(fullPath)) {
         // Stamp authentic scannable QR code on Page 1 top-left so camera scan opens the PDF
@@ -125,7 +125,7 @@ export const createCase = async (req, res) => {
 
     // Stamp authentic scannable QR code on PDF so scanning immediately opens the PDF
     if (newCase && (newCase.pdf_file || newCase.pdf_file_path)) {
-      const cleanPath = (newCase.pdf_file_path || newCase.pdf_file).replace(/^uploads[\\\/]/, '').replace(/^[\\\/]+/, '');
+      const cleanPath = String(newCase.pdf_file_path || newCase.pdf_file).replace(/^[\\\/]+/, '').replace(/^uploads[\\\/]/i, '').replace(/^[\\\/]+/, '');
       const fullPath = path.join(__dirname, '../uploads', cleanPath);
       await stampJudgmentPdf(fullPath, newCase.id);
     }
@@ -203,7 +203,7 @@ export const updateCase = async (req, res) => {
 
     // Stamp authentic scannable QR code on PDF so scanning immediately opens the PDF
     if (updatedCase && (updatedCase.pdf_file || updatedCase.pdf_file_path)) {
-      const cleanPath = (updatedCase.pdf_file_path || updatedCase.pdf_file).replace(/^uploads[\\\/]/, '').replace(/^[\\\/]+/, '');
+      const cleanPath = String(updatedCase.pdf_file_path || updatedCase.pdf_file).replace(/^[\\\/]+/, '').replace(/^uploads[\\\/]/i, '').replace(/^[\\\/]+/, '');
       const fullPath = path.join(__dirname, '../uploads', cleanPath);
       await stampJudgmentPdf(fullPath, updatedCase.id);
     }

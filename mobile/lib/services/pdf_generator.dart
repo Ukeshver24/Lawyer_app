@@ -132,14 +132,19 @@ class PdfGeneratorService {
     final headnoteClean = cleanText(caseItem.headnote);
     final contentClean = cleanText(caseItem.content);
 
-    // Split content into paragraphs
+    // Split content into paragraphs and strip any duplicate standalone JUDGMENT / ORDER title lines
     final paragraphs = contentClean
         .split(RegExp(r'\n\s*\n'))
         .map((p) => p.trim())
         .where((p) => p.isNotEmpty)
-        .where((p) => !RegExp(r'^(?:J\s*U\s*D\s*G\s*M\s*E\s*N\s*T|JUDGMENT|ORDER)$',
-                caseSensitive: false)
-            .hasMatch(p))
+        .where((p) {
+          final alphaOnly = p.replaceAll(RegExp(r'[^a-zA-Z]'), '').toUpperCase();
+          return alphaOnly != 'JUDGMENT' &&
+                 alphaOnly != 'JUDGEMENT' &&
+                 alphaOnly != 'ORDER' &&
+                 alphaOnly != 'COURTORDER' &&
+                 alphaOnly != 'FINALORDER';
+        })
         .toList();
 
     pdf.addPage(
@@ -493,11 +498,12 @@ class PdfGeneratorService {
           widgets.add(
             pw.Center(
               child: pw.Text(
-                'JUDGMENT',
+                'J U D G M E N T',
                 style: pw.TextStyle(
                   font: timesBold,
                   fontSize: 13.5,
                   decoration: pw.TextDecoration.underline,
+                  letterSpacing: 2.0,
                 ),
               ),
             ),

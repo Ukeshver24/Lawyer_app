@@ -70,15 +70,17 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
         .split(RegExp(r'\n\s*\n'))
         .map((p) => p.trim())
         .where((p) => p.isNotEmpty)
+        .where((p) {
+          // Strictly strip any standalone JUDGMENT / ORDER title paragraph so it never duplicates in body
+          final alphaOnly = p.replaceAll(RegExp(r'[^a-zA-Z]'), '').toUpperCase();
+          return alphaOnly != 'JUDGMENT' &&
+                 alphaOnly != 'JUDGEMENT' &&
+                 alphaOnly != 'ORDER' &&
+                 alphaOnly != 'COURTORDER' &&
+                 alphaOnly != 'FINALORDER';
+        })
         .toList();
 
-    // Filter out redundant initial headers if already shown
-    if (list.isNotEmpty &&
-        RegExp(r'^(?:J\s*U\s*D\s*G\s*M\s*E\s*N\s*T|JUDGMENT|ORDER)$',
-                caseSensitive: false)
-            .hasMatch(list.first)) {
-      list.removeAt(0);
-    }
     return list;
   }
 
@@ -604,28 +606,19 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
     final topContent = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Centered JUDGMENT Heading (NO citation header or DLR text above)
+        // Single centered J U D G M E N T Heading (Strictly one title, zero duplicates)
         Center(
           child: Text(
-            'JUDGMENT',
+            'J U D G M E N T',
             style: _timesStyle(
               fontSize: 13.5,
               fontWeight: FontWeight.bold,
               decoration: TextDecoration.underline,
+              letterSpacing: 2.0,
             ),
           ),
         ),
-        const SizedBox(height: 10),
-
-        Text(
-          'J U D G M E N T',
-          style: _timesStyle(
-            fontSize: 12.5,
-            fontWeight: FontWeight.bold,
-            decoration: TextDecoration.underline,
-          ),
-        ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 12),
 
         if (c.judge.isNotEmpty) ...[
           Text(
@@ -730,27 +723,17 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
     final a4Height = a4Width * 1.4142; // True A4 proportion (1 : √2)
     final contentWidth = a4Width - 48.0; // 24px horizontal padding on each side
 
-    // Dynamic calculation of Page 2 header height (JUDGMENT, J U D G M E N T, Judge name)
+    // Dynamic calculation of Page 2 header height (J U D G M E N T, Judge name)
     double page2HeaderHeight = 0.0;
-    final tpJudg1 = TextPainter(
-      text: TextSpan(
-        text: 'JUDGMENT',
-        style: _timesStyle(fontSize: 13.5, fontWeight: FontWeight.bold, decoration: TextDecoration.underline),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout(maxWidth: contentWidth);
-    page2HeaderHeight += tpJudg1.height + 10.0;
-    tpJudg1.dispose();
-
-    final tpJudg2 = TextPainter(
+    final tpJudg = TextPainter(
       text: TextSpan(
         text: 'J U D G M E N T',
-        style: _timesStyle(fontSize: 12.5, fontWeight: FontWeight.bold, decoration: TextDecoration.underline),
+        style: _timesStyle(fontSize: 13.5, fontWeight: FontWeight.bold, decoration: TextDecoration.underline, letterSpacing: 2.0),
       ),
       textDirection: TextDirection.ltr,
     )..layout(maxWidth: contentWidth);
-    page2HeaderHeight += tpJudg2.height + 8.0;
-    tpJudg2.dispose();
+    page2HeaderHeight += tpJudg.height + 12.0;
+    tpJudg.dispose();
 
     if (c.judge.isNotEmpty) {
       final tpJudge = TextPainter(
