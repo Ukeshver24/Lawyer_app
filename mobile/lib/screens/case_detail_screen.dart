@@ -801,14 +801,36 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
                     ),
                   ),
                 )
-              : IconButton(
-                  icon: const Icon(
-                    Icons.download_rounded,
-                    color: Color(0xFF1D4ED8),
-                    size: 22,
-                  ),
-                  tooltip: 'Download PDF',
-                  onPressed: _handleDownloadPdf,
+              : Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(
+                        Icons.download_rounded,
+                        color: Color(0xFF1D4ED8),
+                        size: 22,
+                      ),
+                      tooltip: 'Download PDF',
+                      onPressed: _handleDownloadPdf,
+                    ),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.share_rounded,
+                        color: Color(0xFF1D4ED8),
+                        size: 20,
+                      ),
+                      tooltip: 'Share PDF',
+                      onPressed: () async {
+                        try {
+                          await PdfGeneratorService.sharePdf(context, widget.caseItem);
+                        } catch (e) {
+                          if (mounted) {
+                            AppToast.showError(context, 'Could not share PDF: $e');
+                          }
+                        }
+                      },
+                    ),
+                  ],
                 ),
 
           // 2. Bookmark Action Icon

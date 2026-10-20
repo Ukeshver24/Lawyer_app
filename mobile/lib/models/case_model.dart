@@ -1,3 +1,5 @@
+import '../config/api_config.dart';
+
 class CaseModel {
   final String id;
   final String title;
@@ -13,6 +15,8 @@ class CaseModel {
   final String act;
   final String decisionDate;
   final bool isSaved;
+  final String pdfFile;
+  final String pdfFilePath;
 
   CaseModel({
     required this.id,
@@ -29,7 +33,25 @@ class CaseModel {
     this.act = '',
     this.decisionDate = '',
     this.isSaved = false,
+    this.pdfFile = '',
+    this.pdfFilePath = '',
   });
+
+  /// Resolves the authentic court PDF URL if available
+  String get originalPdfUrl {
+    final path = pdfFilePath.isNotEmpty ? pdfFilePath : pdfFile;
+    if (path.isEmpty) {
+      if (id.isNotEmpty) {
+        return '${ApiConfig.baseUrl}/cases/$id/pdf';
+      }
+      return '';
+    }
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return path;
+    }
+    final clean = path.replaceAll(RegExp(r'^[/\\]+'), '');
+    return '${ApiConfig.webBaseUrl}/$clean';
+  }
 
   String get formattedDate {
     if (decisionDate.isEmpty) return '';
@@ -139,6 +161,9 @@ class CaseModel {
       actCombined = actCombined.isNotEmpty ? '$actCombined; section $sec' : 'Section $sec';
     }
 
+    final rawPdfFile = (json['pdf_file'] ?? json['pdfFile'] ?? '').toString().trim();
+    final rawPdfFilePath = (json['pdf_file_path'] ?? json['pdfFilePath'] ?? '').toString().trim();
+
     return CaseModel(
       id: json['id']?.toString() ?? json['_id']?.toString() ?? '',
       title: parsedTitle,
@@ -154,6 +179,8 @@ class CaseModel {
       act: actCombined,
       decisionDate: (json['decisionDate'] ?? json['decision_date'] ?? json['judgment_date'] ?? json['judgmentDate'] ?? '').toString().split('T')[0],
       isSaved: json['isSaved'] ?? false,
+      pdfFile: rawPdfFile,
+      pdfFilePath: rawPdfFilePath,
     );
   }
 
@@ -173,10 +200,16 @@ class CaseModel {
       'act': act,
       'decision_date': decisionDate,
       'isSaved': isSaved,
+      'pdf_file': pdfFile,
+      'pdf_file_path': pdfFilePath,
     };
   }
 
-  CaseModel copyWith({bool? isSaved}) {
+  CaseModel copyWith({
+    bool? isSaved,
+    String? pdfFile,
+    String? pdfFilePath,
+  }) {
     return CaseModel(
       id: id,
       title: title,
@@ -192,6 +225,8 @@ class CaseModel {
       act: act,
       decisionDate: decisionDate,
       isSaved: isSaved ?? this.isSaved,
+      pdfFile: pdfFile ?? this.pdfFile,
+      pdfFilePath: pdfFilePath ?? this.pdfFilePath,
     );
   }
 }

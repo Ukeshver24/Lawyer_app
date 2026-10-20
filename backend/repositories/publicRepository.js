@@ -5,7 +5,7 @@ export const getHomeStatsFromDb = async () => {
   const totalCasesRes = await query(`SELECT COUNT(*) FROM cases WHERE status = 'Published'`);
   const totalUsersRes = await query(`SELECT COUNT(*) FROM users WHERE status = 'Active'`);
   const recentCasesRes = await query(`
-    SELECT id, case_number, title, petitioner, respondent, court, judgment_date, year, act, section, head_note, citations
+    SELECT id, case_number, title, petitioner, respondent, court, judgment_date, year, act, section, head_note, citations, pdf_file, pdf_file_path
     FROM cases 
     WHERE status = 'Published' 
     ORDER BY judgment_date DESC 

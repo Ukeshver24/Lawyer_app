@@ -1,5 +1,6 @@
 import express from 'express';
 import { getHomeData, searchJudgments, getJudgmentDetail, getCourts } from '../controllers/publicController.js';
+import { getCasePdf } from '../controllers/caseController.js';
 import { getSettings } from '../controllers/adminController.js';
 
 const router = express.Router();
@@ -10,7 +11,9 @@ router.get('/home', getHomeData);
 router.get('/search', searchJudgments);
 router.get('/cases/search', searchJudgments);
 router.get('/cases', searchJudgments);
+router.get('/cases/:id/pdf', getCasePdf);
 router.get('/cases/:id', getJudgmentDetail);
+router.get('/judgment/:id/pdf', getCasePdf);
 router.get('/judgment/:id', getJudgmentDetail);
 router.get('/settings', getSettings);
 
