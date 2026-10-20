@@ -220,6 +220,16 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
     }
   }
 
+  void _handleSharePdf() async {
+    try {
+      await PdfGeneratorService.sharePdf(context, widget.caseItem);
+    } catch (e) {
+      if (mounted) {
+        AppToast.showError(context, 'Could not share PDF: $e');
+      }
+    }
+  }
+
   /// Diagonal watermark across each page: bottom-left to top-right
   Widget _buildWatermark() {
     return Positioned.fill(
@@ -820,15 +830,7 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
                         size: 20,
                       ),
                       tooltip: 'Share PDF',
-                      onPressed: () async {
-                        try {
-                          await PdfGeneratorService.sharePdf(context, widget.caseItem);
-                        } catch (e) {
-                          if (mounted) {
-                            AppToast.showError(context, 'Could not share PDF: $e');
-                          }
-                        }
-                      },
+                      onPressed: _handleSharePdf,
                     ),
                   ],
                 ),
