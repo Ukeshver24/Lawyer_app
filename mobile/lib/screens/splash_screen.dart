@@ -97,7 +97,7 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
               const SizedBox(height: 24),
 
-              // 2. Official Brand Name: "Digital Lawyer Reporter"
+              // 2. Official Brand Name: "Digital Law Reporter"
               RichText(
                 textAlign: TextAlign.center,
                 text: const TextSpan(
@@ -108,7 +108,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   ),
                   children: [
                     TextSpan(
-                      text: 'Digital Lawyer ',
+                      text: 'Digital Law ',
                       style: TextStyle(color: Color(0xFF0F172A)), // Crisp Slate 950
                     ),
                     TextSpan(

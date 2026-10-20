@@ -37,7 +37,7 @@ class _ContactScreenState extends State<ContactScreen>
             ),
             const SizedBox(height: 4),
             const Text(
-              'Digital Lawyer Reporter Support',
+              'Digital Law Reporter Support',
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w900,

@@ -194,7 +194,7 @@ class _HomeScreenState extends State<HomeScreen>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Lawyer Judgment Feed',
+                              'Digital Law Precedent Feed',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 12.5,

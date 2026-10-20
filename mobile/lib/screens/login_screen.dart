@@ -140,7 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       // Title
                       const Text(
-                        'Welcome to Digital Lawyer',
+                        'Welcome to Digital Law Reporter',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 22,

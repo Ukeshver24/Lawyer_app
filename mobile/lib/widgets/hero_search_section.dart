@@ -31,7 +31,7 @@ class HeroSearchSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. Digital Lawyer Suite Badge & Live Status Pill
+          // 1. Digital Law Suite Badge & Live Status Pill
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -48,7 +48,7 @@ class HeroSearchSection extends StatelessWidget {
                     Icon(Icons.balance_rounded, size: 12, color: Color(0xFF1D4ED8)),
                     SizedBox(width: 4),
                     Text(
-                      'DIGITAL LAWYER REPORTER',
+                      'DIGITAL LAW REPORTER',
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w800,

@@ -86,7 +86,7 @@ export default function Header() {
               <Link to="/" className="cursor-pointer flex items-center" title="Return to Home">
                 <img 
                   src="/logo/digital_law_reporter.png" 
-                  alt="Digital Lawyer Reporter" 
+                  alt="Digital Law Reporter" 
                   className="h-9 sm:h-10 md:h-11 object-contain" 
                 />
               </Link>
