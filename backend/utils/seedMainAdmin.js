@@ -23,7 +23,9 @@ export const seedMainAdmin = async () => {
 
       ALTER TABLE cases 
       ADD COLUMN IF NOT EXISTS pdf_file VARCHAR(255),
-      ADD COLUMN IF NOT EXISTS pdf_file_path VARCHAR(255);
+      ADD COLUMN IF NOT EXISTS pdf_file_path VARCHAR(255),
+      ADD COLUMN IF NOT EXISTS use_professional_font BOOLEAN DEFAULT FALSE,
+      ADD COLUMN IF NOT EXISTS font_family VARCHAR(50) DEFAULT 'helvetica';
 
       CREATE TABLE IF NOT EXISTS user_saved_cases (
         user_identifier VARCHAR(100) PRIMARY KEY,

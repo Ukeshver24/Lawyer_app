@@ -32,6 +32,42 @@ const LinkedInIcon = () => (
   </svg>
 );
 
+// Strips raw HTML tags and decodes common entities
+const stripHtml = (html) => {
+  if (!html) return '';
+  return String(html)
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&#39;/gi, "'")
+    .replace(/&quot;/gi, '"')
+    .replace(/\s+/g, ' ')
+    .trim();
+};
+
+// Google-Style Clean Headnote Snippet with Automatic Ellipsis (...) & Keyword Highlighting
+const getHeadnoteSnippet = (rawHeadnote, keyword, maxLen = 220) => {
+  const clean = stripHtml(rawHeadnote || '');
+  if (!clean) return { __html: '<span class="text-slate-400 italic text-[11px]">No headnote available</span>' };
+
+  let text = clean;
+  if (text.length > maxLen) {
+    text = text.substring(0, maxLen).trim().replace(/[\s,.;:-]+$/, '') + '...';
+  }
+
+  if (!keyword || !keyword.trim()) {
+    return { __html: text };
+  }
+
+  const escaped = keyword.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp(`(${escaped})`, 'gi');
+  const highlighted = text.replace(regex, '<mark class="bg-yellow-200 text-slate-900 font-semibold px-0.5 rounded-2xs">$1</mark>');
+
+  return { __html: highlighted };
+};
+
 // Highlighting Utility (Safe HTML Injection)
 const getHighlightedSnippet = (snippet, keyword) => {
   if (!snippet) return { __html: '' };
@@ -130,9 +166,9 @@ export default function SearchResults() {
   }, [isShareMenuOpen]);
 
   const handleShareClick = (platform) => {
-    if (!selectedCase) return;
+    if (!activeSelectedCase) return;
     const currentUrl = window.location.href;
-    const title = selectedCase.title || 'Legal Precedent - Digi Law Reporter';
+    const title = activeSelectedCase.title || 'Legal Precedent - Digi Law Reporter';
     const textToShare = `${title}\n${currentUrl}`;
 
     switch (platform) {
@@ -289,13 +325,13 @@ export default function SearchResults() {
 
   // Audio Text to Speech Reader with Popup Widget Controls
   const startSpeech = (rate = speechRate) => {
-    if (!selectedCase) return;
+    if (!activeSelectedCase) return;
     if (!('speechSynthesis' in window)) {
       showToast("Text-to-Speech is not supported in this browser");
       return;
     }
     window.speechSynthesis.cancel();
-    const textToRead = `${selectedCase.title || ''}. Judgment of ${selectedCase.court_name || selectedCase.court || 'Supreme Court of India'}. ${selectedCase.head_note || ''}. ${selectedCase.content || ''}`;
+    const textToRead = `${activeSelectedCase.title || ''}. Judgment of ${activeSelectedCase.court_name || activeSelectedCase.court || 'Supreme Court of India'}. ${activeSelectedCase.head_note || ''}. ${activeSelectedCase.content || ''}`;
     const utterance = new SpeechSynthesisUtterance(textToRead.substring(0, 3000));
     utterance.rate = rate;
     utterance.onend = () => {
@@ -313,7 +349,7 @@ export default function SearchResults() {
   };
 
   const handleToggleAudio = () => {
-    if (!selectedCase) return;
+    if (!activeSelectedCase) return;
     if (isSpeaking) {
       if (isPaused) {
         window.speechSynthesis.resume();
@@ -358,12 +394,17 @@ export default function SearchResults() {
 
   useEffect(() => {
     const fetchResults = async () => {
+      if (!query || !query.trim()) {
+        setResults([]);
+        setSelectedCase(null);
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       try {
         const activeTabCode = searchParams.get('tab') || 'keyword';
-        const searchUrl = query && query.trim()
-          ? `${API_BASE_URL}/public/search?keyword=${encodeURIComponent(query.trim())}&tab=${encodeURIComponent(activeTabCode)}`
-          : `${API_BASE_URL}/public/search?tab=${encodeURIComponent(activeTabCode)}`;
+        const searchUrl = `${API_BASE_URL}/public/search?keyword=${encodeURIComponent(query.trim())}&tab=${encodeURIComponent(activeTabCode)}`;
 
         const res = await fetch(searchUrl);
         const data = await res.json();
@@ -381,6 +422,7 @@ export default function SearchResults() {
             judgmentDate: c.judgmentDate || c.judgment_date || '',
             head_note: c.head_note || c.summary || c.headNote || '',
             summary: c.summary || c.head_note || c.headNote || '',
+            headnoteSnippetHtml: getHeadnoteSnippet(c.head_note || c.summary || c.headNote || '', query),
             content: c.content || c.judgment_text || c.judgmentText || '',
             judgment_text: c.judgment_text || c.content || c.judgmentText || '',
             petitioner_name: c.petitioner_name || c.petitioner || '',
@@ -389,11 +431,13 @@ export default function SearchResults() {
               ? (c.citations[0].number && /INSC|SCC|AIR|SCALE|SCR|DLR/i.test(c.citations[0].number) 
                   ? c.citations[0].number 
                   : (c.citations[0].number ? `${c.citations[0].year || ''} DLR (${c.citations[0].court || 'SC'}) #${c.citations[0].number}` : (c.citations[0].year && c.citations[0].court ? `${c.citations[0].year} ${c.citations[0].court}` : 'Authentic Precedent')))
-              : (typeof c.citations === 'string' ? c.citations : (c.citation || ''))
+              : (typeof c.citations === 'string' ? c.citations : (c.citation || '')),
+            use_professional_font: Boolean(c.use_professional_font),
+            font_family: c.font_family || (c.use_professional_font ? 'times' : 'helvetica')
           }));
 
           setResults(normalized);
-          setSelectedCase(normalized[0]);
+          setSelectedCase(null);
           setLoading(false);
           return;
         }
@@ -454,16 +498,37 @@ export default function SearchResults() {
     });
   }, [results, selectedCategory, selectedCourtFilter, startYear, endYear, searchWithinResults]);
 
-  // Current selected case index & navigation handlers
-  const currentIndex = useMemo(() => {
-    if (!selectedCase) return -1;
-    return filteredResults.findIndex(r => String(r.id) === String(selectedCase.id));
+  // Derive active selected case from user selection in filteredResults (only shows when user explicitly selects a case)
+  const activeSelectedCase = useMemo(() => {
+    if (!selectedCase || filteredResults.length === 0) return null;
+    return filteredResults.find(r => String(r.id) === String(selectedCase.id)) || null;
   }, [filteredResults, selectedCase]);
 
-  const handleNavFirst = () => { if (filteredResults.length > 0) setSelectedCase(filteredResults[0]); };
-  const handleNavPrev = () => { if (currentIndex > 0) setSelectedCase(filteredResults[currentIndex - 1]); };
-  const handleNavNext = () => { if (currentIndex >= 0 && currentIndex < filteredResults.length - 1) setSelectedCase(filteredResults[currentIndex + 1]); };
-  const handleNavLast = () => { if (filteredResults.length > 0) setSelectedCase(filteredResults[filteredResults.length - 1]); };
+  // Current selected case index & navigation handlers
+  const currentIndex = useMemo(() => {
+    if (!activeSelectedCase) return -1;
+    return filteredResults.findIndex(r => String(r.id) === String(activeSelectedCase.id));
+  }, [filteredResults, activeSelectedCase]);
+
+  const handleNavFirst = () => { if (filteredResults.length > 0) React.startTransition(() => setSelectedCase(filteredResults[0])); };
+  const handleNavPrev = () => { if (currentIndex > 0) React.startTransition(() => setSelectedCase(filteredResults[currentIndex - 1])); };
+  const handleNavNext = () => { if (currentIndex >= 0 && currentIndex < filteredResults.length - 1) React.startTransition(() => setSelectedCase(filteredResults[currentIndex + 1])); };
+  const handleNavLast = () => { if (filteredResults.length > 0) React.startTransition(() => setSelectedCase(filteredResults[filteredResults.length - 1])); };
+
+  // Full Reset: resets all filters, search term, URL, result list, and preview
+  const handleResetFiltersAndSearch = () => {
+    handleStopAudio();
+    setSelectedCategory('ALL');
+    setSelectedCourtFilter('ALL');
+    setSearchWithinResults('');
+    setSearchWithinDoc('');
+    setShowDocSearch(false);
+    setStartYear(1800);
+    setEndYear(2026);
+    setSelectedCase(null);
+    setResults([]);
+    navigate('/search/results', { replace: true });
+  };
 
   const handleCopyCitation = (citation) => {
     if (!citation) return;
@@ -506,6 +571,11 @@ export default function SearchResults() {
               type="text"
               value={searchWithinResults}
               onChange={(e) => setSearchWithinResults(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && searchWithinResults.trim()) {
+                  navigate(`/search/results?q=${encodeURIComponent(searchWithinResults.trim())}&tab=keyword`);
+                }
+              }}
               placeholder="Search within Search Results..."
               className="w-full bg-slate-800/90 border border-slate-700 rounded-md pl-3 pr-8 py-1.5 text-xs text-white placeholder:text-slate-400 focus:outline-none focus:border-blue-500 font-medium"
             />
@@ -589,7 +659,7 @@ export default function SearchResults() {
         >
           <FileText size={13} />
           <span>Judgment View</span>
-          {selectedCase && <span className="w-2 h-2 rounded-full bg-emerald-400"></span>}
+          {activeSelectedCase && <span className="w-2 h-2 rounded-full bg-emerald-400"></span>}
         </button>
 
         <button
@@ -618,10 +688,12 @@ export default function SearchResults() {
               <SlidersHorizontal size={14} className="text-blue-400" /> Filter Options
             </span>
             <button 
-              onClick={() => { setSelectedCategory('ALL'); setSelectedCourtFilter('ALL'); setSearchWithinResults(''); }}
-              className="text-[10px] font-bold text-blue-400 hover:underline cursor-pointer"
+              onClick={handleResetFiltersAndSearch}
+              className="text-[10px] font-bold text-blue-400 hover:text-blue-300 hover:underline cursor-pointer flex items-center gap-1 transition-colors"
+              title="Reset all filters and search query"
             >
-              Reset
+              <RotateCcw size={10} />
+              <span>Reset</span>
             </button>
           </div>
 
@@ -734,81 +806,70 @@ export default function SearchResults() {
                 <span>Searching database...</span>
               </div>
             ) : filteredResults.length === 0 ? (
-              <div className="p-8 text-center text-slate-500 text-xs">
-                No judgments matching filter criteria.
+              <div className="p-8 text-center text-slate-500 text-xs flex flex-col items-center justify-center gap-2">
+                <Search size={22} className="text-slate-400 stroke-[1.5]" />
+                <span>
+                  {searchWithinResults.trim() || query.trim() 
+                    ? "No judgments matching filter criteria." 
+                    : "No judgments to display. Filters and search have been reset."}
+                </span>
               </div>
             ) : (
               filteredResults.map((item, index) => {
-                const isSelected = selectedCase?.id === item.id;
+                const isSelected = activeSelectedCase?.id === item.id;
                 const isSaved = savedCases.some(c => String(c.id) === String(item.id));
 
                 return (
                   <div 
                     key={item.id} 
                     onClick={() => {
-                      setSelectedCase(item);
+                      React.startTransition(() => {
+                        setSelectedCase(item);
+                      });
                       if (window.innerWidth < 1024) {
                         setMobileTab('judgment');
                       }
                     }}
-                    className={`p-3 cursor-pointer transition-all duration-150 ${
+                    className={`p-3.5 cursor-pointer transition-all duration-150 ${
                       isSelected 
-                        ? 'bg-blue-50/90 border-l-4 border-l-blue-700 shadow-2xs' 
-                        : 'hover:bg-slate-50 border-l-4 border-l-transparent'
+                        ? 'bg-blue-50/90 border-l-4 border-l-blue-600 shadow-2xs' 
+                        : 'hover:bg-slate-50/80 border-l-4 border-l-transparent'
                     }`}
                   >
-                    {/* Top Row: Case Title & Check Save Badge */}
-                    <div className="flex justify-between items-start gap-2 mb-1">
-                      <span className={`font-bold text-xs leading-snug ${isSelected ? 'text-blue-900' : 'text-slate-900'}`}>
+                    {/* Top Row: Case Title (Google Blue Link Style) & Save Bookmark Icon */}
+                    <div className="flex justify-between items-start gap-2 mb-1.5">
+                      <h3 className={`font-semibold text-[13.5px] leading-snug cursor-pointer transition-colors ${
+                        isSelected 
+                          ? 'text-blue-900 underline' 
+                          : 'text-[#1a0dab] hover:text-[#1558d6] hover:underline'
+                      }`}>
                         {index + 1}. {item.title}
-                      </span>
+                      </h3>
                       {isSaved && (
-                        <span className="bg-emerald-100 text-emerald-800 p-0.5 rounded shrink-0" title="Saved Case">
-                          <CheckCircle2 size={12} />
-                        </span>
-                      )}
-                    </div>
-                    
-                    {/* Citation, Date & Act/Section Badges */}
-                    <div className="flex flex-wrap items-center gap-1.5 text-[11px] mb-1.5">
-                      {item.citation && (
-                        <span className="font-mono font-bold text-blue-700 bg-blue-50 px-1.5 py-0.2 rounded border border-blue-200">
-                          {item.citation}
-                        </span>
-                      )}
-                      {item.judgment_date && (
-                        <span className="text-slate-500 text-[10px] font-medium">
-                          {new Date(item.judgment_date).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-                        </span>
-                      )}
-                      {(item.act || item.section) && (
-                        <span className="text-[10px] font-semibold text-emerald-800 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
-                          {item.act ? (item.section ? `${item.act} • ${item.section}` : item.act) : item.section}
+                        <span className="bg-emerald-50 text-emerald-700 p-0.5 rounded shrink-0" title="Saved Case">
+                          <CheckCircle2 size={13} />
                         </span>
                       )}
                     </div>
 
-                    {/* Highlighted Snippet */}
+                    {/* Google-Style Headnote Description: Light Black, Clean Alignment & Automatic Ellipsis (...) */}
                     <div 
-                      className="text-[11px] text-slate-600 leading-normal line-clamp-2 mb-1.5 bg-slate-50 p-1.5 rounded border border-slate-200 font-sans"
-                      dangerouslySetInnerHTML={getHighlightedSnippet(item.content || item.head_note, query)}
+                      className="text-[12px] text-[#4d5156] leading-relaxed line-clamp-3 font-sans text-left"
+                      dangerouslySetInnerHTML={item.headnoteSnippetHtml || getHeadnoteSnippet(item.head_note || item.headnote || item.summary, query)}
                     />
 
-                    {/* Court Badge & Mobile Direct Actions (lg:hidden) */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[10px] text-slate-500 pt-1 border-t border-slate-100 mt-1">
-                      <span className="font-semibold text-slate-700 flex items-center gap-1">
-                        <Landmark size={11} className="text-blue-600" /> {item.court_name || 'Supreme Court of India'}
-                      </span>
-
-                      {/* Mobile-Only Action Button */}
+                    {/* Mobile-Only Action Button (lg:hidden) */}
+                    <div className="lg:hidden pt-2 border-t border-slate-100 mt-2 flex justify-end">
                       <button
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          setSelectedCase(item);
+                          React.startTransition(() => {
+                            setSelectedCase(item);
+                          });
                           setMobileTab('judgment');
                         }}
-                        className="lg:hidden w-full sm:w-auto inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] transition-colors shadow-2xs cursor-pointer mt-1 sm:mt-0"
+                        className="w-full inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] transition-colors shadow-2xs cursor-pointer"
                       >
                         <FileText size={12} />
                         <span>View Details</span>
@@ -825,7 +886,7 @@ export default function SearchResults() {
         {/* PANE 3: CASE DETAILS WORKSPACE & TOOLBAR (Right Column) */}
         <div id="case-details-workspace" className={`flex-1 min-h-0 bg-slate-200 relative z-0 h-full overflow-hidden ${mobileTab === 'judgment' ? 'flex flex-col flex-1 h-full' : 'hidden lg:flex lg:flex-col'}`}>
           
-          {selectedCase ? (
+          {activeSelectedCase && filteredResults.length > 0 ? (
             <>
               {/* CASE DETAILS ACTION TOOLBAR BAR */}
               <div className="bg-[#1E4D6E] text-white px-2 sm:px-3 py-1.5 flex items-center justify-between gap-1 sm:gap-2 shrink-0 shadow-md z-10 no-print">
@@ -883,7 +944,7 @@ export default function SearchResults() {
                   <div className="flex items-center gap-1 sm:gap-2">
                     {/* 1. Copy Icon */}
                     <button 
-                      onClick={() => handleCopyCitation(`${selectedCase.title}\nCitation: ${selectedCase.citation || 'N/A'}\nCourt: ${selectedCase.court_name || ''}`)}
+                      onClick={() => handleCopyCitation(`${activeSelectedCase.title}\nCitation: ${activeSelectedCase.citation || 'N/A'}\nCourt: ${activeSelectedCase.court_name || ''}`)}
                       className="p-1.5 hover:bg-blue-800/80 rounded transition-colors text-white cursor-pointer"
                       title="Copy Citation & Judgment Title"
                     >
@@ -892,15 +953,15 @@ export default function SearchResults() {
 
                     {/* 2. Save Case / Bookmark Icon */}
                     <button 
-                      onClick={(e) => handleToggleSaveCase(selectedCase, e)}
+                      onClick={(e) => handleToggleSaveCase(activeSelectedCase, e)}
                       className={`p-1.5 rounded transition-colors cursor-pointer ${
-                        savedCases.some(c => String(c.id) === String(selectedCase.id))
+                        savedCases.some(c => String(c.id) === String(activeSelectedCase.id))
                           ? 'bg-emerald-600 text-white font-bold shadow-xs'
                           : 'hover:bg-blue-800/80 text-white'
                       }`}
-                      title={savedCases.some(c => String(c.id) === String(selectedCase.id)) ? "Saved Case (Click to remove)" : "Save Case / Bookmark"}
+                      title={savedCases.some(c => String(c.id) === String(activeSelectedCase.id)) ? "Saved Case (Click to remove)" : "Save Case / Bookmark"}
                     >
-                      {savedCases.some(c => String(c.id) === String(selectedCase.id)) ? (
+                      {savedCases.some(c => String(c.id) === String(activeSelectedCase.id)) ? (
                         <BookmarkCheck size={16} className="text-emerald-200" />
                       ) : (
                         <Bookmark size={16} />
@@ -958,7 +1019,7 @@ export default function SearchResults() {
                   <div className="flex items-center gap-1 sm:gap-2 justify-end">
                     {/* 6. Print Icon */}
                     <button 
-                      onClick={() => printCaseAsPDF(selectedCase, 'printable-judgment-document', showToast)}
+                      onClick={() => printCaseAsPDF(activeSelectedCase, 'printable-judgment-document', showToast)}
                       className="p-1.5 hover:bg-blue-800/80 rounded transition-colors text-white cursor-pointer"
                       title="Print Official Legal Document"
                       aria-label="Print document"
@@ -968,7 +1029,7 @@ export default function SearchResults() {
 
                     {/* 7. Download PDF Icon */}
                     <button 
-                      onClick={() => downloadCaseAsPDF(selectedCase, 'printable-judgment-document', showToast)}
+                      onClick={() => downloadCaseAsPDF(activeSelectedCase, 'printable-judgment-document', showToast)}
                       className="p-1.5 hover:bg-blue-800/80 rounded transition-colors text-white cursor-pointer"
                       title="Download Judgment PDF Document"
                       aria-label="Download PDF document"
@@ -1079,7 +1140,7 @@ export default function SearchResults() {
                 data-lenis-prevent
               >
                 <UniversalLegalDocument 
-                  doc={selectedCase}
+                  doc={activeSelectedCase}
                   fontSize={fontSize}
                   searchQuery={activeHighlightQuery}
                   isHighlightingEnabled={isHighlightingEnabled}
@@ -1087,22 +1148,24 @@ export default function SearchResults() {
               </div>
             </>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-4 max-w-md mx-auto my-auto">
-              <div className="w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center border border-red-200 shadow-sm">
-                <AlertTriangle size={32} />
+            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4 max-w-md mx-auto my-auto select-none">
+              <div className="w-16 h-16 bg-slate-100 text-slate-400 rounded-2xl flex items-center justify-center border border-slate-300/80 shadow-sm">
+                <FileText size={32} className="text-slate-400 stroke-[1.5]" />
               </div>
               <div className="space-y-1.5">
-                <h2 className="text-lg font-bold text-slate-900">No Case Found</h2>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  No published legal precedent was found in the database matching <span className="font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">{query || 'your search'}</span>.
+                <h3 className="text-base font-bold text-slate-800">
+                  {filteredResults.length > 0 
+                    ? 'Select a Judgment' 
+                    : (searchWithinResults.trim() || query.trim() ? 'No Judgments Found' : 'No Judgment Selected')}
+                </h3>
+                <p className="text-xs text-slate-500 leading-relaxed max-w-xs mx-auto">
+                  {filteredResults.length > 0
+                    ? 'Choose a case from the Result List on the left to preview its full judgment.'
+                    : (searchWithinResults.trim() || query.trim()
+                        ? 'No judgments matching filter criteria.'
+                        : 'Filters and search have been reset.')}
                 </p>
               </div>
-              <button
-                onClick={() => navigate('/search')}
-                className="px-5 py-2 bg-[#0B1727] hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition-all shadow-md cursor-pointer active:scale-95"
-              >
-                Back to Search Portal
-              </button>
             </div>
           )}
 
@@ -1139,7 +1202,7 @@ export default function SearchResults() {
                   <div key={idx} className="py-3 space-y-1.5">
                     <div className="flex items-start justify-between gap-2">
                       <span 
-                        onClick={() => { setSelectedCase(item); setIsSavedDrawerOpen(false); }}
+                        onClick={() => { React.startTransition(() => setSelectedCase(item)); setIsSavedDrawerOpen(false); }}
                         className="font-bold text-xs text-blue-900 hover:underline cursor-pointer leading-snug"
                       >
                         {item.title}
@@ -1177,7 +1240,7 @@ export default function SearchResults() {
       {/* ========================================================================= */}
       {/* 4. SOCIAL MEDIA & EMAIL SHARE MODAL (WhatsApp, Twitter/X, LinkedIn, Email) */}
       {/* ========================================================================= */}
-      {isShareModalOpen && selectedCase && (
+      {isShareModalOpen && activeSelectedCase && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4 animate-in fade-in">
           <div className="bg-white text-slate-900 rounded-xl max-w-md w-full p-5 shadow-2xl space-y-4 animate-in zoom-in-95">
             
@@ -1190,7 +1253,7 @@ export default function SearchResults() {
             </div>
 
             <div className="text-xs text-slate-600 font-medium">
-              Share <span className="font-bold text-slate-900">"{selectedCase.title}"</span> across social media platforms or direct link:
+              Share <span className="font-bold text-slate-900">"{activeSelectedCase.title}"</span> across social media platforms or direct link:
             </div>
 
             {/* Social Media & Email Share Buttons (4 Platforms: WhatsApp, Twitter/X, LinkedIn, Email) */}
@@ -1198,7 +1261,7 @@ export default function SearchResults() {
               
               {/* WhatsApp */}
               <a
-                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`Digi Law Reporter Judgment:\n${selectedCase.title}\nCitation: ${selectedCase.citation || ''}\nLink: ${window.location.href}`)}`}
+                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`Digi Law Reporter Judgment:\n${activeSelectedCase.title}\nCitation: ${activeSelectedCase.citation || ''}\nLink: ${window.location.href}`)}`}
                 target="_blank"
                 rel="noreferrer"
                 className="flex items-center justify-center gap-2 bg-[#075E54] hover:bg-[#128C7E] text-white text-xs font-bold py-2.5 rounded-lg transition-colors shadow-2xs cursor-pointer"
@@ -1209,7 +1272,7 @@ export default function SearchResults() {
 
               {/* Twitter / X */}
               <a
-                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out this judgment on Digi Law Reporter: ${selectedCase.title}`)}&url=${encodeURIComponent(window.location.href)}`}
+                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out this judgment on Digi Law Reporter: ${activeSelectedCase.title}`)}&url=${encodeURIComponent(window.location.href)}`}
                 target="_blank"
                 rel="noreferrer"
                 className="flex items-center justify-center gap-2 bg-[#0F1419] hover:bg-slate-800 text-white text-xs font-bold py-2.5 rounded-lg transition-colors shadow-2xs cursor-pointer"
@@ -1267,7 +1330,7 @@ export default function SearchResults() {
       {/* ========================================================================= */}
       {/* 5. EMAIL DIRECT SHARE MODAL */}
       {/* ========================================================================= */}
-      {isEmailModalOpen && selectedCase && (
+      {isEmailModalOpen && activeSelectedCase && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4 animate-in fade-in">
           <div className="bg-white text-slate-900 rounded-xl max-w-md w-full p-5 shadow-2xl space-y-4 animate-in zoom-in-95">
             
@@ -1282,7 +1345,7 @@ export default function SearchResults() {
             <form 
               onSubmit={(e) => {
                 e.preventDefault();
-                const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(emailAddress)}&su=${encodeURIComponent(`Legal Judgment: ${selectedCase.title}`)}&body=${encodeURIComponent(`Hi,\n\nPlease find the details of the judgment from Digi Law Reporter:\n\nTitle: ${selectedCase.title}\nCitation: ${selectedCase.citation || 'N/A'}\nCourt: ${selectedCase.court_name || ''}\n\nSummary:\n${selectedCase.head_note || ''}\n\nRead full judgment online: ${window.location.href}`)}`;
+                const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(emailAddress)}&su=${encodeURIComponent(`Legal Judgment: ${activeSelectedCase.title}`)}&body=${encodeURIComponent(`Hi,\n\nPlease find the details of the judgment from Digi Law Reporter:\n\nTitle: ${activeSelectedCase.title}\nCitation: ${activeSelectedCase.citation || 'N/A'}\nCourt: ${activeSelectedCase.court_name || ''}\n\nSummary:\n${activeSelectedCase.head_note || ''}\n\nRead full judgment online: ${window.location.href}`)}`;
                 window.open(gmailUrl, '_blank', 'noopener,noreferrer');
                 showToast(`Opening Gmail composer...`);
                 setIsEmailModalOpen(false);
@@ -1305,8 +1368,8 @@ export default function SearchResults() {
 
               <div className="bg-slate-50 p-2.5 rounded border border-slate-200 text-xs text-slate-600 space-y-1">
                 <div className="font-bold text-slate-800">Case Preview:</div>
-                <div className="truncate font-semibold">{selectedCase.title}</div>
-                <div className="font-mono text-[11px] text-blue-700">{selectedCase.citation}</div>
+                <div className="truncate font-semibold">{activeSelectedCase.title}</div>
+                <div className="font-mono text-[11px] text-blue-700">{activeSelectedCase.citation}</div>
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
@@ -1331,7 +1394,7 @@ export default function SearchResults() {
       )}
 
       {/* CASE DETAILS MODAL POPUP (Matching exact Screenshots 2 & 3) */}
-      {isCaseDetailsModalOpen && selectedCase && (
+      {isCaseDetailsModalOpen && activeSelectedCase && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-xs p-4 animate-in fade-in">
           <div className="bg-slate-50 text-slate-900 rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden border border-slate-200 animate-in zoom-in-95">
             
@@ -1360,8 +1423,8 @@ export default function SearchResults() {
                       COURT
                     </span>
                     <div className="font-bold text-slate-800 text-xs sm:text-sm leading-relaxed uppercase">
-                      {selectedCase.court_name || selectedCase.court || 'IN THE SUPREME COURT OF INDIA'}
-                      {selectedCase.bench && ` ${selectedCase.bench}`}
+                      {activeSelectedCase.court_name || activeSelectedCase.court || 'IN THE SUPREME COURT OF INDIA'}
+                      {activeSelectedCase.bench && ` ${activeSelectedCase.bench}`}
                     </div>
                   </div>
 
@@ -1371,47 +1434,47 @@ export default function SearchResults() {
                       JUDGMENT DATE
                     </span>
                     <div className="font-bold text-slate-800 text-xs sm:text-sm">
-                      {selectedCase.judgment_date 
-                        ? (new Date(selectedCase.judgment_date).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' }))
-                        : (selectedCase.date || '—')}
+                      {activeSelectedCase.judgment_date 
+                        ? (new Date(activeSelectedCase.judgment_date).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' }))
+                        : (activeSelectedCase.date || '—')}
                     </div>
                   </div>
                 </div>
 
                 {/* CASE NUMBER */}
-                {selectedCase.case_number && (
+                {activeSelectedCase.case_number && (
                   <div className="space-y-1 pt-1 border-t border-slate-100">
                     <span className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider block">
                       CASE NUMBER
                     </span>
                     <div className="font-bold text-slate-800 text-xs sm:text-sm leading-relaxed">
-                      {selectedCase.case_number}
+                      {activeSelectedCase.case_number}
                     </div>
                   </div>
                 )}
 
                 {/* CITATION */}
-                {selectedCase.citation && (
+                {activeSelectedCase.citation && (
                   <div className="space-y-1 pt-1 border-t border-slate-100">
                     <span className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider block">
                       CITATION
                     </span>
                     <div className="font-bold text-slate-800 text-xs sm:text-sm font-mono">
-                      {selectedCase.citation}
+                      {activeSelectedCase.citation}
                     </div>
                   </div>
                 )}
 
                 {/* ACT & SECTION */}
-                {(selectedCase.act || selectedCase.section) && (
+                {(activeSelectedCase.act || activeSelectedCase.section) && (
                   <div className="space-y-1 pt-1 border-t border-slate-100">
                     <span className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider block">
                       ACT & SECTION
                     </span>
                     <div className="font-bold text-slate-800 text-xs sm:text-sm">
-                      {selectedCase.act && <span>{selectedCase.act}</span>}
-                      {selectedCase.act && selectedCase.section && <span className="text-slate-400 mx-2">—</span>}
-                      {selectedCase.section && <span className="text-emerald-700 font-semibold">{selectedCase.section}</span>}
+                      {activeSelectedCase.act && <span>{activeSelectedCase.act}</span>}
+                      {activeSelectedCase.act && activeSelectedCase.section && <span className="text-slate-400 mx-2">—</span>}
+                      {activeSelectedCase.section && <span className="text-emerald-700 font-semibold">{activeSelectedCase.section}</span>}
                     </div>
                   </div>
                 )}
@@ -1425,7 +1488,7 @@ export default function SearchResults() {
                     PETITIONER
                   </span>
                   <div className="font-bold text-slate-800 text-xs sm:text-sm">
-                    {selectedCase.petitioner_name || selectedCase.petitioner || selectedCase.title?.split(' vs ')[0] || selectedCase.title}
+                    {activeSelectedCase.petitioner_name || activeSelectedCase.petitioner || activeSelectedCase.title?.split(' vs ')[0] || activeSelectedCase.title}
                   </div>
                 </div>
 
@@ -1437,13 +1500,13 @@ export default function SearchResults() {
                     RESPONDENT
                   </span>
                   <div className="font-bold text-slate-800 text-xs sm:text-sm">
-                    {selectedCase.respondent_name || selectedCase.respondent || selectedCase.title?.split(' vs ')[1] || '—'}
+                    {activeSelectedCase.respondent_name || activeSelectedCase.respondent || activeSelectedCase.title?.split(' vs ')[1] || '—'}
                   </div>
                 </div>
               </div>
 
               {/* CARD 3: HEAD NOTE */}
-              {selectedCase.head_note && (
+              {activeSelectedCase.head_note && (
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <span className="w-1.5 h-4 bg-blue-600 rounded-full inline-block"></span>
@@ -1454,14 +1517,14 @@ export default function SearchResults() {
                   <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs">
                     <div 
                       className="text-xs sm:text-sm text-slate-800 font-normal leading-relaxed font-sans"
-                      dangerouslySetInnerHTML={getHighlightedFullText(selectedCase.head_note, activeHighlightQuery, isHighlightingEnabled)}
+                      dangerouslySetInnerHTML={getHighlightedFullText(activeSelectedCase.head_note, activeHighlightQuery, isHighlightingEnabled)}
                     />
                   </div>
                 </div>
               )}
 
               {/* CARD 4: FULL JUDGMENT */}
-              {selectedCase.content && (
+              {activeSelectedCase.content && (
                 <div className="space-y-2 pt-2">
                   <div className="flex items-center gap-2">
                     <span className="w-1.5 h-4 bg-emerald-600 rounded-full inline-block"></span>
@@ -1472,7 +1535,7 @@ export default function SearchResults() {
                   <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs">
                     <div 
                       className="whitespace-pre-line text-xs sm:text-sm text-slate-900 font-sans leading-relaxed text-justify"
-                      dangerouslySetInnerHTML={getHighlightedFullText(selectedCase.content, activeHighlightQuery, isHighlightingEnabled)}
+                      dangerouslySetInnerHTML={getHighlightedFullText(activeSelectedCase.content, activeHighlightQuery, isHighlightingEnabled)}
                     />
                   </div>
                 </div>
@@ -1495,7 +1558,7 @@ export default function SearchResults() {
       )}
 
       {/* Floating Audio Control Widget Popup */}
-      {isAudioWidgetOpen && selectedCase && (
+      {isAudioWidgetOpen && activeSelectedCase && (
         <div className="fixed bottom-6 right-6 z-50 bg-slate-900/95 text-white border border-slate-700/80 rounded-2xl shadow-2xl p-4 max-w-xs w-full backdrop-blur-md animate-in slide-in-from-bottom-5 font-sans no-print">
           
           {/* Header */}
@@ -1517,7 +1580,7 @@ export default function SearchResults() {
 
           {/* Case Title */}
           <div className="text-xs font-semibold text-slate-300 line-clamp-1 mb-3">
-            {selectedCase.title}
+            {activeSelectedCase.title}
           </div>
 
           {/* Controls: Play/Pause, Repeat, Stop, Speed */}

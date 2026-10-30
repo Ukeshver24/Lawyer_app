@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Search, BookOpen, FileText, Users, ChevronDown, AlertCircle } from 'lucide-react';
 import { API_BASE_URL } from '../config/api';
@@ -35,10 +35,10 @@ export default function KeywordSearch() {
   const initialTabName = TAB_KEY_MAP[tabParam] || 'Keyword Search';
   const [activeTab, setActiveTab] = useState(initialTabName);
 
-  // Form Fields State & Validation State
+  // Form Fields State & Validation State (Each tab has isolated, independent state)
   const [validationError, setValidationError] = useState('');
-  const [searchTerm, setSearchTerm] = useState(queryParam);
-  const [sectionTerm, setSectionTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(tabParam === 'keyword' ? queryParam : '');
+  const [sectionTerm, setSectionTerm] = useState(tabParam === 'section' ? queryParam : '');
   
   // Composite Citation Builder State (Fixed DLR Journal)
   const [citeYear, setCiteYear] = useState('2026');
@@ -50,7 +50,15 @@ export default function KeywordSearch() {
 
   // Find By Party Name State, Dynamic Courts & Dynamic Party Names
   const [partyCourt, setPartyCourt] = useState('');
-  const [partyKeyword, setPartyKeyword] = useState('');
+  const [partyKeyword, setPartyKeyword] = useState(() => {
+    if (tabParam !== 'party' || !queryParam) return '';
+    if (queryParam.includes(':')) {
+      return queryParam.split(':').slice(1).join(':').trim();
+    }
+    return queryParam;
+  });
+  const [showPartySuggestions, setShowPartySuggestions] = useState(false);
+  const partySuggestionsRef = useRef(null);
   const [publishedCasesData, setPublishedCasesData] = useState([]);
   const [backendCourtsList, setBackendCourtsList] = useState([]);
 
@@ -116,6 +124,26 @@ export default function KeywordSearch() {
     return Array.from(new Set(parties)).filter(Boolean);
   }, [publishedCasesData, partyCourt]);
 
+  // Filter matching party names dynamically ONLY when user enters text
+  const matchingPartyNames = useMemo(() => {
+    const q = partyKeyword.trim().toLowerCase();
+    if (!q) return [];
+    return availablePartyNames
+      .filter(name => name.toLowerCase().includes(q))
+      .slice(0, 8);
+  }, [availablePartyNames, partyKeyword]);
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (partySuggestionsRef.current && !partySuggestionsRef.current.contains(e.target)) {
+        setShowPartySuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   // Sync tab from URL if present
   useEffect(() => {
     if (tabParam && TAB_KEY_MAP[tabParam]) {
@@ -123,21 +151,43 @@ export default function KeywordSearch() {
     }
   }, [tabParam]);
 
-  // Sync search term from URL query if present
+  // Sync search term from URL query ONLY to the active tab matching tabParam
   useEffect(() => {
-    if (queryParam) {
-      setSearchTerm(queryParam);
-      setPartyKeyword(queryParam);
-      setSectionTerm(queryParam);
-    }
-  }, [queryParam]);
+    if (!queryParam) return;
 
-  // Tab click switches search option view and clears validation
+    if (tabParam === 'keyword') {
+      setSearchTerm(queryParam);
+    } else if (tabParam === 'section') {
+      setSectionTerm(queryParam);
+    } else if (tabParam === 'party') {
+      if (queryParam.includes(':')) {
+        const parts = queryParam.split(':');
+        setPartyCourt(parts[0].trim());
+        setPartyKeyword(parts.slice(1).join(':').trim());
+      } else {
+        setPartyKeyword(queryParam);
+      }
+    } else if (tabParam === 'citation') {
+      const cleanCit = queryParam.replace(/^citation:\s*/i, '').trim();
+      const yrMatch = cleanCit.match(/\b(19\d{2}|20\d{2})\b/);
+      const moMatch = cleanCit.match(/\(\s*(0?[1-9]|1[0-2])\s*\)/);
+      const crtMatch = cleanCit.match(/\(\s*([a-zA-Z]{2,10})\s*\)/);
+      const numMatch = cleanCit.match(/#\s*([0-9a-zA-Z]+)/);
+      const eqMatch = cleanCit.match(/:\s*(.+)$/);
+      if (yrMatch) setCiteYear(yrMatch[1]);
+      if (moMatch) setCiteMonth(moMatch[1]);
+      if (crtMatch && crtMatch[1].toLowerCase() !== (moMatch?.[1] || '').toLowerCase()) setCiteCourt(crtMatch[1].toUpperCase());
+      if (numMatch) setCiteNumber(numMatch[1]);
+      if (eqMatch) setCiteEquivalent(eqMatch[1].trim());
+    }
+  }, [queryParam, tabParam]);
+
+  // Tab click switches search option view, clears validation, and starts with clean tab URL
   const handleTabClick = (tab) => {
     setActiveTab(tab);
     setValidationError('');
     const code = REVERSE_TAB_MAP[tab] || 'keyword';
-    setSearchParams({ tab: code, ...(queryParam ? { q: queryParam } : {}) });
+    setSearchParams({ tab: code });
   };
 
   // Navigates directly to the 3-Pane Legal Search Workspace Results Page (/search/results)
@@ -190,7 +240,7 @@ export default function KeywordSearch() {
     <div className="flex flex-col w-full flex-1 bg-slate-50 font-sans relative z-10">
       
       {/* 1. Top Header (Dark Theme - RESEARCH+) */}
-      <div className="bg-slate-900 w-full pt-6 md:pt-8 pb-6 md:pb-7 px-4 sm:px-6 relative z-20 shadow-md">
+      <div className="bg-slate-900 w-full pt-6 md:pt-8 pb-6 md:pb-7 px-4 sm:px-6 relative z-40 shadow-md">
         <div className="max-w-5xl mx-auto">
           
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-3">
@@ -307,9 +357,9 @@ export default function KeywordSearch() {
 
           {/* Special UI Layout for "Find By Party Name" (Single Clean Box with Dynamic Backend Courts) */}
           {activeTab === 'Find By Party Name' && (
-            <div className="bg-[#0D1B2A]/90 backdrop-blur-md border border-slate-700/80 rounded-2xl p-4 sm:p-5 shadow-2xl text-slate-900 max-w-lg mx-auto">
+            <div className="bg-[#0D1B2A]/90 backdrop-blur-md border border-slate-700/80 rounded-2xl p-4 sm:p-5 shadow-2xl text-slate-900 max-w-lg mx-auto relative z-30">
               
-              <div className="bg-white border border-slate-200 rounded-xl p-3.5 sm:p-4 shadow-sm space-y-3">
+              <div className="bg-white border border-slate-200 rounded-xl p-3.5 sm:p-4 shadow-sm space-y-3 relative z-30">
                 <h3 className="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center justify-between">
                   <span>Search by Party Name</span>
                   <span className="text-[10px] text-blue-600 font-bold bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-100">
@@ -357,26 +407,52 @@ export default function KeywordSearch() {
                   className="space-y-2"
                 >
                   <div className="flex items-center gap-2">
-                    <div className="relative flex-1">
+                    <div className="relative flex-1" ref={partySuggestionsRef}>
                       <input
                         type="text"
-                        list="party-suggestions-list"
                         autoComplete="off"
                         value={partyKeyword}
+                        onFocus={() => {
+                          if (partyKeyword.trim().length >= 1) {
+                            setShowPartySuggestions(true);
+                          }
+                        }}
                         onChange={(e) => {
-                          setPartyKeyword(e.target.value);
+                          const val = e.target.value;
+                          setPartyKeyword(val);
                           if (validationError) setValidationError('');
+                          setShowPartySuggestions(val.trim().length >= 1);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Escape') {
+                            setShowPartySuggestions(false);
+                          }
                         }}
                         placeholder="Type Party Name / Case Title (e.g. SHAURYA, CBI)"
                         className={`w-full bg-slate-50 border rounded-lg px-3 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white font-medium shadow-2xs transition-colors ${
                           validationError ? 'border-rose-500 focus:border-rose-600 bg-rose-50/20' : 'border-slate-300 focus:border-blue-600'
                         }`}
                       />
-                      <datalist id="party-suggestions-list">
-                        {availablePartyNames.map((name, idx) => (
-                          <option key={idx} value={name} />
-                        ))}
-                      </datalist>
+
+                      {/* Dynamic Autocomplete Dropdown - strictly shown ONLY when user types matching text */}
+                      {showPartySuggestions && matchingPartyNames.length > 0 && (
+                        <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-300 rounded-lg shadow-2xl z-[999] max-h-56 overflow-y-auto divide-y divide-slate-100 animate-in fade-in zoom-in-95">
+                          {matchingPartyNames.map((name, idx) => (
+                            <div
+                              key={idx}
+                              onMouseDown={() => {
+                                setPartyKeyword(name);
+                                setShowPartySuggestions(false);
+                                if (validationError) setValidationError('');
+                              }}
+                              className="px-3 py-2 text-xs font-semibold text-slate-800 hover:bg-blue-50 hover:text-blue-700 cursor-pointer flex items-center justify-between transition-colors"
+                            >
+                              <span>{name}</span>
+                              <span className="text-[10px] text-slate-400 font-normal uppercase tracking-wider">Party</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
                     <button
@@ -463,7 +539,7 @@ export default function KeywordSearch() {
       </div>
 
       {/* 2. Top Sub-Navigation Menu Tabs */}
-      <div className="bg-[#E8EAEF] border-b border-slate-300 relative z-20 shadow-inner">
+      <div className="bg-[#E8EAEF] border-b border-slate-300 relative z-10 shadow-inner">
         <div className="max-w-6xl mx-auto flex flex-nowrap overflow-x-auto hide-scrollbar">
           {TABS.map(tab => (
             <button 
@@ -483,7 +559,7 @@ export default function KeywordSearch() {
       </div>
       
       {/* 3. Welcome Guidelines Container */}
-      <div className="w-full flex-1 relative z-10 p-6 flex flex-col items-center justify-center text-slate-500 text-center">
+      <div className="w-full flex-1 relative z-0 p-6 flex flex-col items-center justify-center text-slate-500 text-center">
         <div className="max-w-md bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-2">
           <Search size={36} className="mx-auto text-primary-600 stroke-[1.5]" />
           <h2 className="text-sm font-bold text-slate-800">Legal Search Portal</h2>

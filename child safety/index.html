@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Child Safety & Minor Protection Policy | Digi Law Reporter</title>
+  <meta name="description" content="Official Child Safety & Protection Policy for Digi Law Reporter Web Portal and Mobile Applications. Full compliance with DPDP Act 2023 Section 9, POCSO Act 2012, Juvenile Justice Act 2015, and Google Play & Apple App Store Child Safety Policies.">
+  <meta name="theme-color" content="#0B1727">
+  
+  <!-- Open Graph / Meta -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Child Safety Policy | Digi Law Reporter">
+  <meta property="og:description" content="Dedicated Child Safety, Minor Redaction and Online Protection Standards for Digi Law Reporter.">
+  
+  <!-- Fonts: Cinzel & Plus Jakarta Sans / Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#F0F7FF',
+              100: '#E0EFFF',
+              200: '#B9DDFF',
+              500: '#2563EB',
+              600: '#1D4ED8',
+              700: '#1E40AF',
+              900: '#0F172A',
+              950: '#0B1727',
+            }
+          },
+          fontFamily: {
+            cinzel: ['Cinzel', 'Georgia', 'serif'],
+            sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
+            serif: ['Lora', 'Georgia', 'serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #F1F5F9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94A3B8;
+    }
+    
+    /* Highlight for search term match */
+    mark.search-highlight {
+      background-color: #FEF08A;
+      color: #854D0E;
+      padding: 2px 4px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    
+    /* Reading Progress Bar */
+    #progress-bar {
+      transition: width 0.1s ease-out;
+    }
+    
+    /* Print Specific Styling */
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+      body {
+        background: white !important;
+        color: black !important;
+      }
+    }
+  </style>
+</head>
+
+<body class="bg-[#FAFBFF] text-slate-800 font-sans antialiased selection:bg-blue-100 selection:text-blue-900 min-h-screen flex flex-col">
+
+  <!-- Top Reading Progress Indicator -->
+  <div class="fixed top-0 left-0 w-full h-1 bg-transparent z-[100] no-print">
+    <div id="progress-bar" class="h-full bg-gradient-to-r from-blue-600 via-emerald-600 to-amber-500 w-0"></div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- HEADER & NAVIGATION (Matches Main Website)                                 -->
+  <!-- ========================================================================= -->
+  <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs no-print">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 sm:h-20">
+        
+        <!-- Authentic Brand Logo (Matches Website) -->
+        <a href="/" class="cursor-pointer flex items-center" title="Digital Law Reporter">
+          <img 
+            src="assets/logo/digital_law_reporter.png" 
+            alt="Digital Law Reporter" 
+            class="h-10 md:h-12 object-contain"
+          >
+        </a>
+
+        <!-- Header Actions -->
+        <div class="flex items-center gap-3">
+          <!-- Print Button -->
+          <button 
+            onclick="window.print()" 
+            class="hidden sm:inline-flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-700 hover:text-blue-600 bg-slate-100 hover:bg-slate-200/80 rounded-lg transition-colors cursor-pointer"
+            title="Print Policy"
+          >
+            <i data-lucide="printer" class="w-4 h-4"></i>
+            <span>Print Policy</span>
+          </button>
+
+          <!-- Back to Portal Button -->
+          <a 
+            href="/" 
+            class="inline-flex items-center gap-2 px-4 py-2 bg-[#0B1727] hover:bg-slate-800 text-white text-xs font-bold rounded-lg transition-all shadow-xs cursor-pointer"
+          >
+            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+            <span>Return to Portal</span>
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- HERO BANNER (Matches Website Luxury Hero & Supreme Court Architecture)     -->
+  <!-- ========================================================================= -->
+  <section class="relative py-14 sm:py-20 border-b border-[#D4AF37]/30 overflow-hidden bg-slate-950 flex items-center justify-center font-sans text-white">
+    
+    <!-- Authentic Photo Background of Supreme Court of India -->
+    <div 
+      class="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat transition-transform duration-1000 scale-105"
+      style="background-image: url('assets/images/supreme_court_india.jpg');"
+    ></div>
+
+    <!-- Luxury Gradient Dark Overlay -->
+    <div class="absolute inset-0 z-0 bg-gradient-to-b from-[#0A1128]/90 via-[#0A1128]/80 to-[#070F1E]/95 backdrop-blur-[1px]"></div>
+
+    <!-- Grid Pattern Overlay -->
+    <div class="absolute inset-0 z-0 opacity-[0.04] pointer-events-none bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:24px_24px]"></div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
+      
+      <!-- Breadcrumb & Compliance Badges -->
+      <div class="flex flex-wrap items-center gap-2.5 mb-4 text-xs font-semibold text-slate-300">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/25 text-emerald-200 border border-emerald-400/40 rounded-full text-[11px] font-mono shadow-xs backdrop-blur-md">
+          <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-300"></i>
+          DPDP Act 2023 (Sec. 9) &amp; POCSO Compliant
+        </span>
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-500/25 text-blue-200 border border-blue-400/40 rounded-full text-[11px] font-mono shadow-xs backdrop-blur-md">
+          <i data-lucide="smartphone" class="w-3.5 h-3.5 text-blue-300"></i>
+          Google Play Families &amp; App Store Certified
+        </span>
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-800/80 text-slate-300 border border-slate-700/80 rounded-full text-[11px] backdrop-blur-md">
+          Version 2.4.0
+        </span>
+      </div>
+
+      <!-- Main Title with Cinzel Font & Gradient Accent -->
+      <h1 class="text-3xl sm:text-5xl md:text-6xl font-black font-cinzel text-white tracking-tight leading-tight max-w-4xl drop-shadow-2xl">
+        CHILD SAFETY &amp; <span class="bg-gradient-to-r from-emerald-200 via-white to-blue-400 bg-clip-text text-transparent">MINOR PROTECTION</span> CHARTER
+      </h1>
+      
+      <p class="mt-4 text-sm sm:text-base text-slate-200 max-w-3xl leading-relaxed drop-shadow">
+        Digi Law Reporter is committed to maintaining the highest standards of child safety, statutory minor identity redaction (POCSO &amp; JJ Act), and strict non-tracking environments across our digital legal research platform.
+      </p>
+
+      <!-- Key Metadata Row -->
+      <div class="mt-8 pt-6 border-t border-slate-800/80 flex flex-wrap items-center gap-6 text-xs text-slate-300 font-medium">
+        <div class="flex items-center gap-2">
+          <i data-lucide="calendar" class="w-4 h-4 text-blue-400"></i>
+          <span>Effective Date: <strong>September 28, 2026</strong></span>
+        </div>
+        <div class="flex items-center gap-2">
+          <i data-lucide="clock" class="w-4 h-4 text-blue-400"></i>
+          <span>Last Updated: <strong>September 28, 2026</strong></span>
+        </div>
+        <div class="flex items-center gap-2">
+          <i data-lucide="user-x" class="w-4 h-4 text-emerald-400"></i>
+          <span>Zero Minor Profiling &amp; Identity Masking Guaranteed</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- EXECUTIVE SUMMARY CARDS                                                   -->
+  <!-- ========================================================================= -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-2 relative z-20 no-print">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      
+      <!-- Card 1: Statutory Redaction -->
+      <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs flex items-start gap-4">
+        <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
+          <i data-lucide="eye-off" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-[#0B1727]">Statutory Minor Redaction</h3>
+          <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+            All judgments involving minors (POCSO / Juvenile cases) are strictly masked and pseudonymized per Supreme Court guidelines.
+          </p>
+        </div>
+      </div>
+
+      <!-- Card 2: Zero Behavioral Tracking -->
+      <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs flex items-start gap-4">
+        <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
+          <i data-lucide="shield-ban" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-[#0B1727]">Zero Minor Tracking &amp; Ads</h3>
+          <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+            In compliance with DPDP Act Sec. 9, we never undertake behavioral tracking, profiling, or targeted advertisements.
+          </p>
+        </div>
+      </div>
+
+      <!-- Card 3: Dedicated Redressal -->
+      <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs flex items-start gap-4">
+        <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100">
+          <i data-lucide="life-buoy" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-[#0B1727]">24/7 Redressal Escalation</h3>
+          <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+            Direct priority hotline and child safety reporting channel with mandatory 24-hour response and resolution timeline.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- MAIN CONTENT CONTAINER WITH STICKY SIDEBAR                                -->
+  <!-- ========================================================================= -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 flex-1 w-full">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
+
+      <!-- ===================================================================== -->
+      <!-- LEFT COLUMN: STICKY TABLE OF CONTENTS (Desktop)                       -->
+      <!-- ===================================================================== -->
+      <aside class="hidden lg:block lg:col-span-4 space-y-6 no-print">
+        <div class="sticky top-24 bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs space-y-4">
+          
+          <!-- In-Page Search Bar -->
+          <div>
+            <label for="policy-search" class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 block mb-1.5">
+              Search Child Safety Standards
+            </label>
+            <div class="relative">
+              <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+              <input 
+                type="text" 
+                id="policy-search" 
+                placeholder="Search keywords (e.g., POCSO, DPDP, CSAM)..." 
+                class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-600 focus:bg-white transition-all"
+                oninput="handleSearch(this.value)"
+              >
+            </div>
+            <p id="search-result-count" class="text-[10px] text-slate-500 mt-1 hidden"></p>
+          </div>
+
+          <!-- Section Navigation Links -->
+          <div>
+            <h4 class="text-xs font-extrabold font-cinzel uppercase tracking-wider text-[#0B1727] pb-2 border-b border-slate-100 flex items-center justify-between">
+              <span>Table of Contents</span>
+              <span class="text-[10px] font-sans font-normal text-slate-400">10 Sections</span>
+            </h4>
+            
+            <nav class="mt-3 space-y-1 text-xs max-h-[58vh] overflow-y-auto pr-1" id="toc-nav">
+              <a href="#section-1" class="toc-link block px-2.5 py-1.5 rounded-lg font-medium text-slate-600 hover:text-emerald-600 hover:bg-slate-50 transition-colors">1. Scope &amp; Target Age Group</a>
+              <a href="#section-2" class="toc-link block px-2.5 py-1.5 rounded-lg font-medium text-slate-600 hover:text-emerald-600 hover:bg-slate-50 transition-colors">2. Minor Identity Redaction (POCSO/JJ)</a>
+              <a href="#section-3" class="toc-link block px-2.5 py-1.5 rounded-lg font-medium text-slate-600 hover:text-emerald-600 hover:bg-slate-50 transition-colors">3. DPDP Act Sec. 9 Compliance</a>
+              <a href="#section-4" class="toc-link block px-2.5 py-1.5 rounded-lg font-medium text-slate-600 hover:text-emerald-600 hover:bg-slate-50 transition-colors">4. App Store &amp; Play Families Policy</a>
+              <a href="#section-5" class="toc-link block px-2.5 py-1.5 rounded-lg font-medium text-slate-600 hover:text-emerald-600 hover:bg-slate-50 transition-colors">5. Zero Tolerance for CSAM / Harmful Data</a>
+              <a href="#section-6" class="toc-link block px-2.5 py-1.5 rounded-lg font-medium text-slate-600 hover:text-emerald-600 hover:bg-slate-50 transition-colors">6. Parental &amp; Guardian Rights</a>
+              <a href="#section-7" class="toc-link block px-2.5 py-1.5 rounded-lg font-medium text-slate-600 hover:text-emerald-600 hover:bg-slate-50 transition-colors">7. Absence of Predatory Monetization</a>
+              <a href="#section-8" class="toc-link block px-2.5 py-1.5 rounded-lg font-medium text-slate-600 hover:text-emerald-600 hover:bg-slate-50 transition-colors">8. Incident Reporting &amp; Escalation</a>
+              <a href="#section-9" class="toc-link block px-2.5 py-1.5 rounded-lg font-medium text-slate-600 hover:text-emerald-600 hover:bg-slate-50 transition-colors">9. Child Safety Officer Contact</a>
+              <a href="#section-10" class="toc-link block px-2.5 py-1.5 rounded-lg font-medium text-slate-600 hover:text-emerald-600 hover:bg-slate-50 transition-colors">10. Academic &amp; Legal Education Guidelines</a>
+            </nav>
+          </div>
+
+          <!-- Emergency Hotline Card -->
+          <div class="p-3.5 bg-emerald-50/70 border border-emerald-200 rounded-xl space-y-2">
+            <div class="flex items-center gap-2 text-emerald-900 font-bold text-xs">
+              <i data-lucide="shield" class="w-4 h-4 text-emerald-600 shrink-0"></i>
+              <span>Child Protection Hotline</span>
+            </div>
+            <p class="text-[11px] text-emerald-800 leading-relaxed">
+              To report any concern regarding minor identity or sensitive material, contact our safety nodal team directly.
+            </p>
+            <a href="mailto:childsafety@digilawreporter.in" class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 hover:text-emerald-900 underline">
+              <span>childsafety@digilawreporter.in</span>
+              <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
+            </a>
+          </div>
+
+        </div>
+      </aside>
+
+      <!-- ===================================================================== -->
+      <!-- RIGHT COLUMN: DETAILED LEGAL POLICY TEXT                              -->
+      <!-- ===================================================================== -->
+      <article class="lg:col-span-8 space-y-10" id="policy-content">
+
+        <!-- =================================================================== -->
+        <!-- SECTION 1: SCOPE & TARGET AUDIENCE                                  -->
+        <!-- =================================================================== -->
+        <section id="section-1" class="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-xs scroll-mt-24 space-y-4">
+          <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
+            <div class="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-xs font-mono">
+              01
+            </div>
+            <h2 class="text-lg sm:text-xl font-extrabold font-cinzel text-[#0B1727]">
+              Scope, Purpose &amp; Target Age Group
+            </h2>
+          </div>
+
+          <div class="text-xs sm:text-sm text-slate-600 leading-relaxed space-y-3 font-normal">
+            <p>
+              <strong>Digi Law Reporter</strong> is a professional digital legal research platform engineered for advocates, judges, law scholars, legal academicians, and law students.
+            </p>
+            <p>
+              This Child Safety Policy sets forth our institutional safeguards, redaction protocols, and compliance framework under Indian and international child protection laws, specifically governing minors who may access our platform for legal education or whose identities might be referenced in judicial precedents.
+            </p>
+          </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- SECTION 2: STATUTORY REDACTION OF MINOR IDENTITIES (POCSO & JJ ACT) -->
+        <!-- =================================================================== -->
+        <section id="section-2" class="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-xs scroll-mt-24 space-y-5">
+          <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
+            <div class="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-xs font-mono">
+              02
+            </div>
+            <h2 class="text-lg sm:text-xl font-extrabold font-cinzel text-[#0B1727]">
+              Statutory Redaction &amp; Masking of Minor Identities
+            </h2>
+          </div>
+
+          <div class="text-xs sm:text-sm text-slate-600 leading-relaxed space-y-4">
+            <p>
+              In strict accordance with the mandatory statutory dictates of Indian jurisprudence, Digi Law Reporter enforces automated and editorial pseudonymization protocols for all reported case law:
+            </p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+              
+              <div class="p-4 bg-slate-50 border border-slate-200/80 rounded-xl space-y-2">
+                <div class="flex items-center gap-2 font-bold text-xs text-slate-900">
+                  <i data-lucide="file-text" class="w-4 h-4 text-emerald-600"></i>
+                  <span>POCSO Act, 2012 (Section 33(7) &amp; 37)</span>
+                </div>
+                <p class="text-xs text-slate-600 leading-relaxed">
+                  Names, family details, schools, addresses, or any identifying markers of child victims are permanently replaced with pseudonyms (e.g., <em>“Victim X”</em>, <em>“Child ‘A’”</em>).
+                </p>
+              </div>
+
+              <div class="p-4 bg-slate-50 border border-slate-200/80 rounded-xl space-y-2">
+                <div class="flex items-center gap-2 font-bold text-xs text-slate-900">
+                  <i data-lucide="scale" class="w-4 h-4 text-blue-600"></i>
+                  <span>Juvenile Justice Act, 2015 (Section 74)</span>
+                </div>
+                <p class="text-xs text-slate-600 leading-relaxed">
+                  Strict prohibition against disclosing the name, address, or school of any child in conflict with law or child in need of care and protection.
+                </p>
+              </div>
+
+            </div>
+
+            <p>
+              Our editorial index verifies that official Supreme Court and High Court certified transcripts adhere to masking standards before judgment digests and headnotes are published.
+            </p>
+          </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- SECTION 3: DPDP ACT 2023 SECTION 9 COMPLIANCE                       -->
+        <!-- =================================================================== -->
+        <section id="section-3" class="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-xs scroll-mt-24 space-y-4">
+          <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
+            <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-xs font-mono">
+              03
+            </div>
+            <h2 class="text-lg sm:text-xl font-extrabold font-cinzel text-[#0B1727]">
+              Section 9 DPDP Act 2023 (Processing of Children’s Data)
+            </h2>
+          </div>
+
+          <div class="text-xs sm:text-sm text-slate-600 leading-relaxed space-y-3">
+            <p>
+              Under <strong>Section 9 of the Digital Personal Data Protection Act, 2023</strong>, Digi Law Reporter enforces three absolute principles:
+            </p>
+            <ul class="list-disc list-inside space-y-2 pl-2 text-slate-700">
+              <li><strong>Zero Behavioral Tracking:</strong> We do not track, monitor, or profile the browsing behavior of minors or students accessing our legal index.</li>
+              <li><strong>Zero Targeted Advertising:</strong> The platform contains no third-party ad networks, tracking pixels, or targeted commercial advertising directed at children.</li>
+              <li><strong>No Harmful Processing:</strong> We do not engage in any data processing activity that is likely to cause any detrimental effect on the well-being of a child.</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- SECTION 4: APP STORE & PLAY FAMILIES POLICY                         -->
+        <!-- =================================================================== -->
+        <section id="section-4" class="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-xs scroll-mt-24 space-y-4">
+          <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
+            <div class="w-8 h-8 rounded-lg bg-slate-800 text-white flex items-center justify-center font-bold text-xs font-mono">
+              04
+            </div>
+            <h2 class="text-lg sm:text-xl font-extrabold font-cinzel text-[#0B1727]">
+              Google Play Families Policy &amp; Apple App Store Standards
+            </h2>
+          </div>
+
+          <div class="text-xs sm:text-sm text-slate-600 leading-relaxed space-y-3">
+            <p>
+              In alignment with the <strong>Google Play Families Policy</strong> and <strong>Apple App Store Review Guidelines (Kids Category &amp; Age Rating)</strong>:
+            </p>
+            <ul class="list-disc list-inside space-y-1.5 pl-2 text-slate-700">
+              <li>Our mobile applications request only necessary technical network permissions (<code>INTERNET</code>).</li>
+              <li>No background location access, microphone recording, camera recording, or access to sensitive personal storage is initiated without explicit, on-demand user invocation.</li>
+              <li>All API communications utilize encrypted HTTPS/TLS 1.3 connections.</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- SECTION 5: ZERO TOLERANCE FOR CSAM & HARMFUL MATERIAL               -->
+        <!-- =================================================================== -->
+        <section id="section-5" class="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-xs scroll-mt-24 space-y-5">
+          <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
+            <div class="w-8 h-8 rounded-lg bg-red-600 text-white flex items-center justify-center font-bold text-xs font-mono">
+              05
+            </div>
+            <h2 class="text-lg sm:text-xl font-extrabold font-cinzel text-[#0B1727]">
+              Zero Tolerance for Child Sexual Abuse Material (CSAM)
+            </h2>
+          </div>
+
+          <div class="text-xs sm:text-sm text-slate-600 leading-relaxed space-y-4">
+            <p>
+              Digi Law Reporter maintains a strict, unconditional <strong>Zero Tolerance Policy</strong> against any form of Child Sexual Abuse Material (CSAM) or Child Sexual Exploitation and Abuse (CSAE).
+            </p>
+            
+            <div class="p-4 bg-red-50/80 border border-red-200 rounded-xl space-y-2 text-red-900 text-xs">
+              <strong class="font-bold flex items-center gap-1.5">
+                <i data-lucide="alert-triangle" class="w-4 h-4 text-red-600"></i>
+                Mandatory Statutory Reporting:
+              </strong>
+              <p class="leading-relaxed">
+                Any attempted upload or dissemination of unlawful material is immediately blocked by our automated in-memory inspection filters, the offending account is terminated, and the incident is reported to the <strong>National Cyber Crime Reporting Portal (cybercrime.gov.in)</strong> and relevant statutory law enforcement authorities under Section 67B of the Information Technology Act.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- SECTION 6: PARENTAL & GUARDIAN RIGHTS                               -->
+        <!-- =================================================================== -->
+        <section id="section-6" class="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-xs scroll-mt-24 space-y-4">
+          <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
+            <div class="w-8 h-8 rounded-lg bg-slate-800 text-white flex items-center justify-center font-bold text-xs font-mono">
+              06
+            </div>
+            <h2 class="text-lg sm:text-xl font-extrabold font-cinzel text-[#0B1727]">
+              Parental &amp; Legal Guardian Rights
+            </h2>
+          </div>
+
+          <div class="text-xs sm:text-sm text-slate-600 leading-relaxed space-y-3">
+            <p>
+              Parents and lawful guardians of minors who use Digi Law Reporter for academic, moot court, or educational purposes hold full rights under the DPDP Act 2023 to:
+            </p>
+            <ul class="list-disc list-inside space-y-1.5 pl-2 text-slate-700">
+              <li>Review any student profile or account details registered under their ward's mobile number.</li>
+              <li>Request immediate correction or updating of profile information.</li>
+              <li>Request instantaneous and irreversible deletion of the account and associated search bookmarks.</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- SECTION 7: ABSENCE OF PREDATORY MONETIZATION                        -->
+        <!-- =================================================================== -->
+        <section id="section-7" class="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-xs scroll-mt-24 space-y-4">
+          <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
+            <div class="w-8 h-8 rounded-lg bg-slate-800 text-white flex items-center justify-center font-bold text-xs font-mono">
+              07
+            </div>
+            <h2 class="text-lg sm:text-xl font-extrabold font-cinzel text-[#0B1727]">
+              Absence of Predatory Monetization &amp; Loot Mechanisms
+            </h2>
+          </div>
+
+          <div class="text-xs sm:text-sm text-slate-600 leading-relaxed space-y-3">
+            <p>
+              Our web and mobile applications do not contain any deceptive design patterns (dark patterns), loot boxes, autoplay paywalls, or behavioral nudges targeting young users. All subscription plans are straightforward, transparent, and intended for adult practitioners and enrolled legal institutions.
+            </p>
+          </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- SECTION 8: REPORTING MECHANISMS & STATUTORY HELPLINES               -->
+        <!-- =================================================================== -->
+        <section id="section-8" class="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-xs scroll-mt-24 space-y-5">
+          <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
+            <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-xs font-mono">
+              08
+            </div>
+            <h2 class="text-lg sm:text-xl font-extrabold font-cinzel text-[#0B1727]">
+              Incident Reporting &amp; Statutory Child Helplines
+            </h2>
+          </div>
+
+          <div class="text-xs sm:text-sm text-slate-600 leading-relaxed space-y-4">
+            <p>
+              If you identify any judgment excerpt or content that inadvertently exposes a minor's identity or requires immediate redaction, please reach out to our emergency safety desk:
+            </p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
+              <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+                <span class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                  <i data-lucide="mail" class="w-3.5 h-3.5 text-blue-600"></i>
+                  DLR Child Safety Email
+                </span>
+                <p class="text-[11px] text-slate-500">
+                  <a href="mailto:childsafety@digilawreporter.in" class="text-blue-700 font-bold hover:underline">childsafety@digilawreporter.in</a>
+                  <br>
+                  <em>(Priority 24-hour response guarantee)</em>
+                </p>
+              </div>
+
+              <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+                <span class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                  <i data-lucide="phone-call" class="w-3.5 h-3.5 text-emerald-600"></i>
+                  National Child Helpline (India)
+                </span>
+                <p class="text-[11px] text-slate-500">
+                  Emergency Helpline: <strong>1098</strong> (24x7, Toll-Free)
+                  <br>
+                  National Commission for Protection of Child Rights (NCPCR)
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- SECTION 9: STATUTORY CHILD SAFETY & GRIEVANCE OFFICER               -->
+        <!-- =================================================================== -->
+        <section id="section-9" class="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-xs scroll-mt-24 space-y-5">
+          <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
+            <div class="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-xs font-mono">
+              09
+            </div>
+            <h2 class="text-lg sm:text-xl font-extrabold font-cinzel text-[#0B1727]">
+              Designated Child Safety &amp; Grievance Redressal Officer
+            </h2>
+          </div>
+
+          <div class="text-xs sm:text-sm text-slate-600 leading-relaxed space-y-4">
+            <p>
+              Pursuant to the IT Rules 2021 and DPDP Act 2023, the details of our designated Officer for Minor Safety and Data Protection are provided below:
+            </p>
+
+            <div class="p-5 bg-gradient-to-br from-slate-50 to-emerald-50/40 border border-slate-200 rounded-2xl space-y-3">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-lg font-cinzel">
+                  CSO
+                </div>
+                <div>
+                  <h4 class="text-sm font-bold text-[#0B1727]">Child Safety &amp; Grievance Officer</h4>
+                  <p class="text-xs text-slate-500">Digi Law Reporter Chambers &amp; Legal Research Centre</p>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs text-slate-700">
+                <div class="flex items-start gap-2">
+                  <i data-lucide="map-pin" class="w-4 h-4 text-emerald-600 shrink-0 mt-0.5"></i>
+                  <span><strong>Chamber:</strong> Chamber No. 402, High Court Lawyers Block, Supreme Court Enclave, New Delhi - 110001</span>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i data-lucide="mail" class="w-4 h-4 text-emerald-600 shrink-0 mt-0.5"></i>
+                  <span><strong>Dedicated Email:</strong> <a href="mailto:childsafety@digilawreporter.in" class="text-emerald-700 font-bold hover:underline">childsafety@digilawreporter.in</a></span>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i data-lucide="phone" class="w-4 h-4 text-emerald-600 shrink-0 mt-0.5"></i>
+                  <span><strong>Phone Helpline:</strong> +91 98765 43210</span>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i data-lucide="clock" class="w-4 h-4 text-emerald-600 shrink-0 mt-0.5"></i>
+                  <span><strong>Acknowledgment:</strong> Within 24 hours; redactive action within 36 hours.</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- SECTION 10: ACADEMIC & LEGAL EDUCATION GUIDELINES                   -->
+        <!-- =================================================================== -->
+        <section id="section-10" class="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-xs scroll-mt-24 space-y-4">
+          <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
+            <div class="w-8 h-8 rounded-lg bg-slate-800 text-white flex items-center justify-center font-bold text-xs font-mono">
+              10
+            </div>
+            <h2 class="text-lg sm:text-xl font-extrabold font-cinzel text-[#0B1727]">
+              Academic &amp; Legal Education Guidelines
+            </h2>
+          </div>
+
+          <div class="text-xs sm:text-sm text-slate-600 leading-relaxed space-y-3">
+            <p>
+              When law students or university scholars analyze sensitive constitutional or criminal judgments, they are advised to uphold professional bar ethics and maintain the confidentiality of masked parties in academic moot court memorials, research articles, and symposiums.
+            </p>
+          </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- FREQUENTLY ASKED QUESTIONS (FAQ) ACCORDION                          -->
+        <!-- =================================================================== -->
+        <section class="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-xs space-y-4 no-print">
+          <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
+            <i data-lucide="help-circle" class="w-6 h-6 text-emerald-600"></i>
+            <h3 class="text-base sm:text-lg font-extrabold font-cinzel text-[#0B1727]">
+              Child Safety &amp; Minor Protection FAQs
+            </h3>
+          </div>
+
+          <div class="space-y-3 text-xs sm:text-sm text-slate-700" id="faq-accordion">
+            
+            <details class="group border border-slate-200 rounded-xl p-3.5 bg-slate-50/50 open:bg-white transition-all cursor-pointer">
+              <summary class="font-bold text-slate-900 flex items-center justify-between">
+                <span>Are children's names published in criminal or custody judgments?</span>
+                <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 group-open:rotate-180 transition-transform"></i>
+              </summary>
+              <p class="mt-2.5 text-xs text-slate-600 leading-relaxed">
+                No. In accordance with POCSO Section 33(7) and JJ Act Section 74, all minor names and sensitive identifying markers are strictly masked and pseudonymized prior to publication.
+              </p>
+            </details>
+
+            <details class="group border border-slate-200 rounded-xl p-3.5 bg-slate-50/50 open:bg-white transition-all cursor-pointer">
+              <summary class="font-bold text-slate-900 flex items-center justify-between">
+                <span>Does the Digi Law Reporter mobile app track minors or serve ads?</span>
+                <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 group-open:rotate-180 transition-transform"></i>
+              </summary>
+              <p class="mt-2.5 text-xs text-slate-600 leading-relaxed">
+                Never. In full compliance with DPDP Act Sec. 9 and Google Play Families Policy, our platform contains zero third-party advertisement networks and conducts zero behavioral profiling.
+              </p>
+            </details>
+
+            <details class="group border border-slate-200 rounded-xl p-3.5 bg-slate-50/50 open:bg-white transition-all cursor-pointer">
+              <summary class="font-bold text-slate-900 flex items-center justify-between">
+                <span>How can a parent request the deletion of a student account?</span>
+                <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 group-open:rotate-180 transition-transform"></i>
+              </summary>
+              <p class="mt-2.5 text-xs text-slate-600 leading-relaxed">
+                Parents or legal guardians can delete the account directly via <code>Settings &rarr; Delete Account</code> or email <code>childsafety@digilawreporter.in</code> with the registered mobile number for immediate permanent removal.
+              </p>
+            </details>
+
+          </div>
+        </section>
+
+      </article>
+
+    </div>
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- FOOTER (Matches Website Theme & Typography)                               -->
+  <!-- ========================================================================= -->
+  <footer class="bg-[#0B1727] text-blue-100 pt-12 pb-8 border-t border-slate-800 text-xs no-print">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+      
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+        
+        <!-- Col 1: Brand Info -->
+        <div class="space-y-3.5 md:col-span-1">
+          <div class="flex items-center space-x-3">
+            <div class="bg-blue-600 text-white p-2 rounded-lg font-bold shadow-md">
+              <i data-lucide="scale" class="w-5 h-5"></i>
+            </div>
+            <span class="text-xl font-black text-white tracking-tight">
+              DIGI LAW <span class="text-blue-400">REPORTER</span>
+            </span>
+          </div>
+          <p class="text-blue-200/80 text-xs leading-relaxed">
+            India's leading verified legal research repository. Delivering sub-second judgment searches, citations, and headnotes.
+          </p>
+          <div class="flex items-center space-x-2 text-xs text-blue-300 font-semibold">
+            <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+            <span>256-Bit SSL Encrypted &amp; Verified</span>
+          </div>
+        </div>
+
+        <!-- Col 2: Quick Navigation -->
+        <div class="space-y-2.5">
+          <h4 class="font-bold mb-3 text-xs text-white uppercase tracking-wider border-b border-slate-800 pb-2">Quick Navigation</h4>
+          <ul class="space-y-2 text-xs text-blue-200/80">
+            <li><a href="/" class="hover:text-white transition-colors">Home</a></li>
+            <li><a href="/" class="hover:text-white transition-colors">About Us</a></li>
+            <li><a href="/" class="hover:text-white transition-colors">Contact</a></li>
+            <li><a href="/privacy-policy" class="hover:text-white transition-colors">Privacy Policy</a></li>
+            <li><a href="#" class="text-white font-semibold">Child Safety Policy</a></li>
+          </ul>
+        </div>
+
+        <!-- Col 3: Jurisdiction -->
+        <div class="space-y-2.5">
+          <h4 class="font-bold mb-3 text-xs text-white uppercase tracking-wider border-b border-slate-800 pb-2">Jurisdiction</h4>
+          <ul class="space-y-2 text-xs text-blue-200/80">
+            <li>Supreme Court of India</li>
+            <li>Delhi High Court</li>
+            <li>Bombay High Court</li>
+            <li>Appellate Tribunals</li>
+          </ul>
+        </div>
+
+        <!-- Col 4: Contact Us -->
+        <div class="space-y-2.5">
+          <h4 class="font-bold mb-3 text-xs text-white uppercase tracking-wider border-b border-slate-800 pb-2">Contact Chambers</h4>
+          <ul class="space-y-2.5 text-xs text-blue-200/80">
+            <li class="flex items-start gap-2">
+              <i data-lucide="mail" class="w-4 h-4 text-blue-400 mt-0.5 shrink-0"></i>
+              <span>childsafety@digilawreporter.in</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <i data-lucide="phone" class="w-4 h-4 text-blue-400 mt-0.5 shrink-0"></i>
+              <span>+91 98765 43210</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <i data-lucide="map-pin" class="w-4 h-4 text-blue-400 mt-0.5 shrink-0"></i>
+              <span>Chamber No. 402, High Court Lawyers Block, Supreme Court Enclave, New Delhi - 110001</span>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+
+      <!-- Copyright Bar -->
+      <div class="pt-6 border-t border-slate-800/80 text-center text-blue-300/60 text-[11px] flex flex-col sm:flex-row items-center justify-between gap-2">
+        <span>© 2026 Digital Law Reporter. All rights reserved.</span>
+        <span>Compliant with DPDP Act 2023, POCSO Act 2012 &amp; Juvenile Justice Act 2015</span>
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- ========================================================================= -->
+  <!-- FLOATING BACK TO TOP BUTTON                                               -->
+  <!-- ========================================================================= -->
+  <button 
+    id="back-to-top" 
+    onclick="window.scrollTo({top: 0, behavior: 'smooth'})"
+    class="fixed bottom-6 right-6 z-40 p-3 bg-[#0B1727] text-white hover:bg-emerald-600 rounded-full shadow-xl transition-all opacity-0 pointer-events-none translate-y-3 cursor-pointer no-print"
+    title="Back to top"
+  >
+    <i data-lucide="arrow-up" class="w-5 h-5"></i>
+  </button>
+
+  <!-- ========================================================================= -->
+  <!-- INTERACTIVE CLIENT JAVASCRIPT                                             -->
+  <!-- ========================================================================= -->
+  <script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
+
+    // 1. Reading Progress Bar & Back to Top visibility
+    window.addEventListener('scroll', () => {
+      const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+      const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const scrolled = (winScroll / height) * 100;
+      
+      const progressBar = document.getElementById('progress-bar');
+      if (progressBar) {
+        progressBar.style.width = scrolled + '%';
+      }
+
+      const backToTop = document.getElementById('back-to-top');
+      if (backToTop) {
+        if (winScroll > 300) {
+          backToTop.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-3');
+          backToTop.classList.add('opacity-100', 'translate-y-0');
+        } else {
+          backToTop.classList.add('opacity-0', 'pointer-events-none', 'translate-y-3');
+          backToTop.classList.remove('opacity-100', 'translate-y-0');
+        }
+      }
+
+      // Active Section Highlighting in TOC
+      const sections = document.querySelectorAll('section[id^="section-"]');
+      const tocLinks = document.querySelectorAll('.toc-link');
+      
+      let currentSectionId = '';
+      sections.forEach(sec => {
+        const top = sec.offsetTop - 120;
+        if (winScroll >= top) {
+          currentSectionId = sec.getAttribute('id');
+        }
+      });
+
+      tocLinks.forEach(link => {
+        if (link.getAttribute('href') === '#' + currentSectionId) {
+          link.classList.add('bg-emerald-50', 'text-emerald-700', 'font-bold', 'border-l-2', 'border-emerald-600');
+          link.classList.remove('text-slate-600');
+        } else {
+          link.classList.remove('bg-emerald-50', 'text-emerald-700', 'font-bold', 'border-l-2', 'border-emerald-600');
+          link.classList.add('text-slate-600');
+        }
+      });
+    });
+
+    // 2. Real-time In-Page Keyword Search & Filter
+    let searchDebounce = null;
+    function handleSearch(query) {
+      clearTimeout(searchDebounce);
+      searchDebounce = setTimeout(() => {
+        const clean = query.trim().toLowerCase();
+        const sections = document.querySelectorAll('section[id^="section-"]');
+        const countDisplay = document.getElementById('search-result-count');
+        
+        if (!clean) {
+          sections.forEach(s => s.classList.remove('hidden'));
+          if (countDisplay) countDisplay.classList.add('hidden');
+          return;
+        }
+
+        let matchCount = 0;
+        sections.forEach(sec => {
+          const text = sec.textContent.toLowerCase();
+          if (text.includes(clean)) {
+            sec.classList.remove('hidden');
+            matchCount++;
+          } else {
+            sec.classList.add('hidden');
+          }
+        });
+
+        if (countDisplay) {
+          countDisplay.classList.remove('hidden');
+          countDisplay.textContent = matchCount + ' section(s) matched "' + clean + '"';
+        }
+      }, 150);
+    }
+  </script>
+
+</body>
+</html>

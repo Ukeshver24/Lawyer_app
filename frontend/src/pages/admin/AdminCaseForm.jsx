@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useNavigate, useParams } from 'react-router-dom';
 import { 
   ArrowLeft, Upload, FileText, CheckCircle2, X, Plus, Minus, AlertTriangle, 
-  Sparkles, Edit3, Eye, RefreshCw, Check, Layers, ExternalLink,
+  Sparkles, Edit3, Eye, RefreshCw, Check, Layers, ExternalLink, Type,
   ZoomIn, ZoomOut, Rows, Columns, Bold as BoldIcon, Italic as ItalicIcon, Underline as UnderlineIcon, Printer,
   Undo2, Redo2, AlignLeft, AlignCenter, AlignRight, AlignJustify, List, ListOrdered, Table as TableIcon, ChevronDown, Trash2,
   ArrowUp, ArrowDown, ArrowLeft as ArrowLeftIcon, ArrowRight as ArrowRightIcon,
@@ -107,7 +107,10 @@ export default function AdminCaseForm() {
     judgmentText: '',
 
     status: 'Published',
-    uploadedFiles: []
+    uploadedFiles: [],
+    use_professional_font: false,
+    font_family: 'helvetica',
+    detected_font: 'helvetica'
   });
 
   const [formError, setFormError] = useState('');
@@ -772,7 +775,7 @@ export default function AdminCaseForm() {
           const petName = String(caseItem.petitioner_name || caseItem.petitioner || titleParts[0] || '').trim();
           const respName = String(caseItem.respondent_name || caseItem.respondent || titleParts[1] || '').trim();
           const cleanSummary = stripHtml(String(caseItem.head_note || caseItem.headNote || caseItem.summary || ''));
-          const formattedJudgment = formatJustifiedParagraphs(String(caseItem.content || caseItem.judgment_text || caseItem.judgmentText || ''));
+          const rawJudgment = String(caseItem.content || caseItem.judgment_text || caseItem.judgmentText || '');
 
           setFormData({
             caseNumber: String(caseItem.case_number || caseItem.caseNumber || ''),
@@ -791,10 +794,15 @@ export default function AdminCaseForm() {
             summary: cleanSummary,
             issues: String(caseItem.issues || ''),
             importantPoints: String(caseItem.importantPoints || ''),
-            judgmentText: formattedJudgment,
+            judgmentText: rawJudgment,
 
             status: String(caseItem.status || 'Published'),
-            uploadedFiles: Array.isArray(caseItem.uploadedFiles) ? caseItem.uploadedFiles : []
+            uploadedFiles: Array.isArray(caseItem.uploadedFiles) ? caseItem.uploadedFiles : [],
+            pdf_file: String(caseItem.pdf_file || caseItem.pdf_file_path || ''),
+            pdf_file_path: String(caseItem.pdf_file_path || caseItem.pdf_file || ''),
+            use_professional_font: Boolean(caseItem.use_professional_font),
+            font_family: String(caseItem.font_family || 'helvetica'),
+            detected_font: String(caseItem.font_family || 'helvetica')
           });
 
           if (caseItem.citations && Array.isArray(caseItem.citations)) {
@@ -817,7 +825,7 @@ export default function AdminCaseForm() {
             act: String(caseItem.act || ''),
             section: String(caseItem.section || ''),
             summary: cleanSummary,
-            judgmentHtml: formattedJudgment,
+            judgmentHtml: rawJudgment,
             totalPages: 14,
             pages: []
           });
@@ -1221,8 +1229,13 @@ export default function AdminCaseForm() {
         diaryNumber: ext.diaryNumber || prev.diaryNumber,
         act: ext.act || prev.act,
         section: ext.section || prev.section,
+        issues: ext.issues || prev.issues,
+        importantPoints: ext.importantPoints || prev.importantPoints,
         pdf_file: ext.pdf_file || prev.pdf_file || '',
         pdf_file_path: ext.pdf_file_path || prev.pdf_file_path || '',
+        use_professional_font: false,
+        font_family: ext.font_family || ext.detected_font || prev.font_family || 'helvetica',
+        detected_font: ext.font_family || ext.detected_font || prev.font_family || 'helvetica',
         summary: stripHtml(ext.summary || prev.summary),
         judgmentText: formatJustifiedParagraphs(ext.judgmentText || prev.judgmentText)
       }));
@@ -1489,6 +1502,8 @@ export default function AdminCaseForm() {
         judgment_text: activeData.judgmentText || '',
         pdf_file: activeData.pdf_file || activeData.pdf_file_path || '',
         pdf_file_path: activeData.pdf_file_path || activeData.pdf_file || '',
+        use_professional_font: Boolean(activeData.use_professional_font),
+        font_family: activeData.use_professional_font ? 'times' : (activeData.font_family || activeData.detected_font || 'helvetica'),
         status: finalStatus,
         citations: citationsList
       };
@@ -1517,6 +1532,9 @@ export default function AdminCaseForm() {
 
       if (res.ok && data.success !== false) {
         showToast(isEditing ? `Case record updated successfully!` : `Case precedent published successfully!`);
+        setTimeout(() => {
+          navigate('/admin/cases');
+        }, 1200);
       } else {
         setFormError(data.message || `Error saving case record (Status: ${res.status})`);
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1797,6 +1815,59 @@ export default function AdminCaseForm() {
           )}
         </div>
       )}
+
+      {/* ========================================================================= */}
+      {/* CARD: Typography & Font Styling Choice                                   */}
+      {/* ========================================================================= */}
+      <div className="bg-white border border-slate-200/80 rounded-xl p-6 shadow-xs space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
+              <Type size={16} />
+            </div>
+            <div>
+              <h2 className="text-xs font-extrabold uppercase tracking-widest text-[#0B1727]">
+                Typography & Font Styling
+              </h2>
+              <p className="text-[11px] text-slate-500 font-medium">
+                Choose between professional Times New Roman or original uploaded PDF font
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <label className="flex items-start gap-3 p-3.5 rounded-lg border border-slate-200 hover:border-slate-300 bg-slate-50/50 cursor-pointer transition-colors">
+            <input
+              type="checkbox"
+              id="use-professional-font-checkbox"
+              checked={Boolean(formData.use_professional_font)}
+              onChange={(e) => {
+                const checked = e.target.checked;
+                setFormData(prev => ({
+                  ...prev,
+                  use_professional_font: checked,
+                  font_family: checked ? 'times' : (prev.detected_font || prev.font_family || 'helvetica')
+                }));
+              }}
+              className="mt-0.5 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+            />
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-slate-900 block">
+                  Professional Legal Font (Times New Roman)
+                </span>
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-slate-600">
+                  Original Font: {formData.font_family ? (formData.font_family === 'courier' ? 'Courier / Monospace' : formData.font_family === 'times' ? 'Times New Roman' : 'Arial / Helvetica') : 'Standard'}
+                </span>
+              </div>
+              <span className="text-[11px] text-slate-500 block leading-relaxed">
+                When checked, applies standard professional Times New Roman typography across all pages and downloads. When unchecked (Default), retains the original uploaded PDF font style.
+              </span>
+            </div>
+          </label>
+        </div>
+      </div>
 
       <form onSubmit={(e) => { e.preventDefault(); handleSave(isEditing ? formData.status : 'Published'); }} className="bg-white border border-slate-200/80 rounded-xl p-8 shadow-xs space-y-10">
         

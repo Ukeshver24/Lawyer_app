@@ -1,7 +1,7 @@
 import { jsPDF } from 'jspdf';
 import html2pdf from 'html2pdf.js';
 import QRCode from 'qrcode';
-import { API_BASE_URL } from '../config/api';
+import { API_BASE_URL } from '../config/api.js';
 
 export const getOriginalPdfUrl = (caseItem) => {
   const pdfPath = caseItem?.pdf_file_path || caseItem?.pdf_file;
@@ -24,6 +24,41 @@ export const getOriginalPdfUrl = (caseItem) => {
 };
 
 /**
+ * Strips duplicate court headers, titles, and parties preamble from judgment body
+ * so the body starts cleanly from the judicial opinion or first numbered paragraph.
+ */
+export const stripPreambleFromJudgmentText = (content) => {
+  if (!content) return '';
+  let str = String(content).trim();
+
+  // Pattern A: Match explicit JUDGMENT / ORDER title in preamble
+  const judgmentHeadingRegex = /(?:<p[^>]*>|<div[^>]*>|\n\s*\n|^)\s*(?:<b>|<strong>)?\s*(?:J\s*U\s*D\s*G\s*M\s*E\s*N\s*T|O\s*R\s*D\s*E\s*R)\s*(?:<\/b>|<\/strong>)?\s*(?:<\/p>|<\/div>|\n|$)/i;
+  const matchJ = str.match(judgmentHeadingRegex);
+  if (matchJ && matchJ.index < 4000) {
+    let after = str.substring(matchJ.index + matchJ[0].length).trim();
+    // Also strip judge signature line immediately after JUDGMENT if present
+    const judgeRegex = /^(?:<p[^>]*>|<div[^>]*>|\n\s*\n)?\s*(?:<b>|<strong>|<u>)?\s*[A-Z\.\s]{3,50},\s*J\.?\s*(?:<\/u>|<\/b>|<\/strong>)?\s*(?:<\/p>|<\/div>|\n|$)/i;
+    const matchJudge = after.match(judgeRegex);
+    if (matchJudge) {
+      after = after.substring(matchJudge[0].length).trim();
+    }
+    return after;
+  }
+
+  // Pattern B: Match up to first numbered paragraph (1., [1], etc.) if court preamble is present
+  const firstParaRegex = /(?:<p[^>]*>|\n\s*\n|^)\s*(?:<b>|<strong>)?\s*(?:1[\.\)]|\[1\]|\(1\))\s*/i;
+  const matchP = str.match(firstParaRegex);
+  if (matchP && matchP.index > 30 && matchP.index < 4000) {
+    const preamble = str.substring(0, matchP.index);
+    if (/IN\s+THE\s+SUPREME\s+COURT|IN\s+THE\s+HIGH\s+COURT|VERSUS|APPELLATE|APPELLANT|RESPONDENT/i.test(preamble)) {
+      return str.substring(matchP.index).trim();
+    }
+  }
+
+  return str;
+};
+
+/**
  * Universal Single-Source-of-Truth Legal PDF Model Builder
  * Constructs 100% identical A4 vector document for both Download & Print
  * Matching the authentic Indian Court format with clean typography and precise alignment.
@@ -40,7 +75,7 @@ export const buildVectorLegalPDF = async (caseItem) => {
   const pageHeight = 11.69; // 297 mm
   const margin = 0.70;      // 0.70 in side margins (balanced aesthetic)
   const contentWidth = pageWidth - (margin * 2); // 6.87 in
-  const maxY = pageHeight - 0.95; // max Y before footer
+  const maxY = pageHeight - 1.05; // max Y before footer (ensures safe breathing space above footer)
 
   // Extract All Citations first so available everywhere
   let allCitations = [];
@@ -61,11 +96,20 @@ export const buildVectorLegalPDF = async (caseItem) => {
 
   const formatCitationStr = (c) => {
     if (!c) return '';
-    if (typeof c === 'string') return c;
+    if (typeof c === 'string') {
+      return c.replace(/#/g, ' • ').trim();
+    }
     const yr = c.year || caseItem.year || '2026';
     const mo = c.month ? `(${String(c.month).padStart(2, '0')}) ` : '';
     const crt = c.court ? `(${c.court}) ` : '(SC) ';
-    const num = c.number ? `#${String(c.number).replace(/^#+/, '')}` : '';
+    let num = (c.number || '').trim();
+    if (num) {
+      if (/^\d+$/.test(num)) {
+        num = `#${num}`;
+      } else {
+        num = `• ${num.replace(/^#+/, '').trim()}`;
+      }
+    }
     let s = `${yr} ${mo}DLR ${crt}${num}`.replace(/\s+/g, ' ').trim();
     if (c.equivalentText) {
       s += ` : ${c.equivalentText}`;
@@ -117,6 +161,20 @@ export const buildVectorLegalPDF = async (caseItem) => {
   const section = caseItem.section || '';
   const jurisdiction = caseItem.jurisdiction_type || caseItem.jurisdictionType || 'CIVIL APPELLATE JURISDICTION';
 
+  // Dynamic Typography: Professional Times New Roman vs. Original Uploaded PDF font
+  const useProfessionalFont = Boolean(caseItem.use_professional_font);
+  const rawFontFamily = String(caseItem.font_family || caseItem.fontFamily || '').toLowerCase().trim();
+  let primaryFont = 'helvetica';
+  if (useProfessionalFont) {
+    primaryFont = 'times';
+  } else if (rawFontFamily.includes('courier') || rawFontFamily.includes('mono')) {
+    primaryFont = 'courier';
+  } else if (rawFontFamily.includes('times') || rawFontFamily.includes('serif')) {
+    primaryFont = 'times';
+  } else {
+    primaryFont = 'helvetica';
+  }
+
   let yPos = 0.80;
 
   // Background Watermark: Strictly drawn FIRST so all text, lines, and boxes are ON TOP
@@ -135,10 +193,22 @@ export const buildVectorLegalPDF = async (caseItem) => {
       if (!hasOpacity) {
         doc.setTextColor(242, 242, 242); // Fallback ultra-subtle light gray
       }
+      const watermarkText = "DIGITAL LAW REPORTER";
+      const fontSize = 36;
       doc.setFont("times", "bold");
-      doc.setFontSize(32);
-      doc.text("DIGITAL LAW REPORTER", pageWidth / 2, pageHeight / 2, {
-        align: 'center',
+      doc.setFontSize(fontSize);
+
+      const textWidth = doc.getTextWidth(watermarkText);
+      const angle = 45;
+      const rad = (angle * Math.PI) / 180;
+      const halfLen = textWidth / 2;
+      // Cap-height optical baseline adjustment so visual center is exactly at page center
+      const halfCap = (fontSize / 72) * 0.35;
+
+      const startX = (pageWidth / 2) - (halfLen * Math.cos(rad)) + (halfCap * Math.sin(rad));
+      const startY = (pageHeight / 2) + (halfLen * Math.sin(rad)) + (halfCap * Math.cos(rad));
+
+      doc.text(watermarkText, startX, startY, {
         angle: 45
       });
       doc.restoreGraphicsState();
@@ -148,172 +218,51 @@ export const buildVectorLegalPDF = async (caseItem) => {
   };
 
   const drawHeaderOnSubsequentPage = () => {
-    doc.setFont("times", "bold");
-    doc.setFontSize(9);
-    doc.setTextColor(51, 65, 85);
-    doc.text(primaryCitation, margin, 0.45);
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(8);
-    doc.setTextColor(100, 116, 139);
-    doc.text("DIGI LAW REPORTER (DLR)", pageWidth - margin, 0.45, { align: 'right' });
-
-    doc.setDrawColor(148, 163, 184);
-    doc.setLineWidth(0.006);
-    doc.line(margin, 0.48, pageWidth - margin, 0.48);
-
-    yPos = 0.85;
+    // Top citation removed on subsequent pages per user requirement!
+    // Leaves clean top margin for full judgment reading with no repetition
+    yPos = 0.75;
   };
 
   const checkNewPage = (requiredSpace = 0.24) => {
     if (yPos + requiredSpace > maxY) {
       doc.addPage();
       drawWatermark();
-      yPos = 0.85;
+      yPos = 0.75;
       drawHeaderOnSubsequentPage();
     }
   };
 
-  // ==========================================
-  // PAGE 1: PRECEDENT TITLE & HEADNOTE SHEET
-  // ==========================================
+  // Single-line text justification helper ensuring native PDF word spacing (Tw) is applied
+  const renderJustifiedLine = (text, x, y, targetWidth, isLastLine = false) => {
+    const clean = String(text || '').trim();
+    if (!clean) return;
 
-  // 0. Paint Background Watermark First!
-  drawWatermark();
+    // In legal typography, the final line of a paragraph is left-aligned.
+    // Also, if the line has no space or is significantly shorter than the line width (<50%),
+    // left-align to prevent unnaturally stretched words.
+    const naturalWidth = doc.getTextWidth(clean);
+    const canJustify = !isLastLine && clean.indexOf(' ') > 0 && naturalWidth >= (targetWidth * 0.50);
 
-  const hasEmbeddedCourtHeaders = /IN\s+THE\s+SUPREME\s+COURT|IN\s+THE\s+HIGH\s+COURT|CRIMINAL\s+APPELLATE|CIVIL\s+APPELLATE|—\s*VERSUS\s*—|J\s*U\s*D\s*G\s*M\s*E\s*N\s*T/i.test(fullContent);
-
-  if (!hasEmbeddedCourtHeaders) {
-    // 1. Top Centered Court & Coram Header
-    doc.setFont("times", "bold");
-    doc.setFontSize(12);
-    doc.setTextColor(15, 23, 42);
-
-    let courtHeading = `IN THE ${court.toUpperCase()}`;
-    if (jurisdiction) {
-      courtHeading += ` ${jurisdiction.toUpperCase()}`;
+    if (canJustify) {
+      // Passing [clean, ''] causes jsPDF to apply native word-spacing (Tw) to the line
+      doc.text([clean, ''], x, y, { align: 'justify', maxWidth: targetWidth });
+    } else {
+      doc.text(clean, x, y);
     }
-    if (bench) {
-      courtHeading += ` ${bench.toUpperCase()}`;
-      if (!bench.toUpperCase().includes('JJ') && !bench.toUpperCase().includes('J.')) {
-        courtHeading += ', JJ.';
-      }
-    }
-
-    const headerLines = doc.splitTextToSize(courtHeading, 5.4);
-    doc.text(headerLines, pageWidth / 2, yPos, { align: 'center' });
-    yPos += (headerLines.length * 0.23) + 0.35;
-
-    // 2. Metadata Block (Left-Aligned, Structured with Breathing Room)
-    const renderMetadataItem = (label, value) => {
-      if (!value || !String(value).trim()) return;
-      const cleanVal = String(value).trim();
-      const cleanLabel = label.replace(/:\s*$/, '').trim() + ':';
-
-      doc.setFont("times", "bold");
-      doc.setFontSize(10.5);
-      const labelWithSpace = `${cleanLabel} `;
-      const labelWidth = doc.getTextWidth(labelWithSpace);
-
-      const fullText = `${cleanLabel} ${cleanVal}`;
-      doc.setFont("times", "normal");
-      doc.setFontSize(10.5);
-
-      const lines = doc.splitTextToSize(fullText, contentWidth);
-      if (!lines || lines.length === 0) return;
-
-      // Line 1: Bold label
-      doc.setFont("times", "bold");
-      doc.setFontSize(10.5);
-      doc.setTextColor(15, 23, 42);
-      doc.text(cleanLabel, margin, yPos);
-
-      // Line 1: Normal value
-      doc.setFont("times", "normal");
-      doc.setFontSize(10.5);
-      doc.setTextColor(15, 23, 42);
-
-      let remainder = "";
-      if (lines[0].startsWith(cleanLabel)) {
-        remainder = lines[0].substring(cleanLabel.length).trim();
-      } else {
-        remainder = lines[0].trim();
-      }
-
-      if (remainder) {
-        doc.text(remainder, margin + labelWidth, yPos);
-      }
-      yPos += 0.22;
-
-      // Subsequent lines wrapped cleanly to margin
-      for (let i = 1; i < lines.length; i++) {
-        doc.text(lines[i].trim(), margin, yPos);
-        yPos += 0.22;
-      }
-
-      // Generous breathing room between metadata rows
-      yPos += 0.14;
-    };
-
-    // Citation line
-    const allCitsStr = allCitations.map(c => formatCitationStr(c)).filter(Boolean).join('; ');
-    renderMetadataItem("Citation", allCitsStr || primaryCitation);
-
-    // Case Number line
-    renderMetadataItem("Case Number", caseNumber || '—');
-
-    // Act(s) line
-    const actStr = `${act || ''}${act && section ? '; ' : ''}${section || ''}`;
-    if (actStr) {
-      renderMetadataItem("Act(s)", actStr);
-    }
-
-    // Date of Judgment line
-    renderMetadataItem("Date of Judgment", formattedDate || dateStr);
-
-    yPos += 0.35;
-
-    // 3. Parties Section (Wide Alignment with Dots)
-    const petLabel = "......... Petitioner(s)";
-    doc.setFont("times", "normal");
-    doc.setFontSize(9.5);
-    doc.setTextColor(30, 41, 59);
-    doc.text(petLabel, pageWidth - margin, yPos, { align: 'right' });
-
-    const maxPartyWidth = 3.6;
-    doc.setFont("times", "bold");
-    doc.setFontSize(10.5);
-    doc.setTextColor(15, 23, 42);
-    const petLines = doc.splitTextToSize((petitioner || rawTitle || 'PETITIONER').toUpperCase(), maxPartyWidth);
-    doc.text(petLines, margin, yPos);
-    yPos += Math.max(petLines.length * 0.22, 0.22) + 0.35;
-
-    // VERSUS
-    doc.setFont("times", "bold");
-    doc.setFontSize(10.5);
-    doc.setTextColor(15, 23, 42);
-    doc.text("VERSUS", pageWidth / 2, yPos, { align: 'center' });
-    yPos += 0.35;
-
-    // Respondent
-    const respLabel = "......... Respondent(s)";
-    doc.setFont("times", "normal");
-    doc.setFontSize(9.5);
-    doc.setTextColor(30, 41, 59);
-    doc.text(respLabel, pageWidth - margin, yPos, { align: 'right' });
-
-    doc.setFont("times", "bold");
-    doc.setFontSize(10.5);
-    doc.setTextColor(15, 23, 42);
-    const respLines = doc.splitTextToSize((respondent || 'RESPONDENT').toUpperCase(), maxPartyWidth);
-    doc.text(respLines, margin, yPos);
-    yPos += Math.max(respLines.length * 0.22, 0.22) + 0.40;
-  }
+  };
 
   // Sanitizer Helper
   const sanitizeText = (str) => {
     if (!str) return '';
     let text = String(str);
+
+    // 1. Remove running scraped headers & footers that break paragraph flow (e.g. Indian Kanoon, Page X of Y)
+    text = text
+      .replace(/<div[^>]*class="[^"]*dlr-page-running-footer[^"]*"[^>]*>[\s\S]*?<\/div>/gi, ' ')
+      .replace(/<div[^>]*class="[^"]*page-footer[^"]*"[^>]*>[\s\S]*?<\/div>/gi, ' ')
+      .replace(/Indian\s*Kanoon\s*(?:-\s*http[^\s<]*)?/gi, ' ')
+      .replace(/(?:Indian\s*Kanoon)?\s*Page\s*\d+\s*(?:of\s*\d+)?/gi, ' ')
+      .replace(/HCJ\s*&\s*RRR,\s*J/gi, ' ');
 
     text = text.replace(/<ol[^>]*>([\s\S]*?)<\/ol>/gi, (match, listContent) => {
       let itemIndex = 1;
@@ -345,13 +294,13 @@ export const buildVectorLegalPDF = async (caseItem) => {
       .replace(/Reason:[^\n<]*/gi, '')
       .replace(/Location:[^\n<]*/gi, '')
       .replace(/https?:\/\/[^\s]*\/qr\/[^\s<]*/gi, '')
-      .replace(/[\uFFFD\u200B\uFEFF]/g, '')
+      .replace(/[\uFFFD\u200B-\u200D\uFEFF]/g, '')
       .replace(/(?:^|\s)[\?？]\s*(?=[A-Z\.\s]{3,40},\s*J\.?|\.{3,}|…|Date|New Delhi|[A-Z][a-z]+)/gi, ' ')
       .replace(/(?:^|\s)[\?？]\s*(?:$|\s)/g, ' ')
       .replace(/\s*[\?？]\s*([A-Z\.\s]{3,40},\s*J\.?)/gi, ' $1')
-      .replace(/\s*[\?？]\s*$/g, '')
-      .replace(/^\s*[\?？]\s*/g, '')
-      .replace(/\s+[\?？]\s+/g, ' ')
+      .replace(/\s*[\?差异]\s*$/g, '')
+      .replace(/^\s*[\?差异]\s*/g, '')
+      .replace(/\s+[\?差异]\s+/g, ' ')
       .replace(/<\/(p|div|h1|h2|h3|h4|h5|h6|li|blockquote|tr)>/gi, '\n\n')
       .replace(/<\/(td|th)>/gi, '  \n')
       .replace(/<br\s*\/?>/gi, '\n')
@@ -364,96 +313,287 @@ export const buildVectorLegalPDF = async (caseItem) => {
       .replace(/&quot;/gi, '"')
       .replace(/&#39;/gi, "'")
       .replace(/&#x27;/gi, "'")
-      .replace(/&ndash;/gi, '–')
-      .replace(/&mdash;/gi, '—');
+      .replace(/&ndash;/gi, '-')
+      .replace(/&mdash;/gi, '-');
+
+    // CRITICAL: Normalize ALL Unicode dashes, curly quotes, bullets, and spaces to standard ASCII
+    text = text
+      .replace(/[\u2010\u2011\u2012\u2013\u2014\u2015\u2212\uFE58\uFE63\uFF0D]/g, '-')
+      .replace(/[\u2018\u2019\u201A\u201B\u2032\u2035]/g, "'")
+      .replace(/[\u201C\u201D\u201E\u201F\u2033\u2036]/g, '"')
+      .replace(/[\u2022\u2023\u25E6\u2043\u2219]/g, '-')
+      .replace(/[\u2026]/g, '...')
+      .replace(/[\u00A0\u1680\u2000-\u200A\u202F\u205F\u3000]/g, ' ');
 
     return text.trim();
   };
 
-  // 4. HEAD NOTE Box (Only if present and not already embedded in body)
-  if (headNote && headNote.trim() && !fullContent.includes(headNote.trim().substring(0, 50))) {
+  // ==========================================
+  // PAGE 1: PRECEDENT TITLE & HEADNOTE SHEET
+  // Standard Order:
+  // 1. Citation (in sleek bordered box)
+  // 2. HEADNOTE (bordered box with generous breathing room below)
+  // 3. Court Name, Parties (VERSUS), Case Number, Act Name & Section, Appearances
+  // ==========================================
+
+  // 0. Paint Background Watermark First!
+  drawWatermark();
+
+  // ------------------------------------------
+  // STEP 1: CITATION (SLEEK BORDERED BOX)
+  // ------------------------------------------
+  yPos = 0.52;
+
+  const allCitsStr = allCitations.map(c => formatCitationStr(c)).filter(Boolean).join(' ;  ');
+  const displayCitationText = allCitsStr || primaryCitation;
+
+  doc.setFont(primaryFont, "normal");
+  doc.setFontSize(10);
+  const citBoxPadding = 0.14;
+  const citTextWidth = contentWidth - (citBoxPadding * 2);
+
+  const citLabel = "Citation: ";
+  doc.setFont(primaryFont, "bold");
+  const citLabelW = doc.getTextWidth(citLabel);
+
+  const citFullText = `${citLabel}${displayCitationText}`;
+  const citLines = doc.splitTextToSize(citFullText, citTextWidth);
+  const citLineHeight = 0.20;
+  const citBoxHeight = (citBoxPadding * 2) + (citLines.length * citLineHeight);
+
+  // Draw Citation Box matching Headnote
+  doc.setDrawColor(15, 23, 42);
+  doc.setLineWidth(0.008);
+  doc.rect(margin, yPos, contentWidth, citBoxHeight, 'S');
+
+  // Text inside Citation Box
+  let citTextY = yPos + citBoxPadding + 0.14;
+  for (let i = 0; i < citLines.length; i++) {
+    if (i === 0) {
+      doc.setFont(primaryFont, "bold");
+      doc.setTextColor(15, 23, 42);
+      doc.text(citLabel, margin + citBoxPadding, citTextY);
+      doc.setFont(primaryFont, "normal");
+      const rem = citLines[0].substring(citLabel.length);
+      doc.text(rem, margin + citBoxPadding + citLabelW, citTextY);
+    } else {
+      doc.setFont(primaryFont, "normal");
+      doc.setTextColor(15, 23, 42);
+      doc.text(citLines[i], margin + citBoxPadding, citTextY);
+    }
+    citTextY += citLineHeight;
+  }
+  yPos += citBoxHeight + 0.22;
+
+  // ------------------------------------------
+  // STEP 2: HEADNOTE (NEXT POSITION IN PDF)
+  // ------------------------------------------
+  if (headNote && headNote.trim()) {
     const cleanHeadnote = sanitizeText(headNote);
     const boxInnerPadding = 0.18;
     const textWidth = contentWidth - (boxInnerPadding * 2);
-    doc.setFont("times", "normal");
-    doc.setFontSize(10.5);
-    const allHnLines = doc.splitTextToSize(cleanHeadnote, textWidth);
+    doc.setFont(primaryFont, "normal");
+    doc.setFontSize(10);
 
-    const titleAreaHeight = 0.52; // space for "HEAD NOTE" title + underline
+    const hParagraphs = cleanHeadnote.split(/\n\s*\n/).map(p => p.replace(/\r?\n/g, ' ').replace(/\s+/g, ' ').trim()).filter(Boolean);
+    const allHnLines = [];
+    const hnLineIsLast = [];
+    for (const hPara of hParagraphs) {
+      const pLines = doc.splitTextToSize(hPara, textWidth);
+      for (let i = 0; i < pLines.length; i++) {
+        allHnLines.push(pLines[i]);
+        hnLineIsLast.push(i === pLines.length - 1);
+      }
+    }
+
+    const titleAreaHeight = 0.42;
     const lineSpacing = 0.22;
-    const bottomPadding = 0.22;
+    const bottomPadding = 0.16;
 
-    let hnRemaining = [...allHnLines];
+    let lineCursor = 0;
     let isFirstChunk = true;
 
-    while (hnRemaining.length > 0) {
+    while (lineCursor < allHnLines.length) {
       const spaceForText = maxY - yPos - titleAreaHeight - bottomPadding;
       const linesFit = Math.max(1, Math.floor(spaceForText / lineSpacing));
-      const chunk = hnRemaining.slice(0, linesFit);
-      hnRemaining = hnRemaining.slice(linesFit);
+      const chunk = allHnLines.slice(lineCursor, lineCursor + linesFit);
 
       const boxHeight = titleAreaHeight + (chunk.length * lineSpacing) + bottomPadding;
 
       // Draw the bordered box
-      doc.setDrawColor(0, 0, 0);
+      doc.setDrawColor(15, 23, 42);
       doc.setLineWidth(0.008);
       doc.rect(margin, yPos, contentWidth, boxHeight, 'S');
 
-      // Title with underline
-      const hnTitle = isFirstChunk ? "HEAD NOTE" : "HEAD NOTE (CONTD.)";
-      doc.setFont("times", "bold");
-      doc.setFontSize(11);
+      // Title: Only HEADNOTE
+      const hnTitle = isFirstChunk ? "— HEADNOTE —" : "— HEADNOTE (CONTD.) —";
+      doc.setFont(primaryFont, "bold");
+      doc.setFontSize(10);
       doc.setTextColor(15, 23, 42);
       const titleY = yPos + 0.22;
       doc.text(hnTitle, pageWidth / 2, titleY, { align: 'center' });
-      const hnTitleWidth = doc.getTextWidth(hnTitle);
-      doc.setDrawColor(15, 23, 42);
-      doc.setLineWidth(0.007);
-      doc.line(pageWidth / 2 - (hnTitleWidth / 2), titleY + 0.025, pageWidth / 2 + (hnTitleWidth / 2), titleY + 0.025);
 
-      // Headnote text
-      doc.setFont("times", "normal");
-      doc.setFontSize(10.5);
+      // Headnote text (Justified)
+      doc.setFont(primaryFont, "normal");
+      doc.setFontSize(10);
       doc.setTextColor(15, 23, 42);
       const textStartY = yPos + titleAreaHeight;
-      doc.text(chunk, margin + boxInnerPadding, textStartY, { align: 'justify', maxWidth: textWidth });
+      for (let k = 0; k < chunk.length; k++) {
+        const hLine = chunk[k].trim();
+        const globalIdx = lineCursor + k;
+        const isLast = hnLineIsLast[globalIdx] || (globalIdx === allHnLines.length - 1);
+        renderJustifiedLine(hLine, margin + boxInnerPadding, textStartY + (k * lineSpacing), textWidth, isLast);
+      }
 
-      yPos += boxHeight + 0.35;
+      lineCursor += chunk.length;
+      yPos += boxHeight + 0.48; // Generous 0.48 in breathing room below headnote box so nothing touches!
       isFirstChunk = false;
 
-      if (hnRemaining.length > 0) {
+      if (lineCursor < allHnLines.length) {
         doc.addPage();
         drawWatermark();
-        yPos = 0.85;
+        yPos = 0.75;
         drawHeaderOnSubsequentPage();
       }
     }
   }
 
-  // ==========================================
-  // JUDGMENT BODY CONTINUATION (Authentic Flow)
-  // ==========================================
-  checkNewPage(0.50);
+  // ------------------------------------------
+  // STEP 3: COURT NAME, PARTIES (VERSUS), CASE NO, ACT & BENCH
+  // (ALWAYS RENDERED ON ALL CASES)
+  // ------------------------------------------
+  checkNewPage(0.85);
 
-  const cleanBody = fullContent;
-  const hasEmbeddedJudgmentTitle = /J\s*U\s*D\s*G\s*M\s*E\s*N\s*T|O\s*R\s*D\s*E\s*R/i.test(cleanBody);
+  // Helper to render metadata item
+  const renderMetadataItem = (label, value) => {
+    if (!value || !String(value).trim()) return;
+    const cleanVal = String(value).trim();
+    const cleanLabel = label.replace(/:\s*$/, '').trim() + ':';
 
-  // Centered JUDGMENT Heading (Rendered once if not embedded)
-  if (!hasEmbeddedJudgmentTitle) {
-    doc.setFont("times", "bold");
+    doc.setFont(primaryFont, "bold");
+    doc.setFontSize(10);
+    const labelWithSpace = `${cleanLabel} `;
+    const labelWidth = doc.getTextWidth(labelWithSpace);
+
+    const fullText = `${cleanLabel} ${cleanVal}`;
+    doc.setFont(primaryFont, "normal");
+    doc.setFontSize(10);
+
+    const lines = doc.splitTextToSize(fullText, contentWidth);
+    if (!lines || lines.length === 0) return;
+
+    doc.setFont(primaryFont, "bold");
+    doc.setTextColor(15, 23, 42);
+    doc.text(cleanLabel, margin, yPos);
+
+    doc.setFont(primaryFont, "normal");
+    let remainder = lines[0].startsWith(cleanLabel) ? lines[0].substring(cleanLabel.length).trim() : lines[0].trim();
+    if (remainder) {
+      doc.text(remainder, margin + labelWidth, yPos);
+    }
+    yPos += 0.20;
+
+    for (let i = 1; i < lines.length; i++) {
+      doc.text(lines[i].trim(), margin, yPos);
+      yPos += 0.20;
+    }
+    yPos += 0.08;
+  };
+
+  // 1. Centered Court & Jurisdiction Header
+  doc.setFont(primaryFont, "bold");
+  doc.setFontSize(12.5);
+  doc.setTextColor(15, 23, 42);
+
+  const courtHeading = `IN THE ${court.toUpperCase()}`;
+  const courtLines = doc.splitTextToSize(courtHeading, 5.8);
+  doc.text(courtLines, pageWidth / 2, yPos, { align: 'center' });
+  yPos += (courtLines.length * 0.22) + 0.08;
+
+  if (jurisdiction) {
+    doc.setFont(primaryFont, "bold");
+    doc.setFontSize(10);
+    doc.text(jurisdiction.toUpperCase(), pageWidth / 2, yPos, { align: 'center' });
+    yPos += 0.22;
+  }
+
+  // 2. Parties Section with VERSUS
+  const maxPartyWidth = 3.6;
+  doc.setFont(primaryFont, "bold");
+  doc.setFontSize(10.5);
+  doc.setTextColor(15, 23, 42);
+
+  const petLabel = "......... Appellant(s) / Petitioner(s)";
+  doc.setFont(primaryFont, "normal");
+  doc.setFontSize(9.5);
+  doc.setTextColor(30, 41, 59);
+  doc.text(petLabel, pageWidth - margin, yPos, { align: 'right' });
+
+  doc.setFont(primaryFont, "bold");
+  doc.setFontSize(10.5);
+  doc.setTextColor(15, 23, 42);
+  const petLines = doc.splitTextToSize((petitioner || rawTitle || 'PETITIONER').toUpperCase(), maxPartyWidth);
+  doc.text(petLines, margin, yPos);
+  yPos += Math.max(petLines.length * 0.22, 0.22) + 0.20;
+
+  // VERSUS
+  doc.setFont(primaryFont, "bold");
+  doc.setFontSize(10.5);
+  doc.setTextColor(15, 23, 42);
+  doc.text("VERSUS", pageWidth / 2, yPos, { align: 'center' });
+  yPos += 0.24;
+
+  // Respondent
+  const respLabel = "......... Respondent(s)";
+  doc.setFont(primaryFont, "normal");
+  doc.setFontSize(9.5);
+  doc.setTextColor(30, 41, 59);
+  doc.text(respLabel, pageWidth - margin, yPos, { align: 'right' });
+
+  doc.setFont(primaryFont, "bold");
+  doc.setFontSize(10.5);
+  doc.setTextColor(15, 23, 42);
+  const respLines = doc.splitTextToSize((respondent || 'RESPONDENT').toUpperCase(), maxPartyWidth);
+  doc.text(respLines, margin, yPos);
+  yPos += Math.max(respLines.length * 0.22, 0.22) + 0.28;
+
+  // 3. Structured Metadata: Case Number, Act(s) & Section, Date, Bench
+  if (caseNumber) renderMetadataItem("Case Number", caseNumber);
+  const actStr = `${act || ''}${act && section ? ' — ' : ''}${section || ''}`;
+  if (actStr) renderMetadataItem("Act(s)", actStr);
+  if (formattedDate) renderMetadataItem("Date of Judgment", formattedDate);
+  if (bench) renderMetadataItem("Bench / Coram", bench);
+
+  // 4. Authentic Judgment Body: Preserves 100% of text, connected appeals, co-appellants & co-respondents
+  const cleanBody = fullContent || '';
+
+  yPos += 0.15;
+
+  // Divider Line before Judgment Body
+  doc.setDrawColor(15, 23, 42);
+  doc.setLineWidth(0.007);
+  doc.line(margin, yPos, pageWidth - margin, yPos);
+  yPos += 0.25;
+
+  // Check if cleanBody already has its own authentic heading (e.g. "The Court made the following order:", "JUDGMENT", or "VERSUS" cause title)
+  const headingPattern = /(?:<(?:div|p|h[1-6]|center)[^>]*>\s*(?:<[^>]+>\s*)*(?:J\s*U\s*D\s*G\s*M\s*E\s*N\s*T|JUDGMENT|O\s*R\s*D\s*E\s*R|ORDER|The\s+Court\s+made\s+the\s+following\s+order:?)\s*(?:<\/[^>]+>\s*)*<\/(?:div|p|h[1-6]|center)>)|(?:(?:^|\n)\s*(?:J\s*U\s*D\s*G\s*M\s*E\s*N\s*T|JUDGMENT|O\s*R\s*D\s*E\s*R|ORDER|The\s+Court\s+made\s+the\s+following\s+order:?)\s*(?:\n|$))|(?:\bVERSUS\b)/i;
+  const hasExplicitHeading = headingPattern.test(cleanBody);
+
+  if (!hasExplicitHeading) {
+    doc.setFont(primaryFont, "bold");
     doc.setFontSize(12.5);
     doc.setTextColor(15, 23, 42);
-    doc.text("JUDGMENT", pageWidth / 2, yPos, { align: 'center' });
-    yPos += 0.35;
+    doc.text("J U D G M E N T", pageWidth / 2, yPos, { align: 'center' });
+    yPos += 0.28;
 
     if (authorJudge) {
-      doc.setFont("times", "bold");
+      doc.setFont(primaryFont, "bold");
       doc.setFontSize(10.5);
       doc.setTextColor(15, 23, 42);
       const cleanAuthor = authorJudge.replace(/,?\s*J\.?$/i, '').trim();
       if (cleanAuthor) {
         doc.text(`${cleanAuthor.toUpperCase()}, J.`, margin, yPos);
-        yPos += 0.30;
+        yPos += 0.26;
       }
     }
   }
@@ -475,19 +615,7 @@ export const buildVectorLegalPDF = async (caseItem) => {
         const innerMatch = cellHtml.match(/^<(?:th|td)[^>]*>([\s\S]*?)<\/(?:th|td)>$/i);
         const innerContent = innerMatch ? innerMatch[1] : cellHtml;
 
-        let cellText = innerContent
-          .replace(/<\/(p|div|h[1-6]|li|blockquote)>/gi, '\n\n')
-          .replace(/<br\s*\/?>/gi, '\n')
-          .replace(/<[^>]*>/g, '')
-          .replace(/&nbsp;/gi, ' ')
-          .replace(/&amp;/gi, '&')
-          .replace(/&lt;/gi, '<')
-          .replace(/&gt;/gi, '>')
-          .replace(/&quot;/gi, '"')
-          .replace(/&#39;/gi, "'")
-          .replace(/&#x27;/gi, "'")
-          .replace(/&ndash;/gi, '–')
-          .replace(/&mdash;/gi, '—');
+        let cellText = sanitizeText(innerContent);
 
         cellText = cellText
           .split('\n')
@@ -525,7 +653,7 @@ export const buildVectorLegalPDF = async (caseItem) => {
     const colWidth = contentWidth / maxCols;
     const cellPadding = 0.08;
     const cellTextWidth = colWidth - (cellPadding * 2);
-    const cellLineH = 0.17;
+    const cellLineH = 0.20;
 
     // Identify header row(s) so we can re-stamp them on continuation pages
     let headerRows = [];
@@ -547,7 +675,7 @@ export const buildVectorLegalPDF = async (caseItem) => {
         doc.setLineWidth(0.008);
         doc.rect(cellX, yPos, colWidth, rowHeight, 'S');
 
-        doc.setFont("times", (isHeaderRow || cell.isHeader) ? "bold" : "normal");
+        doc.setFont(primaryFont, (isHeaderRow || cell.isHeader) ? "bold" : "normal");
         doc.setFontSize((isHeaderRow || cell.isHeader) ? 9.5 : 9);
         doc.setTextColor(15, 23, 42);
 
@@ -555,11 +683,7 @@ export const buildVectorLegalPDF = async (caseItem) => {
         for (let l = 0; l < cell.lines.length; l++) {
           const lText = cell.lines[l];
           const isLast = l === cell.lines.length - 1;
-          if (!isLast && lText.indexOf(' ') > 0 && !isHeaderRow) {
-            doc.text(lText.trim(), cellX + cellPadding, textY, { align: 'justify', maxWidth: cellTextWidth });
-          } else {
-            doc.text(lText.trim(), cellX + cellPadding, textY);
-          }
+          renderJustifiedLine(lText, cellX + cellPadding, textY, cellTextWidth, isLast || isHeaderRow);
           textY += cellLineH;
         }
       }
@@ -567,7 +691,7 @@ export const buildVectorLegalPDF = async (caseItem) => {
     };
 
     for (const row of rows) {
-      doc.setFont("times", row.isHeader ? "bold" : "normal");
+      doc.setFont(primaryFont, row.isHeader ? "bold" : "normal");
       doc.setFontSize(row.isHeader ? 9.5 : 9);
 
       let maxCellLines = 1;
@@ -639,12 +763,30 @@ export const buildVectorLegalPDF = async (caseItem) => {
     const cleanText = sanitizeText(rawHtmlChunk);
     if (!cleanText || !cleanText.trim()) return;
 
-    const paragraphs = cleanText.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
-    const lineSpacing = 0.22;
+    const rawParagraphs = cleanText.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
+    const lineSpacing = 0.235;
 
-    for (const para of paragraphs) {
-      doc.setFont("times", "normal");
-      doc.setFontSize(11);
+    for (const rawPara of rawParagraphs) {
+      // Normalize internal single newlines to single space so sentences flow continuously into full justified lines
+      const para = rawPara.replace(/\r?\n/g, ' ').replace(/\s+/g, ' ').trim();
+      if (!para) continue;
+
+      // Check if paragraph is an internal heading (e.g. short, all caps, or Roman numeral)
+      const isShortHeading = para.length <= 60 && (/^(?:[I|V|X]+\.|\bORDER\b|\bCONCLUSION\b|\bDIRECTIONS\b|\bANALYSIS\b|\bISSUE\b)/i.test(para) || (para === para.toUpperCase() && !para.includes('.')));
+      if (isShortHeading) {
+        checkNewPage(0.35);
+        doc.setFont(primaryFont, "bold");
+        doc.setFontSize(11);
+        doc.setTextColor(15, 23, 42);
+        doc.text(para, pageWidth / 2, yPos, { align: 'center' });
+        yPos += lineSpacing + 0.08;
+        continue;
+      }
+
+      const numMatch = para.match(/^(\d+[\.\)]|\[\d+\]|\([a-z0-9]+\)|[a-z]\))\s*/i);
+
+      doc.setFont(primaryFont, "normal");
+      doc.setFontSize(10.5);
       doc.setTextColor(15, 23, 42);
 
       const lines = doc.splitTextToSize(para, contentWidth);
@@ -654,26 +796,39 @@ export const buildVectorLegalPDF = async (caseItem) => {
         if (yPos + lineSpacing > maxY) {
           doc.addPage();
           drawWatermark();
+          yPos = 0.85;
           drawHeaderOnSubsequentPage();
         }
 
         const lineText = lines[i].trim();
         const isLastLineOfPara = (i === lines.length - 1);
 
-        doc.setFont("times", "normal");
-        doc.setFontSize(11);
+        doc.setFont(primaryFont, "normal");
+        doc.setFontSize(10.5);
         doc.setTextColor(15, 23, 42);
 
-        if (!isLastLineOfPara && lineText.indexOf(' ') > 0) {
-          doc.text(lineText, margin, yPos, { align: 'justify', maxWidth: contentWidth });
+        // If line is first line and had number prefix (e.g. "1."), bold the number prefix!
+        if (i === 0 && numMatch) {
+          const numPrefix = numMatch[1];
+          const fullPrefix = numMatch[0];
+          doc.setFont(primaryFont, "bold");
+          doc.text(numPrefix, margin, yPos);
+          doc.setFont(primaryFont, "normal");
+
+          const prefixWidth = doc.getTextWidth(fullPrefix);
+          const restOfLine = lineText.substring(fullPrefix.length).trim();
+          if (restOfLine) {
+            const availWidth = contentWidth - prefixWidth;
+            renderJustifiedLine(restOfLine, margin + prefixWidth, yPos, availWidth, isLastLineOfPara);
+          }
         } else {
-          doc.text(lineText, margin, yPos);
+          renderJustifiedLine(lineText, margin, yPos, contentWidth, isLastLineOfPara);
         }
 
         yPos += lineSpacing;
       }
 
-      yPos += 0.14; // paragraph spacing
+      yPos += 0.15; // paragraph spacing
     }
   };
 
@@ -700,7 +855,7 @@ export const buildVectorLegalPDF = async (caseItem) => {
   const orderText = caseItem.order || caseItem.disposition || caseItem.final_order || '';
   if (orderText && orderText.trim()) {
     checkNewPage(0.5);
-    doc.setFont("times", "bold");
+    doc.setFont(primaryFont, "bold");
     doc.setFontSize(12);
     doc.setTextColor(15, 23, 42);
     doc.text("ORDER", pageWidth / 2, yPos, { align: 'center' });
@@ -734,45 +889,40 @@ export const buildVectorLegalPDF = async (caseItem) => {
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i);
 
-    // 2. Running Top Header on Page 2+
-    if (i > 1) {
-      doc.setFont("times", "bold");
-      doc.setFontSize(9);
-      doc.setTextColor(51, 65, 85);
-      doc.text(primaryCitation, margin, 0.45);
+    // 1. Draw Authentic Legal Page Border on Every Single Page
+    const bMarginX = 0.38;
+    const bMarginY = 0.35;
+    const bWidth = pageWidth - (bMarginX * 2);
+    const bHeight = pageHeight - (bMarginY * 2);
 
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(8);
-      doc.setTextColor(100, 116, 139);
-      doc.text("DIGI LAW REPORTER (DLR)", pageWidth - margin, 0.45, { align: 'right' });
+    doc.saveGraphicsState();
+    doc.setDrawColor(30, 41, 59); // Crisp deep slate/black
+    doc.setLineWidth(0.008);      // Clean 0.58pt rule line
+    doc.rect(bMarginX, bMarginY, bWidth, bHeight, 'S');
+    doc.restoreGraphicsState();
 
-      doc.setDrawColor(148, 163, 184);
-      doc.setLineWidth(0.006);
-      doc.line(margin, 0.48, pageWidth - margin, 0.48);
-    }
-
-    // 3. Clean Standard Footer on Every Page with Scannable QR
-    const footerLineY = pageHeight - 0.70;
+    // 2. Clean Standard Footer on Every Page with Scannable QR (Safely Inside Border)
+    const footerLineY = pageHeight - 0.85;
     doc.setDrawColor(203, 213, 225);
     doc.setLineWidth(0.006);
     doc.line(margin, footerLineY, pageWidth - margin, footerLineY);
 
     // Left: Generated by & Date
-    doc.setFont("times", "normal");
+    doc.setFont(primaryFont, "normal");
     doc.setFontSize(7.5);
     doc.setTextColor(100, 116, 139);
-    doc.text("Generated by Digital Law Reporter", margin, pageHeight - 0.52);
-    doc.text(`Date: ${formattedDate || new Date().toLocaleDateString('en-GB')}`, margin, pageHeight - 0.40);
+    doc.text("Generated by Digital Law Reporter", margin, pageHeight - 0.66);
+    doc.text(`Date: ${formattedDate || new Date().toLocaleDateString('en-GB')}`, margin, pageHeight - 0.52);
 
     // Center: Page X of Y (bold)
-    doc.setFont("times", "bold");
+    doc.setFont(primaryFont, "bold");
     doc.setFontSize(8.5);
     doc.setTextColor(15, 23, 42);
-    doc.text(`Page ${i} of ${totalPages}`, pageWidth / 2, pageHeight - 0.46, { align: 'center' });
+    doc.text(`Page ${i} of ${totalPages}`, pageWidth / 2, pageHeight - 0.58, { align: 'center' });
 
     // Right: Compact Scannable QR Code
     if (qrDataUrl) {
-      doc.addImage(qrDataUrl, 'PNG', pageWidth - margin - 0.42, pageHeight - 0.67, 0.42, 0.42);
+      doc.addImage(qrDataUrl, 'PNG', pageWidth - margin - 0.36, pageHeight - 0.80, 0.36, 0.36);
     }
   }
 
@@ -781,48 +931,23 @@ export const buildVectorLegalPDF = async (caseItem) => {
 
 /**
  * Download Action: Generates PDF model and triggers direct .pdf download file save
+ * Strictly enforces Universal DLR Legal Format for ALL cases across the platform.
  */
 export const downloadCaseAsPDF = async (caseItem, elementId = 'printable-judgment-document', showToast = () => { }) => {
   if (!caseItem) return;
 
   const caseId = caseItem.id || caseItem._id || 'record';
   const downloadFileName = `Digital_Law_Reporter_Case_${caseId}_${Date.now()}.pdf`;
-  showToast(`Preparing authentic PDF judgment file...`);
+  showToast(`Preparing authentic DLR PDF judgment file...`);
 
-  // 1. Prefer the sanitized uploaded judgment PDF (verify valid PDF content and size)
-  const originalPdfUrl = getOriginalPdfUrl(caseItem);
-  if (originalPdfUrl) {
-    try {
-      const resp = await fetch(originalPdfUrl);
-      const contentType = resp.headers.get('content-type') || '';
-      // Ensure response is actually a binary PDF and not an SPA fallback HTML file (which is <5KB)
-      if (resp.ok && (contentType.includes('application/pdf') || contentType.includes('octet-stream'))) {
-        const blob = await resp.blob();
-        if (blob.size > 5000) {
-          const blobUrl = window.URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = blobUrl;
-          link.download = downloadFileName;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          window.URL.revokeObjectURL(blobUrl);
-          showToast(`Official PDF judgment file downloaded successfully!`);
-          return;
-        }
-      }
-    } catch (e) {
-      console.warn('Direct PDF blob fetch failed, falling back to vector PDF generation:', e);
-    }
-  }
-
-  // 2. Vector PDF Model fallback (builds complete high-res A4 legal PDF with 100% full content)
+  // Universal Vector PDF Model Builder (Constructs 100% identical authentic A4 legal PDF for EVERY case)
   try {
     const doc = await buildVectorLegalPDF(caseItem);
     doc.save(downloadFileName);
-    showToast(`Official PDF downloaded successfully!`);
+    showToast(`Official DLR PDF judgment downloaded successfully!`);
+    return;
   } catch (nativeErr) {
-    console.error("Native PDF Exporter error:", nativeErr);
+    console.error("Vector PDF Exporter error, attempting fallback:", nativeErr);
     showToast("Generating PDF report...");
 
     try {
@@ -857,43 +982,32 @@ export const printCaseAsPDF = async (caseItem, elementId = 'printable-judgment-d
 
   showToast("Opening print dialog...");
 
-  // 1. If original PDF file exists and is valid, load into hidden iframe to trigger print dialog directly
-  const originalPdfUrl = getOriginalPdfUrl(caseItem);
-  if (originalPdfUrl) {
-    try {
-      const resp = await fetch(originalPdfUrl);
-      const contentType = resp.headers.get('content-type') || '';
-      if (resp.ok && (contentType.includes('application/pdf') || contentType.includes('octet-stream'))) {
-        const blob = await resp.blob();
-        if (blob.size > 5000) {
-          const blobUrl = window.URL.createObjectURL(blob);
-          const printIframe = document.createElement('iframe');
-          printIframe.style.position = 'fixed';
-          printIframe.style.right = '0';
-          printIframe.style.bottom = '0';
-          printIframe.style.width = '0';
-          printIframe.style.height = '0';
-          printIframe.style.border = '0';
-          printIframe.src = blobUrl;
-          document.body.appendChild(printIframe);
-          printIframe.onload = () => {
-            setTimeout(() => {
-              try {
-                printIframe.contentWindow.focus();
-                printIframe.contentWindow.print();
-              } catch (e) {
-                window.print();
-              }
-            }, 300);
-          };
-          return;
+  try {
+    const doc = await buildVectorLegalPDF(caseItem);
+    const pdfBlob = doc.output('blob');
+    const blobUrl = window.URL.createObjectURL(pdfBlob);
+    const printIframe = document.createElement('iframe');
+    printIframe.style.position = 'fixed';
+    printIframe.style.right = '0';
+    printIframe.style.bottom = '0';
+    printIframe.style.width = '0';
+    printIframe.style.height = '0';
+    printIframe.style.border = '0';
+    printIframe.src = blobUrl;
+    document.body.appendChild(printIframe);
+    printIframe.onload = () => {
+      setTimeout(() => {
+        try {
+          printIframe.contentWindow.focus();
+          printIframe.contentWindow.print();
+        } catch (e) {
+          window.print();
         }
-      }
-    } catch (e) {
-      console.warn("Direct PDF print fetch failed, falling back to document print:", e);
-    }
+      }, 300);
+    };
+    return;
+  } catch (e) {
+    console.warn("Vector PDF print fallback:", e);
+    window.print();
   }
-
-  // 2. Direct browser print on clean printable legal document
-  window.print();
 };

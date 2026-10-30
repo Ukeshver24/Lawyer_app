@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy | Digi Law Reporter — Web & Mobile Platform</title>
+  <meta name="description" content="Official Privacy Policy for Digi Law Reporter Web Portal & Mobile Applications. Compliant with Digital Personal Data Protection Act (DPDP Act) 2023, IT Act 2000, Google Play Store and Apple App Store Developer Policies.">
+  <meta name="theme-color" content="#0B1727">
+  
+  <!-- Open Graph / Meta -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Privacy Policy | Digi Law Reporter">
+  <meta property="og:description" content="Official Privacy Policy and Data Protection Framework for Digi Law Reporter Web & Mobile Apps.">
+  
+  <!-- Fonts: Cinzel & Plus Jakarta Sans / Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#F0F7FF',
+              100: '#E0EFFF',
+              200: '#B9DDFF',
+              500: '#2563EB',
+              600: '#1D4ED8',
+              700: '#1E40AF',
+              900: '#0F172A',
+              950: '#0B1727',
+            }
+          },
+          fontFamily: {
+            cinzel: ['Cinzel', 'Georgia', 'serif'],
+            sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
+            serif: ['Lora', 'Georgia', 'serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #F1F5F9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94A3B8;
+    }
+    
+    /* Highlight for search term match */
+    mark.search-highlight {
+      background-color: #FEF08A;
+      color: #854D0E;
+      padding: 2px 4px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    
+    /* Reading Progress Bar */
+    #progress-bar {
+      transition: width 0.1s ease-out;
+    }
+    
+    /* Print Specific Styling */
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+      body {
+        background: white !important;
+        color: black !important;
+      }
+      .print-expand {
+        display: block !important;
+      }
+    }
+  </style>
+</head>
+
+<body class="bg-[#FAFBFF] text-slate-800 font-sans antialiased selection:bg-blue-100 selection:text-blue-900 min-h-screen flex flex-col">
+
+  <!-- Top Reading Progress Indicator -->
+  <div class="fixed top-0 left-0 w-full h-1 bg-transparent z-[100] no-print">
+    <div id="progress-bar" class="h-full bg-gradient-to-r from-blue-600 via-indigo-600 to-amber-500 w-0"></div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- HEADER & NAVIGATION                                                       -->
+  <!-- ========================================================================= -->
+  <!-- ========================================================================= -->
+  <!-- HEADER & NAVIGATION                                                       -->
+  <!-- ========================================================================= -->
+  <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs no-print">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 sm:h-20">
+        
+        <!-- Authentic Brand Logo (Matches Website) -->
+        <a href="/" class="cursor-pointer flex items-center" title="Digital Law Reporter">
+          <img 
+            src="assets/logo/digital_law_reporter.png" 
+            alt="Digital Law Reporter" 
+            class="h-10 md:h-12 object-contain"
+          >
+        </a>
+
+        <!-- Header Actions -->
+        <div class="flex items-center gap-3">
+          <!-- Print Button -->
+          <button 
+            onclick="window.print()" 
+            class="hidden sm:inline-flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-700 hover:text-blue-600 bg-slate-100 hover:bg-slate-200/80 rounded-lg transition-colors cursor-pointer"
+            title="Print or Save as PDF"
+          >
+            <i data-lucide="printer" class="w-4 h-4"></i>
+            <span>Print Policy</span>
+          </button>
+
+          <!-- Back to App / Portal Button -->
+          <a 
+            href="/" 
+            class="inline-flex items-center gap-2 px-4 py-2 bg-[#0B1727] hover:bg-slate-800 text-white text-xs font-bold rounded-lg transition-all shadow-xs cursor-pointer"
+          >
+            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+            <span>Return to Portal</span>
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- HERO BANNER (Matches Website Luxury Hero & Supreme Court Background)       -->
+  <!-- ========================================================================= -->
+  <section class="relative py-14 sm:py-20 border-b border-[#D4AF37]/30 overflow-hidden bg-slate-950 flex items-center justify-center font-sans text-white">
+    
+    <!-- Authentic Photo Background of Supreme Court of India -->
+    <div 
+      class="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat transition-transform duration-1000 scale-105"
+      style="background-image: url('assets/images/supreme_court_india.jpg');"
+    ></div>
+
+    <!-- Luxury Gradient Dark Overlay -->
+    <div class="absolute inset-0 z-0 bg-gradient-to-b from-[#0A1128]/90 via-[#0A1128]/80 to-[#070F1E]/95 backdrop-blur-[1px]"></div>
+
+    <!-- Grid Pattern Overlay -->
+    <div class="absolute inset-0 z-0 opacity-[0.04] pointer-events-none bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:24px_24px]"></div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
+      
+      <!-- Breadcrumb & Badges -->
+      <div class="flex flex-wrap items-center gap-2.5 mb-4 text-xs font-semibold text-slate-300">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-500/25 text-blue-200 border border-blue-400/40 rounded-full text-[11px] font-mono shadow-xs backdrop-blur-md">
+          <i data-lucide="shield-check" class="w-3.5 h-3.5 text-blue-300"></i>
+          DPDP Act 2023 &amp; IT Act Compliant
+        </span>
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/25 text-emerald-200 border border-emerald-400/40 rounded-full text-[11px] font-mono shadow-xs backdrop-blur-md">
+          <i data-lucide="smartphone" class="w-3.5 h-3.5 text-emerald-300"></i>
+          Web &amp; Mobile Application
+        </span>
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-800/80 text-slate-300 border border-slate-700/80 rounded-full text-[11px] backdrop-blur-md">
+          Version 2.4.0
+        </span>
+      </div>
+
+      <!-- Main Heading with Website Cinzel & Gradient Accent -->
+      <h1 class="text-3xl sm:text-5xl md:text-6xl font-black font-cinzel text-white tracking-tight leading-tight max-w-4xl drop-shadow-2xl">
+        PRIVACY POLICY &amp; <span class="bg-gradient-to-r from-sky-200 via-white to-blue-400 bg-clip-text text-transparent">DATA PROTECTION</span> CHARTER
+      </h1>
+      
+      <p class="mt-4 text-sm sm:text-base text-slate-200 max-w-3xl leading-relaxed drop-shadow">
+        This Privacy Policy explains how <strong>Digi Law Reporter</strong> (“DLR”, “we”, “our”, or “us”) collects, protects, processes, and respects the digital personal data of users accessing our legal research web portal and mobile applications (Android / iOS).
+      </p>
+
+      <!-- Key Metadata Row -->
+      <div class="mt-8 pt-6 border-t border-slate-800/80 flex flex-wrap items-center gap-6 text-xs text-slate-300 font-medium">
+        <div class="flex items-center gap-2">
+          <i data-lucide="calendar" class="w-4 h-4 text-blue-400"></i>
+          <span>Effective Date: <strong>September 28, 2026</strong></span>
+        </div>
+        <div class="flex items-center gap-2">
+          <i data-lucide="clock" class="w-4 h-4 text-blue-400"></i>
+          <span>Last Updated: <strong>September 28, 2026</strong></span>
+        </div>
+        <div class="flex items-center gap-2">
+          <i data-lucide="file-check" class="w-4 h-4 text-emerald-400"></i>
+          <span>Zero Document Persistence Guarantee</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- QUICK EXECUTIVE SUMMARY (CARDS)                                           -->
+  <!-- ========================================================================= -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-2 relative z-20 no-print">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      
+      <!-- Card 1: Zero Storage -->
+      <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm flex items-start gap-4">
+        <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
+          <i data-lucide="hard-drive-download" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-[#0B1727]">Zero Disk Storage</h3>
+          <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+            Uploaded PDFs are parsed in-memory (RAM) and immediately wiped. No user documents remain on our servers.
+          </p>
+        </div>
+      </div>
+
+      <!-- Card 2: Minimal Permissions -->
+      <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm flex items-start gap-4">
+        <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
+          <i data-lucide="shield-alert" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-[#0B1727]">No Intrusive Permissions</h3>
+          <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+            We never request GPS location, contacts, microphone, SMS, or advertising tracking IDs in our mobile app.
+          </p>
+        </div>
+      </div>
+
+      <!-- Card 3: User Rights -->
+      <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm flex items-start gap-4">
+        <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100">
+          <i data-lucide="user-check" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-[#0B1727]">Total Control & Deletion</h3>
+          <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+            Users retain full rights to request data export or complete account deletion from the app settings in 1-click.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- MAIN CONTENT CONTAINER WITH STICKY SIDEBAR                                -->
+  <!-- ========================================================================= -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 flex-1 w-full">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
+
+      <!-- ===================================================================== -->
+      <!-- LEFT COLUMN: STICKY TABLE OF CONTENTS (Desktop)                       -->
+      <!-- ===================================================================== -->
+      <aside class="hidden lg:block lg:col-span-4 space-y-6 no-print">
+        <div class="sticky top-24 bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs space-y-4">
+          
+          <!-- In-Page Search Bar -->
+          <div>
+            <label for="policy-search" class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 block mb-1.5">
+              Search Privacy Policy
+            </label>
+            <div class="relative">
+              <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+              <input 
+                type="text" 
+                id="policy-search" 
+                placeholder="Search keywords (e.g., MPIN, Cookies, DPDP)..." 
+                class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:bg-white transition-all"
+                oninput="handleSearch(this.value)"
+              >
+            </div>
+            <p id="search-result-count" class="text-[10px] text-slate-500 mt-1 hidden"></p>
+          </div>
+
+          <!-- Section Navigation Links -->
+          <div>
+            <h4 class="text-xs font-extrabold font-cinzel uppercase tracking-wider text-[#0B1727] pb-2 border-b border-slate-100 flex items-center justify-between">
+              <span>Table of Contents</span>
+              <span class="text-[10px] font-sans font-normal text-slate-400">12 Sections</span>
+            </h4>
+            
+            <nav class="mt-3 space-y-1 text-xs max-h-[58vh] overflow-y-auto pr-1" id="toc-nav">
+              <a href="#section-1" class="toc-link block px-2.5 py-1.5 rounded-lg font-medium text-slate-600 hover:text-blue-600 hover:bg-slate-50 transition-colors">1. Scope & Data Fiduciary</a>
+              <a href="#section-2" class="toc-link block px-2.5 py-1.5 rounded-lg font-medium text-slate-600 hover:text-blue-600 hover:bg-slate-50 transition-colors">2. Information We Collect</a>
+              <a href="#section-3" class="toc-link block px-2.5 py-1.5 rounded-lg font-medium text-slate-600 hover:text-blue-600 hover:bg-slate-50 transition-colors">3. Mobile App & Device Permissions</a>
+              <a href="#section-4" class="toc-link block px-2.5 py-1.5 rounded-lg font-medium text-slate-600 hover:text-blue-600 hover:bg-slate-50 transition-colors">4. Zero-Storage PDF Architecture</a>
+              <a href="#section-5" class="toc-link block px-2.5 py-1.5 rounded-lg font-medium text-slate-600 hover:text-blue-600 hover:bg-slate-50 transition-colors">5. Lawful Basis for Processing</a>
+              <a href="#section-6" class="toc-link block px-2.5 py-1.5 rounded-lg font-medium text-slate-600 hover:text-blue-600 hover:bg-slate-50 transition-colors">6. Data Security & Encryption</a>
+              <a href="#section-7" class="toc-link block px-2.5 py-1.5 rounded-lg font-medium text-slate-600 hover:text-blue-600 hover:bg-slate-50 transition-colors">7. Cookies & Local Storage</a>
+              <a href="#section-8" class="toc-link block px-2.5 py-1.5 rounded-lg font-medium text-slate-600 hover:text-blue-600 hover:bg-slate-50 transition-colors">8. Third-Party & Cloud Storage</a>
+              <a href="#section-9" class="toc-link block px-2.5 py-1.5 rounded-lg font-medium text-slate-600 hover:text-blue-600 hover:bg-slate-50 transition-colors">9. Data Retention & Erasure</a>
+              <a href="#section-10" class="toc-link block px-2.5 py-1.5 rounded-lg font-medium text-slate-600 hover:text-blue-600 hover:bg-slate-50 transition-colors">10. User Rights & Account Deletion</a>
+              <a href="#section-11" class="toc-link block px-2.5 py-1.5 rounded-lg font-medium text-slate-600 hover:text-blue-600 hover:bg-slate-50 transition-colors">11. Children's Privacy Protection</a>
+              <a href="#section-12" class="toc-link block px-2.5 py-1.5 rounded-lg font-medium text-slate-600 hover:text-blue-600 hover:bg-slate-50 transition-colors">12. Statutory Grievance Redressal</a>
+            </nav>
+          </div>
+
+          <!-- Quick Helpline Box -->
+          <div class="p-3.5 bg-blue-50/70 border border-blue-100 rounded-xl space-y-2">
+            <div class="flex items-center gap-2 text-blue-900 font-bold text-xs">
+              <i data-lucide="mail-question" class="w-4 h-4 text-blue-600 shrink-0"></i>
+              <span>Data Protection Helpdesk</span>
+            </div>
+            <p class="text-[11px] text-blue-800/80 leading-relaxed">
+              Have privacy questions or need your data erased? Contact our Grievance Officer directly.
+            </p>
+            <a href="mailto:privacy@digilawreporter.in" class="inline-flex items-center gap-1.5 text-xs font-bold text-blue-700 hover:text-blue-900 underline">
+              <span>privacy@digilawreporter.in</span>
+              <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
+            </a>
+          </div>
+
+        </div>
+      </aside>
+
+      <!-- ===================================================================== -->
+      <!-- RIGHT COLUMN: DETAILED LEGAL POLICY TEXT                              -->
+      <!-- ===================================================================== -->
+      <article class="lg:col-span-8 space-y-10" id="policy-content">
+
+        <!-- =================================================================== -->
+        <!-- SECTION 1: SCOPE & DATA FIDUCIARY                                   -->
+        <!-- =================================================================== -->
+        <section id="section-1" class="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-xs scroll-mt-24 space-y-4">
+          <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
+            <div class="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-xs font-mono">
+              01
+            </div>
+            <h2 class="text-lg sm:text-xl font-extrabold font-cinzel text-[#0B1727]">
+              Scope, Applicability & Data Fiduciary
+            </h2>
+          </div>
+
+          <div class="text-xs sm:text-sm text-slate-600 leading-relaxed space-y-3 font-normal">
+            <p>
+              Welcome to <strong>Digi Law Reporter</strong> (“DLR”, “Platform”, “Application”). This Privacy Policy applies to all services provided across:
+            </p>
+            <ul class="list-disc list-inside space-y-1.5 pl-2 text-slate-700 font-medium">
+              <li><strong>Web Portal:</strong> Accessible at <code>https://digilawreporter.in</code> (and associated subdomains).</li>
+              <li><strong>Mobile Applications:</strong> The Digi Law Reporter Android App (distributed on Google Play Store) and iOS App (distributed on Apple App Store).</li>
+              <li><strong>Editorial & Citation Engine:</strong> Supreme Court, High Court, and Tribunal judgment databases and headnote indexes.</li>
+            </ul>
+            <p>
+              Under the <strong>Digital Personal Data Protection Act, 2023 (DPDP Act, India)</strong>, Digi Law Reporter operates as the <strong>Data Fiduciary</strong>, and you are the <strong>Data Principal</strong>. By installing, browsing, registering, or using our platform, you acknowledge and consent to the data collection and processing practices described herein.
+            </p>
+          </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- SECTION 2: CATEGORIES OF DATA WE COLLECT                            -->
+        <!-- =================================================================== -->
+        <section id="section-2" class="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-xs scroll-mt-24 space-y-5">
+          <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
+            <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-xs font-mono">
+              02
+            </div>
+            <h2 class="text-lg sm:text-xl font-extrabold font-cinzel text-[#0B1727]">
+              Categories of Information We Collect
+            </h2>
+          </div>
+
+          <div class="text-xs sm:text-sm text-slate-600 leading-relaxed space-y-4">
+            <p>
+              We adhere strictly to the principle of <strong>Data Minimization</strong>. We collect only what is strictly necessary to authenticate your legal research session and deliver case precedents.
+            </p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+              
+              <!-- 2.1 User Provided Data -->
+              <div class="p-4 bg-slate-50 border border-slate-200/80 rounded-xl space-y-2">
+                <div class="flex items-center gap-2 font-bold text-xs text-slate-900">
+                  <i data-lucide="user" class="w-4 h-4 text-blue-600"></i>
+                  <span>A. Account Registration</span>
+                </div>
+                <ul class="text-xs text-slate-600 space-y-1.5 list-disc list-inside">
+                  <li><strong>Full Name:</strong> For personalized portal greeting.</li>
+                  <li><strong>Mobile Number:</strong> Primary login identifier and OTP authentication.</li>
+                  <li><strong>Email Address (Optional):</strong> For password recovery and invoices.</li>
+                  <li><strong>Date of Birth (DOB):</strong> For 2-Factor MPIN verification.</li>
+                  <li><strong>MPIN:</strong> 4-digit PIN (Bcrypt hashed, never readable).</li>
+                </ul>
+              </div>
+
+              <!-- 2.2 Research & Usage Data -->
+              <div class="p-4 bg-slate-50 border border-slate-200/80 rounded-xl space-y-2">
+                <div class="flex items-center gap-2 font-bold text-xs text-slate-900">
+                  <i data-lucide="bookmark" class="w-4 h-4 text-indigo-600"></i>
+                  <span>B. Research & Bookmarks</span>
+                </div>
+                <ul class="text-xs text-slate-600 space-y-1.5 list-disc list-inside">
+                  <li><strong>Saved Judgments:</strong> Bookmarked cases stored in user-scoped PostgreSQL table.</li>
+                  <li><strong>Search Queries:</strong> Temporary search terms used to generate real-time results.</li>
+                  <li><strong>Recent History:</strong> Client-side bookmarks persisted in browser local storage.</li>
+                </ul>
+              </div>
+
+            </div>
+
+            <div class="p-3.5 bg-amber-50/70 border border-amber-200/80 rounded-xl text-amber-900 text-xs flex items-start gap-3">
+              <i data-lucide="alert-circle" class="w-5 h-5 text-amber-600 shrink-0 mt-0.5"></i>
+              <div>
+                <strong>What We DO NOT Collect:</strong> We never collect Government ID documents (Aadhaar, PAN), biometric data, microphone recordings, SMS message contents, contacts list, or GPS location.
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- SECTION 3: MOBILE APP PERMISSIONS (PLAY STORE & APP STORE)          -->
+        <!-- =================================================================== -->
+        <section id="section-3" class="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-xs scroll-mt-24 space-y-5">
+          <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
+            <div class="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-xs font-mono">
+              03
+            </div>
+            <h2 class="text-lg sm:text-xl font-extrabold font-cinzel text-[#0B1727]">
+              Mobile Application Permissions (Android / iOS)
+            </h2>
+          </div>
+
+          <div class="text-xs sm:text-sm text-slate-600 leading-relaxed space-y-3">
+            <p>
+              In compliance with <strong>Google Play Developer Distribution Agreement</strong> and <strong>Apple App Store Review Guidelines (Section 5.1 - Privacy)</strong>, our mobile apps declare runtime permissions with strict justification:
+            </p>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs border border-slate-200 rounded-xl overflow-hidden">
+                <thead class="bg-slate-100 text-slate-700 font-bold uppercase text-[10px]">
+                  <tr>
+                    <th class="py-2.5 px-3">Permission</th>
+                    <th class="py-2.5 px-3">Purpose</th>
+                    <th class="py-2.5 px-3">Mandatory?</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 font-medium">
+                  <tr>
+                    <td class="py-2.5 px-3 font-mono font-bold text-slate-900">INTERNET & NETWORK_STATE</td>
+                    <td class="py-2.5 px-3 text-slate-600">To connect to the DLR REST API and stream live legal precedents.</td>
+                    <td class="py-2.5 px-3 text-emerald-600 font-bold">Yes (Core Function)</td>
+                  </tr>
+                  <tr>
+                    <td class="py-2.5 px-3 font-mono font-bold text-slate-900">POST_NOTIFICATIONS</td>
+                    <td class="py-2.5 px-3 text-slate-600">To notify you of landmark Supreme Court judgments or daily digest updates.</td>
+                    <td class="py-2.5 px-3 text-slate-500">Optional (Opt-in)</td>
+                  </tr>
+                  <tr>
+                    <td class="py-2.5 px-3 font-mono font-bold text-slate-900">STORAGE / MEDIA (READ_ONLY)</td>
+                    <td class="py-2.5 px-3 text-slate-600">Only invoked when you explicitly choose to upload a judgment PDF for in-memory text parsing.</td>
+                    <td class="py-2.5 px-3 text-slate-500">Optional (On-Demand)</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- SECTION 4: ZERO-STORAGE PDF PARSING ARCHITECTURE                    -->
+        <!-- =================================================================== -->
+        <section id="section-4" class="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-xs scroll-mt-24 space-y-5">
+          <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
+            <div class="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-xs font-mono">
+              04
+            </div>
+            <h2 class="text-lg sm:text-xl font-extrabold font-cinzel text-[#0B1727]">
+              Zero Disk Storage & PDF Parsing Guarantee
+            </h2>
+          </div>
+
+          <div class="text-xs sm:text-sm text-slate-600 leading-relaxed space-y-4">
+            <p>
+              Digi Law Reporter features an innovative <strong>Zero-Persistence In-Memory Legal Engine</strong> designed specifically to guarantee complete confidentiality for legal practitioners and advocates:
+            </p>
+
+            <div class="p-4 bg-slate-900 text-slate-100 rounded-xl space-y-3 font-mono text-xs">
+              <div class="flex items-center gap-2 text-emerald-400 font-bold">
+                <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                <span>In-Memory RAM Extraction Flow:</span>
+              </div>
+              <p class="text-slate-300 font-sans">
+                <code>Upload PDF -> Node.js Buffer (RAM) -> pdf-parse & Table Extraction -> Output Form Fields -> Immediate Buffer Flush & Garbage Collection</code>
+              </p>
+            </div>
+
+            <ul class="list-disc list-inside space-y-2 pl-2 text-slate-700">
+              <li><strong>Zero Disk Persistence:</strong> Uploaded PDF files are never written to hard drives, SSDs, or permanent cloud storage buckets.</li>
+              <li><strong>Zero Client Memory Retention:</strong> File inputs reset immediately after parsing.</li>
+              <li><strong>Client-Side Editorial Editing:</strong> Extracted judgments exist solely in the active browser DOM canvas until you choose to save or publish.</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- SECTION 5: LAWFUL BASIS FOR PROCESSING                              -->
+        <!-- =================================================================== -->
+        <section id="section-5" class="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-xs scroll-mt-24 space-y-4">
+          <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
+            <div class="w-8 h-8 rounded-lg bg-slate-800 text-white flex items-center justify-center font-bold text-xs font-mono">
+              05
+            </div>
+            <h2 class="text-lg sm:text-xl font-extrabold font-cinzel text-[#0B1727]">
+              Lawful Grounds for Processing (DPDP Act, 2023)
+            </h2>
+          </div>
+
+          <div class="text-xs sm:text-sm text-slate-600 leading-relaxed space-y-3">
+            <p>
+              We process personal data under the following statutory grounds recognized under Section 4 and Section 7 of the <strong>Digital Personal Data Protection Act, 2023</strong>:
+            </p>
+            <ul class="space-y-2 list-disc list-inside pl-2 text-slate-700">
+              <li><strong>Consent (Section 6):</strong> Obtained explicitly when registering your mobile number and setting up your secure MPIN.</li>
+              <li><strong>Contractual Necessity:</strong> To deliver access to searchable judgment volumes, bookmarks, and court headnotes.</li>
+              <li><strong>Legitimate Uses:</strong> Security monitoring, prevention of unauthorized scraping, API DDoS mitigation, and system audit logging.</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- SECTION 6: ENTERPRISE DATA SECURITY & ENCRYPTION                    -->
+        <!-- =================================================================== -->
+        <section id="section-6" class="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-xs scroll-mt-24 space-y-5">
+          <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
+            <div class="w-8 h-8 rounded-lg bg-blue-700 text-white flex items-center justify-center font-bold text-xs font-mono">
+              06
+            </div>
+            <h2 class="text-lg sm:text-xl font-extrabold font-cinzel text-[#0B1727]">
+              Data Security & Cryptographic Standards
+            </h2>
+          </div>
+
+          <div class="text-xs sm:text-sm text-slate-600 leading-relaxed space-y-4">
+            <p>
+              We deploy institutional-grade technical and organizational security measures to protect your digital footprint:
+            </p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+                <span class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                  <i data-lucide="lock" class="w-3.5 h-3.5 text-blue-600"></i>
+                  Bcrypt Password & MPIN Hashing
+                </span>
+                <p class="text-[11px] text-slate-500">All MPINs and admin passwords are salted and hashed (10 rounds). Plaintext passwords never touch our database.</p>
+              </div>
+
+              <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+                <span class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                  <i data-lucide="shield" class="w-3.5 h-3.5 text-emerald-600"></i>
+                  256-Bit SSL/TLS Encryption
+                </span>
+                <p class="text-[11px] text-slate-500">All data in transit between web/mobile clients and our backend is encrypted using high-grade TLS 1.3 encryption.</p>
+              </div>
+
+              <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+                <span class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                  <i data-lucide="key" class="w-3.5 h-3.5 text-indigo-600"></i>
+                  JWT & Server-Side Session Tracking
+                </span>
+                <p class="text-[11px] text-slate-500">Stateless JSON Web Tokens coupled with active server session tables in PostgreSQL ensure secure expiration and multi-device management.</p>
+              </div>
+
+              <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+                <span class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                  <i data-lucide="database" class="w-3.5 h-3.5 text-amber-600"></i>
+                  PostgreSQL Row-Level Access Controls
+                </span>
+                <p class="text-[11px] text-slate-500">User bookmarks and saved cases are strictly partitioned and query-scoped to the authenticated user ID.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- SECTION 7: COOKIES & LOCAL STORAGE POLICY                           -->
+        <!-- =================================================================== -->
+        <section id="section-7" class="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-xs scroll-mt-24 space-y-4">
+          <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
+            <div class="w-8 h-8 rounded-lg bg-slate-800 text-white flex items-center justify-center font-bold text-xs font-mono">
+              07
+            </div>
+            <h2 class="text-lg sm:text-xl font-extrabold font-cinzel text-[#0B1727]">
+              Cookies & Local Storage Policy
+            </h2>
+          </div>
+
+          <div class="text-xs sm:text-sm text-slate-600 leading-relaxed space-y-3">
+            <p>
+              We do not use third-party advertising cookies, cross-site trackers, or behavioral profiling scripts. We utilize only <strong>Strictly Necessary Technical Storage</strong>:
+            </p>
+            <ul class="list-disc list-inside space-y-1.5 pl-2 text-slate-700">
+              <li><code>adminToken</code> / <code>userToken</code>: Stored in browser local storage to maintain your authenticated login session.</li>
+              <li><code>adminSessionId</code>: Stored to validate single-session active timeouts and auto-lock timers.</li>
+              <li><code>savedCases</code>: Stored in browser local storage for instant offline bookmark access.</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- SECTION 8: THIRD-PARTY DISCLOSURES & CLOUD HOSTING                  -->
+        <!-- =================================================================== -->
+        <section id="section-8" class="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-xs scroll-mt-24 space-y-4">
+          <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
+            <div class="w-8 h-8 rounded-lg bg-slate-800 text-white flex items-center justify-center font-bold text-xs font-mono">
+              08
+            </div>
+            <h2 class="text-lg sm:text-xl font-extrabold font-cinzel text-[#0B1727]">
+              Third-Party Disclosures & Cloud Infrastructure
+            </h2>
+          </div>
+
+          <div class="text-xs sm:text-sm text-slate-600 leading-relaxed space-y-3">
+            <p>
+              <strong>We NEVER sell, rent, monetize, or trade your personal data.</strong>
+            </p>
+            <p>
+              Data is shared exclusively with certified enterprise infrastructure partners who operate under strict non-disclosure and data protection agreements:
+            </p>
+            <ul class="list-disc list-inside space-y-1.5 pl-2 text-slate-700">
+              <li><strong>Cloud Database & Hosting:</strong> Secure PostgreSQL database nodes hosted within Indian jurisdiction data centres.</li>
+              <li><strong>SMS Gateway Providers:</strong> To deliver transactional OTP authentication messages.</li>
+              <li><strong>Legal & Statutory Obligations:</strong> Only when strictly mandated by a valid court order or statutory directive from Indian law enforcement authorities.</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- SECTION 9: DATA RETENTION & AUTOMATIC PURGE                         -->
+        <!-- =================================================================== -->
+        <section id="section-9" class="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-xs scroll-mt-24 space-y-4">
+          <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
+            <div class="w-8 h-8 rounded-lg bg-slate-800 text-white flex items-center justify-center font-bold text-xs font-mono">
+              09
+            </div>
+            <h2 class="text-lg sm:text-xl font-extrabold font-cinzel text-[#0B1727]">
+              Data Retention & Automatic Purge
+            </h2>
+          </div>
+
+          <div class="text-xs sm:text-sm text-slate-600 leading-relaxed space-y-3">
+            <p>
+              We retain personal data only for as long as your account remains active or as needed to provide legal research services.
+            </p>
+            <ul class="list-disc list-inside space-y-1.5 pl-2 text-slate-700">
+              <li><strong>Active Account Data:</strong> Retained until you request account deletion.</li>
+              <li><strong>Admin Sessions:</strong> Automatically expired and cleared after 1 hour of inactivity.</li>
+              <li><strong>Password Reset Tokens:</strong> Automatically expired after 15 minutes and purged upon use.</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- SECTION 10: USER RIGHTS & 1-CLICK ACCOUNT DELETION                  -->
+        <!-- =================================================================== -->
+        <section id="section-10" class="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-xs scroll-mt-24 space-y-5">
+          <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
+            <div class="w-8 h-8 rounded-lg bg-red-600 text-white flex items-center justify-center font-bold text-xs font-mono">
+              10
+            </div>
+            <h2 class="text-lg sm:text-xl font-extrabold font-cinzel text-[#0B1727]">
+              User Rights & Account Deletion Mechanism
+            </h2>
+          </div>
+
+          <div class="text-xs sm:text-sm text-slate-600 leading-relaxed space-y-4">
+            <p>
+              Under Chapter 3 of the DPDP Act 2023, you hold comprehensive rights over your personal data:
+            </p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                <strong class="text-xs text-slate-900 block font-bold">1. Right to Access & Summary</strong>
+                <span class="text-[11px] text-slate-500">Request a complete copy of personal data associated with your mobile number.</span>
+              </div>
+              <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                <strong class="text-xs text-slate-900 block font-bold">2. Right to Correction</strong>
+                <span class="text-[11px] text-slate-500">Update inaccurate name, email, or MPIN directly via portal settings.</span>
+              </div>
+              <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                <strong class="text-xs text-slate-900 block font-bold">3. Right to Erasure / Deletion</strong>
+                <span class="text-[11px] text-slate-500">Permanently delete your profile, bookmarks, and mobile credentials from our database.</span>
+              </div>
+              <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                <strong class="text-xs text-slate-900 block font-bold">4. Right of Grievance Redressal</strong>
+                <span class="text-[11px] text-slate-500">File a complaint with our Grievance Officer with guaranteed resolution in 48 hours.</span>
+              </div>
+            </div>
+
+            <!-- In-App Deletion Step Instructions -->
+            <div class="p-4 bg-red-50/70 border border-red-200 rounded-xl space-y-2">
+              <h4 class="text-xs font-bold text-red-900 flex items-center gap-2">
+                <i data-lucide="trash-2" class="w-4 h-4 text-red-600"></i>
+                <span>How to Delete Your Account (Web & Mobile Application):</span>
+              </h4>
+              <p class="text-xs text-red-800 leading-relaxed">
+                In compliance with Google Play Store & Apple App Store account deletion mandates, you can delete your account at any time by navigating to:
+                <br>
+                <code class="bg-white px-2 py-0.5 rounded border border-red-200 font-mono text-[11px] text-red-900 mt-1 inline-block">
+                  Portal / App -> Profile -> Settings -> Delete Account Permanently
+                </code>
+                <br>
+                Alternatively, send an email to <a href="mailto:privacy@digilawreporter.in" class="font-bold underline">privacy@digilawreporter.in</a> with your registered mobile number for instant database purge.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- SECTION 11: CHILDREN'S PRIVACY PROTECTION                           -->
+        <!-- =================================================================== -->
+        <section id="section-11" class="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-xs scroll-mt-24 space-y-4">
+          <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
+            <div class="w-8 h-8 rounded-lg bg-slate-800 text-white flex items-center justify-center font-bold text-xs font-mono">
+              11
+            </div>
+            <h2 class="text-lg sm:text-xl font-extrabold font-cinzel text-[#0B1727]">
+              Children's Privacy (Under 18 Years)
+            </h2>
+          </div>
+
+          <div class="text-xs sm:text-sm text-slate-600 leading-relaxed space-y-3">
+            <p>
+              Digi Law Reporter is an advanced legal research platform designed for legal professionals, judiciary members, law students, and adults. In accordance with Section 9 of the DPDP Act 2023, we do not undertake tracking, behavioral monitoring, or targeted advertising directed at minors.
+            </p>
+          </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- SECTION 12: STATUTORY GRIEVANCE REDRESSAL OFFICER                   -->
+        <!-- =================================================================== -->
+        <section id="section-12" class="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-xs scroll-mt-24 space-y-5">
+          <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
+            <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-xs font-mono">
+              12
+            </div>
+            <h2 class="text-lg sm:text-xl font-extrabold font-cinzel text-[#0B1727]">
+              Statutory Grievance Redressal Officer & Data Protection Contact
+            </h2>
+          </div>
+
+          <div class="text-xs sm:text-sm text-slate-600 leading-relaxed space-y-4">
+            <p>
+              In accordance with the <strong>Information Technology Act, 2000</strong>, the <strong>IT (Intermediary Guidelines and Digital Media Ethics Code) Rules, 2021</strong>, and Section 6 of the <strong>DPDP Act, 2023</strong>, the contact details of our designated Grievance Officer are published below:
+            </p>
+
+            <div class="p-5 bg-gradient-to-br from-slate-50 to-blue-50/50 border border-slate-200 rounded-2xl space-y-3">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-lg font-cinzel">
+                  GO
+                </div>
+                <div>
+                  <h4 class="text-sm font-bold text-[#0B1727]">Grievance Redressal & Data Protection Officer</h4>
+                  <p class="text-xs text-slate-500">Digi Law Reporter Chambers & Legal Research Centre</p>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs text-slate-700">
+                <div class="flex items-start gap-2">
+                  <i data-lucide="map-pin" class="w-4 h-4 text-blue-600 shrink-0 mt-0.5"></i>
+                  <span><strong>Chamber Address:</strong> Chamber No. 402, High Court Lawyers Block, Supreme Court Enclave, New Delhi - 110001</span>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i data-lucide="mail" class="w-4 h-4 text-blue-600 shrink-0 mt-0.5"></i>
+                  <span><strong>Official Email:</strong> <a href="mailto:privacy@digilawreporter.in" class="text-blue-700 font-bold hover:underline">privacy@digilawreporter.in</a></span>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i data-lucide="phone" class="w-4 h-4 text-blue-600 shrink-0 mt-0.5"></i>
+                  <span><strong>Phone Helpline:</strong> +91 98765 43210</span>
+                </div>
+                <div class="flex items-start gap-2">
+                  <i data-lucide="clock" class="w-4 h-4 text-emerald-600 shrink-0 mt-0.5"></i>
+                  <span><strong>Resolution Timeframe:</strong> Acknowledged within 24 hours; resolved within 48 hours.</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- FREQUENTLY ASKED QUESTIONS (FAQ) ACCORDION                          -->
+        <!-- =================================================================== -->
+        <section class="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-xs space-y-4 no-print">
+          <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
+            <i data-lucide="help-circle" class="w-6 h-6 text-blue-600"></i>
+            <h3 class="text-base sm:text-lg font-extrabold font-cinzel text-[#0B1727]">
+              Privacy & Data Protection FAQs
+            </h3>
+          </div>
+
+          <div class="space-y-3 text-xs sm:text-sm text-slate-700" id="faq-accordion">
+            
+            <details class="group border border-slate-200 rounded-xl p-3.5 bg-slate-50/50 open:bg-white transition-all cursor-pointer">
+              <summary class="font-bold text-slate-900 flex items-center justify-between">
+                <span>Does the Digi Law Reporter App track my real-time GPS location?</span>
+                <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 group-open:rotate-180 transition-transform"></i>
+              </summary>
+              <p class="mt-2.5 text-xs text-slate-600 leading-relaxed">
+                No. Digi Law Reporter does not require, request, or track your GPS or fine location. All court search parameters are chosen manually by the user.
+              </p>
+            </details>
+
+            <details class="group border border-slate-200 rounded-xl p-3.5 bg-slate-50/50 open:bg-white transition-all cursor-pointer">
+              <summary class="font-bold text-slate-900 flex items-center justify-between">
+                <span>Are my uploaded PDF case files stored on your servers?</span>
+                <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 group-open:rotate-180 transition-transform"></i>
+              </summary>
+              <p class="mt-2.5 text-xs text-slate-600 leading-relaxed">
+                Never. PDF extraction runs 100% in RAM memory. Once judgment text and citations are parsed, the raw PDF buffer is immediately expunged from system memory.
+              </p>
+            </details>
+
+            <details class="group border border-slate-200 rounded-xl p-3.5 bg-slate-50/50 open:bg-white transition-all cursor-pointer">
+              <summary class="font-bold text-slate-900 flex items-center justify-between">
+                <span>How can I delete my account and all associated bookmarks?</span>
+                <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 group-open:rotate-180 transition-transform"></i>
+              </summary>
+              <p class="mt-2.5 text-xs text-slate-600 leading-relaxed">
+                You can delete your account instantly from the app settings menu, or email us at <code>privacy@digilawreporter.in</code> with your registered mobile number for an irreversible database purge.
+              </p>
+            </details>
+
+          </div>
+        </section>
+
+      </article>
+
+    </div>
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- FOOTER (Matches Website Theme & Typography)                               -->
+  <!-- ========================================================================= -->
+  <footer class="bg-[#0B1727] text-blue-100 pt-12 pb-8 border-t border-slate-800 text-xs no-print">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+      
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+        
+        <!-- Col 1: Brand Info -->
+        <div class="space-y-3.5 md:col-span-1">
+          <div class="flex items-center space-x-3">
+            <div class="bg-blue-600 text-white p-2 rounded-lg font-bold shadow-md">
+              <i data-lucide="scale" class="w-5 h-5"></i>
+            </div>
+            <span class="text-xl font-black text-white tracking-tight">
+              DIGI LAW <span class="text-blue-400">REPORTER</span>
+            </span>
+          </div>
+          <p class="text-blue-200/80 text-xs leading-relaxed">
+            India's leading verified legal research repository. Delivering sub-second judgment searches, citations, and headnotes.
+          </p>
+          <div class="flex items-center space-x-2 text-xs text-blue-300 font-semibold">
+            <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+            <span>256-Bit SSL Encrypted &amp; Verified</span>
+          </div>
+        </div>
+
+        <!-- Col 2: Quick Navigation -->
+        <div class="space-y-2.5">
+          <h4 class="font-bold mb-3 text-xs text-white uppercase tracking-wider border-b border-slate-800 pb-2">Quick Navigation</h4>
+          <ul class="space-y-2 text-xs text-blue-200/80">
+            <li><a href="/" class="hover:text-white transition-colors">Home</a></li>
+            <li><a href="/" class="hover:text-white transition-colors">About Us</a></li>
+            <li><a href="/" class="hover:text-white transition-colors">Contact</a></li>
+            <li><a href="#" class="text-white font-semibold">Privacy Policy</a></li>
+            <li><a href="/" class="hover:text-white transition-colors">Legal Search</a></li>
+          </ul>
+        </div>
+
+        <!-- Col 3: Jurisdiction -->
+        <div class="space-y-2.5">
+          <h4 class="font-bold mb-3 text-xs text-white uppercase tracking-wider border-b border-slate-800 pb-2">Jurisdiction</h4>
+          <ul class="space-y-2 text-xs text-blue-200/80">
+            <li>Supreme Court of India</li>
+            <li>Delhi High Court</li>
+            <li>Bombay High Court</li>
+            <li>Appellate Tribunals</li>
+          </ul>
+        </div>
+
+        <!-- Col 4: Contact Us -->
+        <div class="space-y-2.5">
+          <h4 class="font-bold mb-3 text-xs text-white uppercase tracking-wider border-b border-slate-800 pb-2">Contact Chambers</h4>
+          <ul class="space-y-2.5 text-xs text-blue-200/80">
+            <li class="flex items-start gap-2">
+              <i data-lucide="mail" class="w-4 h-4 text-blue-400 mt-0.5 shrink-0"></i>
+              <span>support@digilawreporter.in</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <i data-lucide="phone" class="w-4 h-4 text-blue-400 mt-0.5 shrink-0"></i>
+              <span>+91 98765 43210</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <i data-lucide="map-pin" class="w-4 h-4 text-blue-400 mt-0.5 shrink-0"></i>
+              <span>Chamber No. 402, High Court Lawyers Block, Supreme Court Enclave, New Delhi - 110001</span>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+
+      <!-- Copyright Bar -->
+      <div class="pt-6 border-t border-slate-800/80 text-center text-blue-300/60 text-[11px] flex flex-col sm:flex-row items-center justify-between gap-2">
+        <span>© 2026 Digital Law Reporter. All rights reserved.</span>
+        <span>Compliant with Indian DPDP Act 2023 &amp; IT Act 2000</span>
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- ========================================================================= -->
+  <!-- FLOATING BACK TO TOP BUTTON                                               -->
+  <!-- ========================================================================= -->
+  <button 
+    id="back-to-top" 
+    onclick="window.scrollTo({top: 0, behavior: 'smooth'})"
+    class="fixed bottom-6 right-6 z-40 p-3 bg-[#0B1727] text-white hover:bg-blue-600 rounded-full shadow-xl transition-all opacity-0 pointer-events-none translate-y-3 cursor-pointer no-print"
+    title="Back to top"
+  >
+    <i data-lucide="arrow-up" class="w-5 h-5"></i>
+  </button>
+
+  <!-- ========================================================================= -->
+  <!-- INTERACTIVE CLIENT JAVASCRIPT                                             -->
+  <!-- ========================================================================= -->
+  <script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
+
+    // 1. Reading Progress Bar & Back to Top visibility
+    window.addEventListener('scroll', () => {
+      const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+      const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const scrolled = (winScroll / height) * 100;
+      
+      const progressBar = document.getElementById('progress-bar');
+      if (progressBar) {
+        progressBar.style.width = scrolled + '%';
+      }
+
+      const backToTop = document.getElementById('back-to-top');
+      if (backToTop) {
+        if (winScroll > 300) {
+          backToTop.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-3');
+          backToTop.classList.add('opacity-100', 'translate-y-0');
+        } else {
+          backToTop.classList.add('opacity-0', 'pointer-events-none', 'translate-y-3');
+          backToTop.classList.remove('opacity-100', 'translate-y-0');
+        }
+      }
+
+      // Active Section Highlighting in TOC
+      const sections = document.querySelectorAll('section[id^="section-"]');
+      const tocLinks = document.querySelectorAll('.toc-link');
+      
+      let currentSectionId = '';
+      sections.forEach(sec => {
+        const top = sec.offsetTop - 120;
+        if (winScroll >= top) {
+          currentSectionId = sec.getAttribute('id');
+        }
+      });
+
+      tocLinks.forEach(link => {
+        if (link.getAttribute('href') === '#' + currentSectionId) {
+          link.classList.add('bg-blue-50', 'text-blue-700', 'font-bold', 'border-l-2', 'border-blue-600');
+          link.classList.remove('text-slate-600');
+        } else {
+          link.classList.remove('bg-blue-50', 'text-blue-700', 'font-bold', 'border-l-2', 'border-blue-600');
+          link.classList.add('text-slate-600');
+        }
+      });
+    });
+
+    // 2. Real-time In-Page Keyword Search & Filter
+    let searchDebounce = null;
+    function handleSearch(query) {
+      clearTimeout(searchDebounce);
+      searchDebounce = setTimeout(() => {
+        const clean = query.trim().toLowerCase();
+        const sections = document.querySelectorAll('section[id^="section-"]');
+        const countDisplay = document.getElementById('search-result-count');
+        
+        if (!clean) {
+          sections.forEach(s => s.classList.remove('hidden'));
+          if (countDisplay) countDisplay.classList.add('hidden');
+          return;
+        }
+
+        let matchCount = 0;
+        sections.forEach(sec => {
+          const text = sec.textContent.toLowerCase();
+          if (text.includes(clean)) {
+            sec.classList.remove('hidden');
+            matchCount++;
+          } else {
+            sec.classList.add('hidden');
+          }
+        });
+
+        if (countDisplay) {
+          countDisplay.classList.remove('hidden');
+          countDisplay.textContent = matchCount + ' section(s) matched "' + clean + '"';
+        }
+      }, 150);
+    }
+  </script>
+
+</body>
+</html>
