@@ -35,17 +35,33 @@ try {
     serviceAccount = JSON.parse(rawData);
   }
 
-  if (serviceAccount) {
-    if (getApps().length === 0) {
-      firebaseApp = initializeApp({
-        credential: cert(serviceAccount)
-      });
-    } else {
-      firebaseApp = getApps()[0];
-    }
+  if (serviceAccount && serviceAccount.private_key) {
+    // 1. Sanitize and normalize private key line breaks
+    let privateKey = String(serviceAccount.private_key).replace(/\\n/g, '\n').trim();
 
-    messaging = getMessaging(firebaseApp);
-    logger.info(`🔥 Firebase Admin SDK Initialized Successfully for project: ${serviceAccount.project_id || 'law-reporter-bad36'}`);
+    // 2. Check if private key is a placeholder or unconfigured template
+    const isPlaceholder = 
+      privateKey.includes('YOUR_PRIVATE_KEY') || 
+      privateKey.length < 100 || 
+      !privateKey.includes('-----BEGIN PRIVATE KEY-----') ||
+      !privateKey.includes('-----END PRIVATE KEY-----');
+
+    if (isPlaceholder) {
+      logger.warn('⚠️ Firebase private key in config/firebase-service-account.json is a placeholder or not yet configured. Mobile FCM notifications will be skipped until real Firebase credentials are provided.');
+    } else {
+      serviceAccount.private_key = privateKey;
+
+      if (getApps().length === 0) {
+        firebaseApp = initializeApp({
+          credential: cert(serviceAccount)
+        });
+      } else {
+        firebaseApp = getApps()[0];
+      }
+
+      messaging = getMessaging(firebaseApp);
+      logger.info(`🔥 Firebase Admin SDK Initialized Successfully for project: ${serviceAccount.project_id || 'law-reporter'}`);
+    }
   } else {
     logger.warn('⚠️ Firebase credentials not found (checked file and environment variables). Firebase FCM notifications will be skipped.');
   }
