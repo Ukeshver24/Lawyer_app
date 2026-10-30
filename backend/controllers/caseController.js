@@ -53,7 +53,8 @@ export const getCasePdf = async (req, res) => {
     if (pdfPath) {
       const cleanPath = String(pdfPath).replace(/^[\\\/]+/, '').replace(/^uploads[\\\/]/i, '').replace(/^[\\\/]+/, '');
       const fullPath = path.join(__dirname, '../uploads', cleanPath);
-      if (fs.existsSync(fullPath)) {
+      // ONLY serve directly if it is already a generated standardized master PDF
+      if (cleanPath.startsWith('standardized_') && fs.existsSync(fullPath)) {
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `inline; filename="DLR_Judgment_${caseItem.id}.pdf"`);
         return fs.createReadStream(fullPath).pipe(res);

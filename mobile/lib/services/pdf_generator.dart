@@ -176,7 +176,7 @@ class PdfGeneratorService {
           if (current.endsWith('-')) {
             current = current.substring(0, current.length - 1) + line;
           } else {
-            current += ' ' + line;
+            current += ' $line';
           }
         } else {
           current = line;
@@ -189,19 +189,12 @@ class PdfGeneratorService {
       pw.MultiPage(
         pageTheme: pw.PageTheme(
           pageFormat: format,
-          margin: const pw.EdgeInsets.symmetric(horizontal: 40, vertical: 36),
+          margin: const pw.EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
           buildBackground: (pw.Context context) {
             return pw.FullPage(
               ignoreMargins: true,
               child: pw.Stack(
                 children: [
-                  // 1px Elegant Page Border inset cleanly inside the A4 sheet
-                  pw.Container(
-                    margin: const pw.EdgeInsets.all(20.0),
-                    decoration: pw.BoxDecoration(
-                      border: pw.Border.all(color: PdfColors.black, width: 0.8),
-                    ),
-                  ),
                   // Watermark on each page: bottom-left to top-right upward diagonal
                   pw.Center(
                     child: pw.Transform.rotate(
@@ -218,6 +211,13 @@ class PdfGeneratorService {
                           ),
                         ),
                       ),
+                    ),
+                  ),
+                  // 1px Elegant Page Border inset cleanly inside the A4 sheet (12px inset matching viewer)
+                  pw.Container(
+                    margin: const pw.EdgeInsets.all(12.0),
+                    decoration: pw.BoxDecoration(
+                      border: pw.Border.all(color: PdfColors.black, width: 0.9),
                     ),
                   ),
                 ],
@@ -616,18 +616,50 @@ class PdfGeneratorService {
 
           // Judgment Body Paragraphs (Continuous flow from Page 1 across pages)
           for (final para in paragraphs) {
-            widgets.add(
-              pw.Paragraph(
-                text: para,
-                textAlign: pw.TextAlign.justify,
-                style: pw.TextStyle(
-                  font: timesRoman,
-                  fontSize: 10.5,
-                  lineSpacing: 3.5,
+            final match = RegExp(r'^(\d+[\.\)]|\[\d+\]|\(\d+\))\s*(.*)$', dotAll: true).firstMatch(para);
+            if (match != null) {
+              final pNum = match.group(1)!;
+              final pText = match.group(2) ?? '';
+              widgets.add(
+                pw.Padding(
+                  padding: const pw.EdgeInsets.only(bottom: 10.0),
+                  child: pw.RichText(
+                    textAlign: pw.TextAlign.justify,
+                    text: pw.TextSpan(
+                      children: [
+                        pw.TextSpan(
+                          text: '$pNum  ',
+                          style: pw.TextStyle(font: timesBold, fontSize: 10.5),
+                        ),
+                        pw.TextSpan(
+                          text: pText,
+                          style: pw.TextStyle(
+                            font: timesRoman,
+                            fontSize: 10.5,
+                            lineSpacing: 3.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-                margin: const pw.EdgeInsets.only(bottom: 10.0),
-              ),
-            );
+              );
+            } else {
+              widgets.add(
+                pw.Padding(
+                  padding: const pw.EdgeInsets.only(bottom: 10.0),
+                  child: pw.Text(
+                    para,
+                    textAlign: pw.TextAlign.justify,
+                    style: pw.TextStyle(
+                      font: timesRoman,
+                      fontSize: 10.5,
+                      lineSpacing: 3.5,
+                    ),
+                  ),
+                ),
+              );
+            }
           }
 
           return widgets;
@@ -639,7 +671,7 @@ class PdfGeneratorService {
   }
 
   /// Opens standard Android/iOS layout dialog allowing user to "Save as PDF" or Print.
-  /// First checks for authentic court judgment PDF directly from backend storage.
+  /// Renders the standardized Master Legal PDF directly matching the on-screen viewer.
   static Future<void> downloadOrPrintPdf(
     BuildContext context,
     CaseModel caseItem,
@@ -647,20 +679,7 @@ class PdfGeneratorService {
     final sanitizedTitle = caseItem.title.replaceAll(RegExp(r'[^a-zA-Z0-9_\-]'), '_');
     final filename = 'DLR_${sanitizedTitle.substring(0, sanitizedTitle.length.clamp(0, 30))}.pdf';
 
-    try {
-      final authenticBytes = await fetchAuthenticPdfBytes(caseItem);
-      if (authenticBytes != null && authenticBytes.isNotEmpty) {
-        await Printing.layoutPdf(
-          onLayout: (PdfPageFormat format) async => authenticBytes,
-          name: filename,
-        );
-        return;
-      }
-    } catch (e) {
-      debugPrint('Direct authentic PDF downloadOrPrintPdf fetch error: $e');
-    }
-
-    // Fallback to high-definition vector legal PDF generator
+    // Renders the exact standardized legal vector PDF matching what is viewed on screen
     await Printing.layoutPdf(
       onLayout: (PdfPageFormat format) async => generateCasePdf(caseItem, format: format),
       name: filename,
@@ -668,6 +687,7 @@ class PdfGeneratorService {
   }
 
   /// Opens native share sheet allowing user to save file directly to Downloads or share to WhatsApp, Drive, etc.
+  /// Shares the standardized Master Legal PDF directly matching the on-screen viewer.
   static Future<void> sharePdf(
     BuildContext context,
     CaseModel caseItem,
@@ -675,16 +695,7 @@ class PdfGeneratorService {
     final sanitizedTitle = caseItem.title.replaceAll(RegExp(r'[^a-zA-Z0-9_\-]'), '_');
     final filename = 'DLR_${sanitizedTitle.substring(0, sanitizedTitle.length.clamp(0, 30))}.pdf';
 
-    try {
-      final authenticBytes = await fetchAuthenticPdfBytes(caseItem);
-      if (authenticBytes != null && authenticBytes.isNotEmpty) {
-        await Printing.sharePdf(bytes: authenticBytes, filename: filename);
-        return;
-      }
-    } catch (e) {
-      debugPrint('Direct authentic PDF sharePdf fetch error: $e');
-    }
-
+    // Generates the exact standardized legal vector PDF matching what is viewed on screen
     final bytes = await generateCasePdf(caseItem);
     await Printing.sharePdf(bytes: bytes, filename: filename);
   }

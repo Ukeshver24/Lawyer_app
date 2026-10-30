@@ -109,7 +109,7 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
           if (current.endsWith('-')) {
             current = current.substring(0, current.length - 1) + line;
           } else {
-            current += ' ' + line;
+            current += ' $line';
           }
         } else {
           current = line;
@@ -137,7 +137,6 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
     final List<List<String>> pages = [];
     List<String> currentPageParagraphs = [];
     double currentRemainingHeight = page1AvailableHeight;
-    bool isPage1 = true;
     const double pSpacing = 10.0;
 
     final List<String> queue = List.from(rawParagraphs);
@@ -146,7 +145,6 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
     if (page1AvailableHeight < 36.0) {
       pages.add([]);
       currentRemainingHeight = subsequentPageAvailableHeight;
-      isPage1 = false;
     }
 
     while (queue.isNotEmpty) {
@@ -221,7 +219,6 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
           pages.add(currentPageParagraphs);
           currentPageParagraphs = [];
           currentRemainingHeight = subsequentPageAvailableHeight;
-          isPage1 = false;
 
           if (secondPart.isNotEmpty) {
             queue.insert(0, secondPart);
@@ -236,7 +233,6 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
       pages.add(currentPageParagraphs);
       currentPageParagraphs = [];
       currentRemainingHeight = subsequentPageAvailableHeight;
-      isPage1 = false;
       queue.insert(0, text);
     }
 
