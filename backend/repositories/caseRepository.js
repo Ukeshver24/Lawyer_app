@@ -1,6 +1,12 @@
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { query } from '../config/db.js';
 import logger from '../utils/logger.js';
 import { fastCache } from '../utils/cache.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Get all cases (with optional status filter & pagination) from PostgreSQL
 export const getAllCasesFromDb = async ({ status, limit = 50, offset = 0 }) => {
@@ -172,17 +178,46 @@ export const updateCaseInDb = async (id, caseData) => {
   return (res && res.rows && res.rows.length > 0) ? res.rows[0] : null;
 };
 
-// Delete case permanently from PostgreSQL
+// Delete case permanently from PostgreSQL and clean up secondary tables & storage
 export const deleteCaseFromDb = async (id) => {
   const numericId = parseInt(id, 10);
   let res;
   if (!isNaN(numericId)) {
     res = await query(`DELETE FROM cases WHERE id = $1 OR id::text = $2 RETURNING *`, [numericId, String(id)]);
+    try {
+      await query(`DELETE FROM judgments WHERE id = $1 OR id::text = $2`, [numericId, String(id)]);
+    } catch (e) {
+      logger.warn('Secondary judgments delete warning:', e.message);
+    }
   } else {
     res = await query(`DELETE FROM cases WHERE id::text = $1 RETURNING *`, [String(id)]);
+    try {
+      await query(`DELETE FROM judgments WHERE id::text = $1`, [String(id)]);
+    } catch (e) {
+      logger.warn('Secondary judgments delete warning:', e.message);
+    }
   }
-  fastCache.invalidatePrefix('cases:');
-  fastCache.invalidatePrefix('search:');
+
+  // Remove physical files associated with deleted case from uploads/
+  if (res && res.rows && res.rows.length > 0) {
+    const deleted = res.rows[0];
+    const candidateFiles = [deleted.pdf_file, deleted.pdf_file_path, deleted.original_pdf_path].filter(Boolean);
+    for (const filePath of candidateFiles) {
+      try {
+        const cleanPath = String(filePath).replace(/^[\\\/]+/, '').replace(/^uploads[\\\/]/i, '').replace(/^[\\\/]+/, '');
+        const fullPath = path.join(__dirname, '../uploads', cleanPath);
+        if (fs.existsSync(fullPath)) {
+          fs.unlinkSync(fullPath);
+          logger.info(`Deleted file from disk: ${cleanPath}`);
+        }
+      } catch (err) {
+        logger.warn('Could not remove file for deleted case:', err.message);
+      }
+    }
+  }
+
+  // Wipe all cache so neither web nor mobile search can return stale records
+  fastCache.flush();
   return (res && res.rows && res.rows.length > 0) ? res.rows[0] : null;
 };
 

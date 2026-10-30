@@ -42,6 +42,10 @@ class FastMemoryCache {
     this.cache.clear();
   }
 
+  clear() {
+    this.flush();
+  }
+
   // Clear keys starting with a prefix (e.g., 'cases:', 'search:')
   invalidatePrefix(prefix) {
     for (const key of this.cache.keys()) {

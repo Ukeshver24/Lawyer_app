@@ -347,7 +347,19 @@ class UserRepository {
       const sql = "SELECT cases FROM user_saved_cases WHERE user_identifier = $1";
       const { rows } = await query(sql, [String(identifier)]);
       if (rows[0] && rows[0].cases) {
-        return Array.isArray(rows[0].cases) ? rows[0].cases : JSON.parse(rows[0].cases);
+        const raw = Array.isArray(rows[0].cases) ? rows[0].cases : JSON.parse(rows[0].cases);
+        if (!Array.isArray(raw) || raw.length === 0) return [];
+
+        // Verify cases still exist and are published in cases table (never return deleted cases)
+        const validRes = await query("SELECT id, case_number FROM cases WHERE status = 'Published'");
+        const validIds = new Set(validRes.rows.flatMap(r => [String(r.id), String(r.case_number)]));
+        const filtered = raw.filter(c => c && (validIds.has(String(c.id)) || validIds.has(String(c.case_number))));
+
+        // If any cases were deleted from admin, automatically purge them from saved list
+        if (filtered.length !== raw.length) {
+          await query("UPDATE user_saved_cases SET cases = $1::jsonb, updated_at = CURRENT_TIMESTAMP WHERE user_identifier = $2", [JSON.stringify(filtered), String(identifier)]);
+        }
+        return filtered;
       }
       return [];
     } catch (error) {

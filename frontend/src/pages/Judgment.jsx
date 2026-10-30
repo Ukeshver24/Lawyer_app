@@ -159,8 +159,11 @@ export default function Judgment() {
           // If not found in /api/cases/:id, attempt fetching from public search
           const searchRes = await fetch(`${API_BASE_URL}/public/cases/search?q=${encodeURIComponent(id)}`);
           const searchResult = await searchRes.json();
-          if (isMounted && searchResult.success && searchResult.data && searchResult.data.length > 0) {
-            const matched = searchResult.data.find(c => String(c.id) === String(id)) || searchResult.data[0];
+          const matched = searchResult && searchResult.data && Array.isArray(searchResult.data)
+            ? searchResult.data.find(c => String(c.id) === String(id))
+            : null;
+
+          if (isMounted && matched) {
             setData(matched);
             const pdf = getOriginalPdfUrl(matched);
             if (pdf) {
@@ -169,7 +172,7 @@ export default function Judgment() {
               setViewMode('web');
             }
           } else if (isMounted) {
-            setError(result.message || 'Case precedent record not found in database.');
+            setError('This judgment record has been deleted or does not exist.');
           }
         }
       } catch (err) {
