@@ -180,7 +180,6 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
         pages.add(currentPageParagraphs);
         currentPageParagraphs = [];
         currentRemainingHeight = subsequentPageAvailableHeight;
-        isPage1 = false;
         queue.insert(0, text);
         continue;
       }
