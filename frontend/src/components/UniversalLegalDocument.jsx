@@ -157,7 +157,25 @@ function UniversalLegalDocument({
   // Authentic Court Document Body: Preserves 100% of text, connected appeals, co-appellants & co-respondents
   const { parsedAppearances, fullContent, hasExplicitOrderHeading } = useMemo(() => {
     if (!rawContent) return { parsedAppearances: '', fullContent: '', hasExplicitOrderHeading: false };
-    const str = String(rawContent).trim();
+    let str = String(rawContent).trim();
+
+    // Strip watermarks and footers
+    str = str.replace(/<div[^>]*class="[^"]*dlr-page-running-footer[^"]*"[^>]*>[\s\S]*?<\/div>/gi, ' ')
+             .replace(/<div[^>]*class="[^"]*page-footer[^"]*"[^>]*>[\s\S]*?<\/div>/gi, ' ')
+             .replace(/\bDIGITAL\s+LAW\s+REPORTER\b/gi, ' ')
+             .replace(/Generated\s+by\s+Digital\s+Law\s+Reporter[^\n<]*/gi, ' ')
+             .replace(/Generated\s+by[^\n<]*/gi, ' ')
+             .replace(/Date:\s*\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4}[^\n<]*/gi, ' ')
+             .replace(/Page\s*\d+\s*(?:of|\/)\s*\d+/gi, ' ')
+             .replace(/\b\d+\s+Hereinafter\s+['"][^'"]*['"]\.?/gi, ' ');
+
+    // Strip duplicate preamble headers if present so judicial body begins cleanly
+    const jMatch = str.match(/(?:^|>|\n)\s*(?:<[^>]*>)?\s*(?<!Date\s+of\s+)(?:J\s*U\s*D\s*G\s*M\s*E\s*N\s*T|O\s*R\s*D\s*E\s*R)\s*(?:<\/[^>]*>)?\s*(?:<|\n|$)/i);
+    if (jMatch && jMatch.index < 5000) {
+      let after = str.substring(jMatch.index + jMatch[0].length).trim();
+      after = after.replace(/^(?:<[^>]*>|\n|\s|\/div>)*?[A-Z\.\s]{3,50},\s*(?:C\.?J\.?|J\.?)(?:<\/[^>]*>)?(?:\s*<\/[^>]*>|\n|\s)*/i, '').trim();
+      str = after;
+    }
 
     const headingPattern = /(?:<(?:div|p|h[1-6]|center)[^>]*>\s*(?:<[^>]+>\s*)*(?:J\s*U\s*D\s*G\s*M\s*E\s*N\s*T|JUDGMENT|O\s*R\s*D\s*E\s*R|ORDER|The\s+Court\s+made\s+the\s+following\s+order:?)\s*(?:<\/[^>]+>\s*)*<\/(?:div|p|h[1-6]|center)>)|(?:(?:^|\n)\s*(?:J\s*U\s*D\s*G\s*M\s*E\s*N\s*T|JUDGMENT|O\s*R\s*D\s*E\s*R|ORDER|The\s+Court\s+made\s+the\s+following\s+order:?)\s*(?:\n|$))|(?:\bVERSUS\b)/i;
     const hasExplicit = headingPattern.test(str);

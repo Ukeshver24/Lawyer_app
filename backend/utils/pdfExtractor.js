@@ -295,9 +295,34 @@ export async function extractJudgmentFromBuffer(pdfBuffer) {
       metadata.caseNumber = pages[0].headerLeft;
     }
 
+    // Clean petitioner and respondent names of trailing dots, slashes, or role badges
+    if (metadata.petitioner) {
+      metadata.petitioner = String(metadata.petitioner)
+        .replace(/[\/\s\.\-]+$/, '')
+        .replace(/(?:\.{2,}|\u2026+|\u22EF+|\s*[-–—]\s*)\s*APPELLANT.*$/i, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+    if (metadata.respondent) {
+      metadata.respondent = String(metadata.respondent)
+        .replace(/[\/\s\.\-]+$/, '')
+        .replace(/(?:\.{2,}|\u2026+|\u22EF+|\s*[-–—]\s*)\s*RESPONDENT.*$/i, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    // Clean judgmentText of duplicate court, title, and headnote preambles so only the judicial opinion is stored
+    let cleanJudgmentBody = htmlBody;
+    const standaloneHeading = /(?:^|>|\n)\s*(?:<[^>]*>)?\s*(?<!Date\s+of\s+)(?:J\s*U\s*D\s*G\s*M\s*E\s*N\s*T|O\s*R\s*D\s*E\s*R)\s*(?:<\/[^>]*>)?\s*(?:<|\n|$)/i;
+    const matchJ = cleanJudgmentBody.match(standaloneHeading);
+    if (matchJ && matchJ.index !== undefined) {
+      cleanJudgmentBody = cleanJudgmentBody.substring(matchJ.index + matchJ[0].length).trim();
+      cleanJudgmentBody = cleanJudgmentBody.replace(/^(?:<[^>]*>|\n|\s|\/div>)*?[A-Z\.\s]{3,50},\s*(?:C\.?J\.?|J\.?)(?:<\/[^>]*>)?(?:\s*<\/[^>]*>|\n|\s)*/i, '').trim();
+    }
+
     return {
       ...metadata,
-      judgmentText: htmlBody,
+      judgmentText: cleanJudgmentBody,
       pages,
       totalPages: numPages,
       extractedTablesCount,

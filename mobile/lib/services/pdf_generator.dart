@@ -132,20 +132,58 @@ class PdfGeneratorService {
     final headnoteClean = cleanText(caseItem.headnote);
     final contentClean = cleanText(caseItem.content);
 
-    // Split content into paragraphs and strip any duplicate standalone JUDGMENT / ORDER title lines
-    final paragraphs = contentClean
-        .split(RegExp(r'\n\s*\n'))
-        .map((p) => p.trim())
-        .where((p) => p.isNotEmpty)
-        .where((p) {
-          final alphaOnly = p.replaceAll(RegExp(r'[^a-zA-Z]'), '').toUpperCase();
-          return alphaOnly != 'JUDGMENT' &&
-                 alphaOnly != 'JUDGEMENT' &&
-                 alphaOnly != 'ORDER' &&
-                 alphaOnly != 'COURTORDER' &&
-                 alphaOnly != 'FINALORDER';
-        })
-        .toList();
+    // Clean content and strip preamble
+    String strippedContent = contentClean
+        .replaceAll(RegExp(r'\bDIGITAL\s+LAW\s+REPORTER\b', caseSensitive: false), ' ')
+        .replaceAll(RegExp(r'Generated\s+by\s+Digital\s+Law\s+Reporter[^\n]*', caseSensitive: false), ' ')
+        .replaceAll(RegExp(r'Generated\s+by[^\n]*', caseSensitive: false), ' ')
+        .replaceAll(RegExp(r'Date:\s*\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4}[^\n]*', caseSensitive: false), ' ')
+        .replaceAll(RegExp(r'Page\s*\d+\s*(?:of|\/)\s*\d+', caseSensitive: false), ' ')
+        .replaceAll(RegExp(r'\b\d+\s+Hereinafter\s+[\x27"][^\x27"]*[\x27"]\.?', caseSensitive: false), ' ');
+
+    final jMatch = RegExp(r'(?:^|\n)\s*(?<!Date\s+of\s+)(?:J\s*U\s*D\s*G\s*M\s*E\s*N\s*T|O\s*R\s*D\s*E\s*R)\s*(?:\n|$)', caseSensitive: false).firstMatch(strippedContent);
+    if (jMatch != null && jMatch.start < 5000) {
+      String after = strippedContent.substring(jMatch.start + jMatch.group(0)!.length).trim();
+      after = after.replaceFirst(RegExp(r'^[A-Z\.\s]{3,50},\s*(?:C\.?J\.?|J\.?)\s*', caseSensitive: false), '').trim();
+      strippedContent = after;
+    } else {
+      final p1Match = RegExp(r'(?:^|\n)\s*(?:1[\.\)]|\[1\]|\(1\))\s+[A-Z]').firstMatch(strippedContent);
+      if (p1Match != null && p1Match.start > 50 && p1Match.start < 5000) {
+        final preamble = strippedContent.substring(0, p1Match.start);
+        if (RegExp(r'COURT|VERSUS|APPELLANT|RESPONDENT|JURISDICTION|CITATION|HEADNOTE', caseSensitive: false).hasMatch(preamble)) {
+          strippedContent = strippedContent.substring(p1Match.start).trim();
+        }
+      }
+    }
+
+    // Assemble continuous paragraphs by un-breaking mid-sentence lines
+    final lines = strippedContent.split(RegExp(r'\r?\n')).map((l) => l.trim()).where((l) => l.isNotEmpty).toList();
+    final List<String> paragraphs = [];
+    String current = '';
+
+    for (final line in lines) {
+      if (RegExp(r'^(?:>|J\s*U\s*D\s*G\s*M\s*E\s*N\s*T|O\s*R\s*D\s*E\s*R|[A-Z\.\s]{3,50},\s*J\.?$)', caseSensitive: false).hasMatch(line)) continue;
+      if (RegExp(r'Generated\s+by', caseSensitive: false).hasMatch(line)) continue;
+      if (RegExp(r'^Page\s*\d+', caseSensitive: false).hasMatch(line)) continue;
+      if (RegExp(r'^\d+\s+Hereinafter', caseSensitive: false).hasMatch(line)) continue;
+
+      final isNumbered = RegExp(r'^(\d+[\.\)]|\[\d+\]|\(\d+\))\s+').hasMatch(line);
+      if (isNumbered) {
+        if (current.isNotEmpty) paragraphs.add(current.trim());
+        current = line;
+      } else {
+        if (current.isNotEmpty) {
+          if (current.endsWith('-')) {
+            current = current.substring(0, current.length - 1) + line;
+          } else {
+            current += ' ' + line;
+          }
+        } else {
+          current = line;
+        }
+      }
+    }
+    if (current.isNotEmpty) paragraphs.add(current.trim());
 
     pdf.addPage(
       pw.MultiPage(

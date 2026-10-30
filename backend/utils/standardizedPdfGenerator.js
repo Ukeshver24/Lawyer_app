@@ -11,26 +11,32 @@ export const stripPreambleFromJudgmentText = (content) => {
   if (!content) return '';
   let str = String(content).trim();
 
-  // Pattern A: Match explicit JUDGMENT / ORDER title in preamble
-  const judgmentHeadingRegex = /(?:<p[^>]*>|<div[^>]*>|\n\s*\n|^)\s*(?:<b>|<strong>)?\s*(?:J\s*U\s*D\s*G\s*M\s*E\s*N\s*T|O\s*R\s*D\s*E\s*R)\s*(?:<\/b>|<\/strong>)?\s*(?:<\/p>|<\/div>|\n|$)/i;
-  const matchJ = str.match(judgmentHeadingRegex);
-  if (matchJ && matchJ.index < 4000) {
+  // Strip watermarks and footers first
+  str = str.replace(/<div[^>]*class="[^"]*dlr-page-running-footer[^"]*"[^>]*>[\s\S]*?<\/div>/gi, ' ')
+           .replace(/<[^>]*class="[^"]*page-footer[^"]*"[^>]*>[\s\S]*?<\/div>/gi, ' ')
+           .replace(/\bDIGITAL\s+LAW\s+REPORTER\b/gi, ' ')
+           .replace(/Generated\s+by\s+Digital\s+Law\s+Reporter[^\n<]*/gi, ' ')
+           .replace(/Generated\s+by[^\n<]*/gi, ' ')
+           .replace(/Date:\s*\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4}[^\n<]*/gi, ' ')
+           .replace(/Page\s*\d+\s*(?:of|\/)\s*\d+/gi, ' ')
+           .replace(/\b\d+\s+Hereinafter\s+['"][^'"]*['"]\.?/gi, ' ');
+
+  // Pattern A: Match standalone J U D G M E N T or ORDER
+  const standaloneHeading = /(?:^|>|\n)\s*(?:<[^>]*>)?\s*(?<!Date\s+of\s+)(?:J\s*U\s*D\s*G\s*M\s*E\s*N\s*T|O\s*R\s*D\s*E\s*R)\s*(?:<\/[^>]*>)?\s*(?:<|\n|$)/i;
+  const matchJ = str.match(standaloneHeading);
+  if (matchJ && matchJ.index !== undefined) {
     let after = str.substring(matchJ.index + matchJ[0].length).trim();
-    // Also strip judge signature line immediately after JUDGMENT if present
-    const judgeRegex = /^(?:<p[^>]*>|<div[^>]*>|\n\s*\n)?\s*(?:<b>|<strong>|<u>)?\s*[A-Z\.\s]{3,50},\s*J\.?\s*(?:<\/u>|<\/b>|<\/strong>)?\s*(?:<\/p>|<\/div>|\n|$)/i;
-    const matchJudge = after.match(judgeRegex);
-    if (matchJudge) {
-      after = after.substring(matchJudge[0].length).trim();
-    }
+    // Strip judge signature line e.g. "SANJAY KAROL, J."
+    after = after.replace(/^(?:<[^>]*>|\n|\s|\/div>)*?[A-Z\.\s]{3,50},\s*(?:C\.?J\.?|J\.?)(?:<\/[^>]*>)?(?:\s*<\/[^>]*>|\n|\s)*/i, '').trim();
     return after;
   }
 
   // Pattern B: Match up to first numbered paragraph (1., [1], etc.) if court preamble is present
-  const firstParaRegex = /(?:<p[^>]*>|\n\s*\n|^)\s*(?:<b>|<strong>)?\s*(?:1[\.\)]|\[1\]|\(1\))\s*/i;
+  const firstParaRegex = /(?:<p[^>]*>|\n\s*\n|^)\s*(?:<b>|<strong>)?\s*(?:1[\.\)]|\[1\]|\(1\))\s+[A-Z]/i;
   const matchP = str.match(firstParaRegex);
-  if (matchP && matchP.index > 30 && matchP.index < 4000) {
+  if (matchP && matchP.index > 30) {
     const preamble = str.substring(0, matchP.index);
-    if (/IN\s+THE\s+SUPREME\s+COURT|IN\s+THE\s+HIGH\s+COURT|VERSUS|APPELLATE|APPELLANT|RESPONDENT/i.test(preamble)) {
+    if (/COURT|VERSUS|APPELLANT|RESPONDENT|JURISDICTION|CITATION|HEADNOTE/i.test(preamble)) {
       return str.substring(matchP.index).trim();
     }
   }
@@ -107,14 +113,23 @@ export async function generateStandardizedLegalPdf(caseItem = {}, options = {}) 
   const court = (caseItem.court_name || caseItem.court || 'SUPREME COURT OF INDIA').toUpperCase();
   const rawTitle = caseItem.title || 'Untitled Case';
 
-  let petitioner = caseItem.petitioner_name || caseItem.petitioner || '';
-  let respondent = caseItem.respondent_name || caseItem.respondent || '';
+  let petitioner = (caseItem.petitioner_name || caseItem.petitioner || '')
+    .replace(/[\/\s\.\-]+$/, '')
+    .replace(/(?:\.{2,}|\u2026+|\u22EF+|\s*[-–—]\s*)\s*APPELLANT.*$/i, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let respondent = (caseItem.respondent_name || caseItem.respondent || '')
+    .replace(/[\/\s\.\-]+$/, '')
+    .replace(/(?:\.{2,}|\u2026+|\u22EF+|\s*[-–—]\s*)\s*RESPONDENT.*$/i, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 
   if (!petitioner && !respondent && rawTitle) {
     const splitMatch = rawTitle.split(/\s*(?:v\.?|vs\.?|VERSUS|V\/S)\s*/i);
     if (splitMatch.length === 2) {
-      petitioner = splitMatch[0].trim();
-      respondent = splitMatch[1].trim();
+      petitioner = splitMatch[0].replace(/[\/\s\.\-]+$/, '').trim();
+      respondent = splitMatch[1].replace(/[\/\s\.\-]+$/, '').trim();
     }
   }
 
@@ -201,18 +216,34 @@ export async function generateStandardizedLegalPdf(caseItem = {}, options = {}) 
     }
   };
 
-  // Text justification helper
+  // Pixel-perfect uniform word-spacing justification helper
   const renderJustifiedLine = (text, x, y, targetWidth, isLastLine = false) => {
     const clean = String(text || '').trim();
     if (!clean) return;
 
-    const naturalWidth = doc.getTextWidth(clean);
-    const canJustify = !isLastLine && clean.indexOf(' ') > 0 && naturalWidth >= (targetWidth * 0.50);
+    const words = clean.split(/\s+/).filter(Boolean);
+    if (words.length === 0) return;
 
-    if (canJustify) {
-      doc.text([clean, ''], x, y, { align: 'justify', maxWidth: targetWidth });
-    } else {
+    if (isLastLine || words.length === 1) {
       doc.text(clean, x, y);
+      return;
+    }
+
+    const naturalWidth = doc.getTextWidth(clean);
+    // Left align if line has few words or is shorter than 65% of target width
+    if (naturalWidth < (targetWidth * 0.65)) {
+      doc.text(clean, x, y);
+      return;
+    }
+
+    const wordsWidth = words.reduce((acc, w) => acc + doc.getTextWidth(w), 0);
+    const totalSpaceNeeded = targetWidth - wordsWidth;
+    const spacePerWord = totalSpaceNeeded / (words.length - 1);
+
+    let curX = x;
+    for (let i = 0; i < words.length; i++) {
+      doc.text(words[i], curX, y);
+      curX += doc.getTextWidth(words[i]) + spacePerWord;
     }
   };
 
@@ -559,10 +590,36 @@ export async function generateStandardizedLegalPdf(caseItem = {}, options = {}) 
   }
 
   // Parse paragraphs and tables
-  const paragraphs = cleanBody
-    .split(/\n\s*\n/)
-    .map(p => p.trim())
-    .filter(Boolean);
+  // Un-break mid-sentence newlines to form continuous, uninterrupted paragraphs
+  const rawLines = cleanBody.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  const paragraphs = [];
+  let curPara = '';
+
+  for (const line of rawLines) {
+    // Drop stray standalone headings or footers
+    if (/^(?:>|J\s*U\s*D\s*G\s*M\s*E\s*N\s*T|O\s*R\s*D\s*E\s*R|[A-Z\.\s]{3,50},\s*J\.?$)/i.test(line)) continue;
+    if (/Generated\s+by/i.test(line)) continue;
+    if (/^Date:\s*\d{1,2}/i.test(line)) continue;
+    if (/^Page\s*\d+\s*(?:of|\/)/i.test(line)) continue;
+    if (/^\d+\s+Hereinafter/i.test(line)) continue;
+
+    const isNumbered = /^(\d+[\.\)]|\[\d+\]|\(\d+\))\s+/.test(line);
+    if (isNumbered) {
+      if (curPara) paragraphs.push(curPara.trim());
+      curPara = line;
+    } else {
+      if (curPara) {
+        if (curPara.endsWith('-')) {
+          curPara = curPara.slice(0, -1) + line;
+        } else {
+          curPara += ' ' + line;
+        }
+      } else {
+        curPara = line;
+      }
+    }
+  }
+  if (curPara) paragraphs.push(curPara.trim());
 
   const paraLineHeight = 0.22;
   const paraBottomGap = 0.18;
