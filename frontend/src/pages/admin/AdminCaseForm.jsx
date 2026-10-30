@@ -119,7 +119,13 @@ export default function AdminCaseForm() {
   const [extractingPdf, setExtractingPdf] = useState(false);
   const [pdfError, setPdfError] = useState('');
   const [extractionSuccess, setExtractionSuccess] = useState(null);
+  const [processingStage, setProcessingStage] = useState(0);
+  const [processingStepsList, setProcessingStepsList] = useState([]);
+  const [validationInfo, setValidationInfo] = useState(null);
+  const [isRegeneratingPdf, setIsRegeneratingPdf] = useState(false);
+  const [regenerateSuccess, setRegenerateSuccess] = useState('');
   const pdfInputRef = useRef(null);
+  const lastUploadedFileRef = useRef(null);
 
   // A4 Legal Document Format Modal State
   const [showDocModal, setShowDocModal] = useState(false);
@@ -1184,9 +1190,18 @@ export default function AdminCaseForm() {
     return outputHtml.trim() || html;
   };
 
-  // Universal In-Memory PDF Extraction (Zero Storage Guarantee)
-  const handlePdfUpload = async (e) => {
-    const file = e.target.files && e.target.files[0];
+  // Universal Helper to resolve full downloadable/viewable PDF URL
+  const getFullPdfUrl = (relPath) => {
+    if (!relPath) return '';
+    if (/^https?:\/\//i.test(relPath)) return relPath;
+    const backendBase = (API_BASE_URL || 'http://localhost:5000/api').replace(/\/api\/?$/, '');
+    const clean = String(relPath).replace(/^\/+/, '');
+    return `${backendBase}/${clean}`;
+  };
+
+  // Universal In-Memory PDF Extraction & Automatic Standardized Generation Pipeline
+  const handlePdfUpload = async (e, retryFile = null) => {
+    const file = retryFile || (e?.target?.files && e.target.files[0]);
     if (!file) return;
 
     if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
@@ -1194,9 +1209,22 @@ export default function AdminCaseForm() {
       return;
     }
 
+    lastUploadedFileRef.current = file;
     setExtractingPdf(true);
     setPdfError('');
     setFormError('');
+    setProcessingStage(1);
+    setProcessingStepsList([]);
+    setValidationInfo(null);
+
+    // Smooth progressive stage updater
+    let currentStage = 1;
+    const timer = setInterval(() => {
+      currentStage++;
+      if (currentStage <= 6) {
+        setProcessingStage(currentStage);
+      }
+    }, 750);
 
     try {
       const uploadFormData = new FormData();
@@ -1207,13 +1235,17 @@ export default function AdminCaseForm() {
         body: uploadFormData
       });
 
+      clearInterval(timer);
       const result = await res.json();
 
       if (!res.ok || result.status === 'error') {
         throw new Error(result.message || 'Failed to extract judgment data from PDF');
       }
 
+      setProcessingStage(8);
       const ext = result.data || {};
+      if (result.processingSteps) setProcessingStepsList(result.processingSteps);
+      if (result.validation) setValidationInfo(result.validation);
 
       // 1. Autofill main case form state
       setFormData(prev => ({
@@ -1231,11 +1263,12 @@ export default function AdminCaseForm() {
         section: ext.section || prev.section,
         issues: ext.issues || prev.issues,
         importantPoints: ext.importantPoints || prev.importantPoints,
-        pdf_file: ext.pdf_file || prev.pdf_file || '',
-        pdf_file_path: ext.pdf_file_path || prev.pdf_file_path || '',
-        use_professional_font: false,
-        font_family: ext.font_family || ext.detected_font || prev.font_family || 'helvetica',
-        detected_font: ext.font_family || ext.detected_font || prev.font_family || 'helvetica',
+        pdf_file: ext.pdf_file || ext.standardized_pdf_path || prev.pdf_file || '',
+        pdf_file_path: ext.pdf_file_path || ext.standardized_pdf_path || prev.pdf_file_path || '',
+        original_pdf_path: ext.original_pdf_path || prev.original_pdf_path || '',
+        use_professional_font: true,
+        font_family: 'times',
+        detected_font: ext.font_family || 'times',
         summary: stripHtml(ext.summary || prev.summary),
         judgmentText: formatJustifiedParagraphs(ext.judgmentText || prev.judgmentText)
       }));
@@ -1282,21 +1315,62 @@ export default function AdminCaseForm() {
       setExtractionSuccess({
         fileName: file.name,
         fileSize: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
-        tablesCount: ext.extractedTablesCount || 0
+        tablesCount: ext.extractedTablesCount || 0,
+        standardizedPath: ext.standardized_pdf_path || ext.pdf_file_path,
+        originalPath: ext.original_pdf_path,
+        validation: result.validation
       });
 
-      // Automatically open the MS Word / A4 Document Editor modal for instant review & editing
+      // Show A4 Document Editor modal for instant review & editing
       setShowDocModal(true);
 
     } catch (err) {
+      clearInterval(timer);
       console.error('PDF extraction failed:', err);
       setPdfError(err.message || 'Error extracting data from PDF');
     } finally {
       setExtractingPdf(false);
-      // Zero Storage: reset input value immediately so no file is retained in browser memory
       if (pdfInputRef.current) {
         pdfInputRef.current.value = '';
       }
+    }
+  };
+
+  // Regenerate Standardized PDF on-demand with latest form edits
+  const handleRegenerateStandardizedPdf = async () => {
+    setIsRegeneratingPdf(true);
+    setRegenerateSuccess('');
+    setPdfError('');
+
+    try {
+      const payload = {
+        ...formData,
+        citations: citationsList
+      };
+
+      const res = await fetch(`${API_BASE_URL}/cases/regenerate-pdf`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.status === 'error') {
+        throw new Error(data.message || 'Failed to regenerate PDF');
+      }
+
+      setFormData(prev => ({
+        ...prev,
+        pdf_file: data.pdf_file_path || prev.pdf_file,
+        pdf_file_path: data.pdf_file_path || prev.pdf_file_path
+      }));
+
+      setRegenerateSuccess('Standardized Legal PDF regenerated and synced successfully!');
+      setTimeout(() => setRegenerateSuccess(''), 4500);
+    } catch (err) {
+      setPdfError(`Regeneration failed: ${err.message}`);
+    } finally {
+      setIsRegeneratingPdf(false);
     }
   };
 
@@ -1747,45 +1821,168 @@ export default function AdminCaseForm() {
 
           {/* Dropzone Status & Content */}
           {extractingPdf ? (
-            <div className="p-8 border-2 border-dashed border-blue-300 bg-blue-50/40 rounded-xl flex flex-col items-center justify-center text-center space-y-2.5">
-              <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin"></div>
-              <p className="text-xs font-bold text-slate-700">Extracting content and tables from PDF...</p>
+            <div className="p-6 border-2 border-dashed border-blue-400 bg-gradient-to-b from-blue-50/70 to-slate-50/50 rounded-2xl flex flex-col items-center justify-center text-center space-y-4">
+              <div className="w-12 h-12 rounded-2xl bg-blue-600/10 text-blue-600 flex items-center justify-center border border-blue-200 shadow-xs">
+                <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+              </div>
+
+              <div>
+                <p className="text-sm font-bold text-slate-900">
+                  {processingStage === 1 && 'Step 1/8: PDF Uploaded & Validating...'}
+                  {processingStage === 2 && 'Step 2/8: Extracting Text (Detecting selectable vs scanned)...'}
+                  {processingStage === 3 && 'Step 3/8: Running OCR Engine (if scanned images)...'}
+                  {processingStage === 4 && 'Step 4/8: Identifying Legal Sections & Headnote...'}
+                  {processingStage === 5 && 'Step 5/8: Structuring Content & Numbered Paragraphs...'}
+                  {processingStage === 6 && 'Step 6/8: Generating Standardized PDF (Master Template)...'}
+                  {processingStage >= 7 && 'Step 7/8: Completing Quality Validation...'}
+                </p>
+                <p className="text-xs text-slate-500 mt-1 font-medium">
+                  Applying automated legal extraction, structuring, and master A4 format generation
+                </p>
+              </div>
+
+              {/* Multi-step progress bar */}
+              <div className="w-full max-w-md bg-slate-200 h-2 rounded-full overflow-hidden">
+                <div 
+                  className="bg-blue-600 h-full transition-all duration-500 rounded-full"
+                  style={{ width: `${Math.min(100, Math.max(12, processingStage * 12.5))}%` }}
+                ></div>
+              </div>
+
+              {/* 8-Stage Progress Stepper */}
+              <div className="w-full max-w-xl grid grid-cols-2 sm:grid-cols-4 gap-2 text-left pt-2">
+                {[
+                  { num: 1, label: 'PDF Uploaded' },
+                  { num: 2, label: 'Extracting Text' },
+                  { num: 3, label: 'Running OCR' },
+                  { num: 4, label: 'Legal Sections' },
+                  { num: 5, label: 'Structure Content' },
+                  { num: 6, label: 'Generate PDF' },
+                  { num: 7, label: 'Validation' },
+                  { num: 8, label: 'Ready to Publish' }
+                ].map(step => (
+                  <div 
+                    key={step.num}
+                    className={`p-2 rounded-lg border text-[11px] font-semibold flex items-center gap-1.5 transition-colors ${
+                      processingStage > step.num 
+                        ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                        : processingStage === step.num
+                        ? 'bg-blue-50 border-blue-300 text-blue-800 shadow-2xs'
+                        : 'bg-white/60 border-slate-200 text-slate-400'
+                    }`}
+                  >
+                    <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] shrink-0 font-bold ${
+                      processingStage > step.num 
+                        ? 'bg-emerald-600 text-white' 
+                        : processingStage === step.num 
+                        ? 'bg-blue-600 text-white animate-pulse' 
+                        : 'bg-slate-200 text-slate-500'
+                    }`}>
+                      {processingStage > step.num ? '✓' : step.num}
+                    </span>
+                    <span className="truncate">{step.label}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           ) : extractionSuccess ? (
-            <div className="p-4 bg-emerald-50/60 border border-emerald-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                  <CheckCircle2 size={18} />
+            <div className="p-5 bg-gradient-to-r from-emerald-50/80 to-blue-50/50 border border-emerald-200/90 rounded-2xl flex flex-col space-y-4 shadow-xs">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <CheckCircle2 size={20} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-bold text-slate-900">{extractionSuccess.fileName}</p>
+                      {extractionSuccess.validation && (
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          extractionSuccess.validation.score >= 70 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                        }`}>
+                          Quality: {extractionSuccess.validation.score}% ({extractionSuccess.validation.confidence})
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-emerald-700 font-medium flex items-center gap-1 mt-0.5">
+                      <span>Standardized Legal PDF Generated Matching Master Template</span>
+                      <span>•</span>
+                      <span>{extractionSuccess.fileSize}</span>
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs font-bold text-slate-900">{extractionSuccess.fileName}</p>
-                  <p className="text-[11px] text-emerald-700 font-medium">Extracted and auto-filled successfully</p>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* Preview Standardized PDF */}
+                  <a
+                    href={getFullPdfUrl(formData.pdf_file_path || extractionSuccess.standardizedPath)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition-all shadow-2xs"
+                    title="View standardized legal PDF generated matching the master design template"
+                  >
+                    <Eye size={13} />
+                    <span>Preview Standardized PDF</span>
+                  </a>
+
+                  {/* View Original PDF */}
+                  {formData.original_pdf_path && (
+                    <a
+                      href={getFullPdfUrl(formData.original_pdf_path)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs rounded-lg border border-slate-300 transition-colors"
+                      title="View original uploaded raw PDF"
+                    >
+                      <ExternalLink size={13} />
+                      <span>Original PDF</span>
+                    </a>
+                  )}
+
+                  {/* Review & Edit Document Modal */}
+                  <button
+                    type="button"
+                    onClick={handleOpenDocModal}
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg transition-all shadow-2xs cursor-pointer"
+                  >
+                    <Edit3 size={13} />
+                    <span>Review & Edit</span>
+                  </button>
+
+                  {/* Regenerate Standardized PDF Button */}
+                  <button
+                    type="button"
+                    onClick={handleRegenerateStandardizedPdf}
+                    disabled={isRegeneratingPdf}
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs rounded-lg border border-slate-300 transition-colors cursor-pointer"
+                    title="Regenerate Standardized PDF with any new edits"
+                  >
+                    <RefreshCw size={12} className={isRegeneratingPdf ? 'animate-spin text-blue-600' : ''} />
+                    <span>{isRegeneratingPdf ? 'Regenerating...' : 'Regenerate PDF'}</span>
+                  </button>
+
+                  {/* Re-upload */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setExtractionSuccess(null);
+                      pdfInputRef.current?.click();
+                    }}
+                    className="inline-flex items-center gap-1 px-2 py-1.5 bg-white hover:bg-slate-50 text-slate-600 font-semibold text-xs rounded-lg border border-slate-300 transition-colors cursor-pointer"
+                    title="Upload another PDF"
+                  >
+                    <Upload size={12} />
+                    <span>Re-upload</span>
+                  </button>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  type="button"
-                  onClick={handleOpenDocModal}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg transition-all shadow-2xs cursor-pointer"
-                >
-                  <Edit3 size={13} />
-                  <span>Review & Edit Document</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setExtractionSuccess(null);
-                    pdfInputRef.current?.click();
-                  }}
-                  className="inline-flex items-center gap-1 px-3 py-2 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs rounded-lg border border-slate-300 transition-colors cursor-pointer"
-                  title="Upload another PDF"
-                >
-                  <RefreshCw size={13} />
-                  <span>Re-upload</span>
-                </button>
-              </div>
+              {/* Regeneration success notice */}
+              {regenerateSuccess && (
+                <div className="p-2.5 bg-emerald-100/70 border border-emerald-300 rounded-lg text-emerald-800 text-xs font-semibold flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-emerald-700 shrink-0" />
+                  <span>{regenerateSuccess}</span>
+                </div>
+              )}
             </div>
           ) : (
             <div 
@@ -1796,21 +1993,36 @@ export default function AdminCaseForm() {
                 <Upload size={18} />
               </div>
               <p className="text-xs font-bold text-slate-700 group-hover:text-primary-600">
-                Drop PDF here or click to browse
+                Drop judgment PDF here or click to browse
+              </p>
+              <p className="text-[11px] text-slate-400 mt-1">
+                Automatic legal extraction, structuring & master standardized PDF generation
               </p>
             </div>
           )}
 
-          {/* PDF Extraction Error Notice */}
+          {/* PDF Extraction Error Notice with Retry Option */}
           {pdfError && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-xs font-semibold flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <AlertTriangle size={15} className="shrink-0 text-red-600" />
                 <span>{pdfError}</span>
               </div>
-              <button type="button" onClick={() => setPdfError('')} className="text-red-500 hover:text-red-700 p-0.5">
-                <X size={14} />
-              </button>
+              <div className="flex items-center gap-2">
+                {lastUploadedFileRef.current && (
+                  <button 
+                    type="button" 
+                    onClick={() => handlePdfUpload(null, lastUploadedFileRef.current)}
+                    className="inline-flex items-center gap-1 px-2 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-[11px] font-bold cursor-pointer transition-colors"
+                  >
+                    <RefreshCw size={11} />
+                    <span>Retry Extraction</span>
+                  </button>
+                )}
+                <button type="button" onClick={() => setPdfError('')} className="text-red-500 hover:text-red-700 p-0.5">
+                  <X size={14} />
+                </button>
+              </div>
             </div>
           )}
         </div>

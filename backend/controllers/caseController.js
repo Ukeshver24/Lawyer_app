@@ -9,6 +9,7 @@ import judgmentRepository from '../repositories/judgmentRepository.js';
 import logger from '../utils/logger.js';
 import { notifyMobileAppNewJudgement } from '../services/fcmService.js';
 import { stampJudgmentPdf } from '../utils/pdfStamper.js';
+import { generateStandardizedLegalPdf } from '../utils/standardizedPdfGenerator.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -53,19 +54,66 @@ export const getCasePdf = async (req, res) => {
       const cleanPath = String(pdfPath).replace(/^[\\\/]+/, '').replace(/^uploads[\\\/]/i, '').replace(/^[\\\/]+/, '');
       const fullPath = path.join(__dirname, '../uploads', cleanPath);
       if (fs.existsSync(fullPath)) {
-        // Stamp authentic scannable QR code on Page 1 top-left so camera scan opens the PDF
-        await stampJudgmentPdf(fullPath, caseItem.id);
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `inline; filename="DLR_Judgment_${caseItem.id}.pdf"`);
         return fs.createReadStream(fullPath).pipe(res);
       }
     }
 
-    // Fallback: If no physical PDF file exists on server, redirect to web judgment route
-    return res.redirect(`/judgment/${id}`);
+    // Dynamic on-demand standardized generation if file is missing on disk
+    try {
+      const appBaseUrl = process.env.APP_BASE_URL || `${req.protocol}://${req.get('host')}`;
+      const standardizedBuf = await generateStandardizedLegalPdf(caseItem, { appBaseUrl });
+      const filename = `standardized_${caseItem.id}_${Date.now()}.pdf`;
+      const fullPath = path.join(__dirname, '../uploads', filename);
+      fs.writeFileSync(fullPath, standardizedBuf);
+      await updateCaseInDb(caseItem.id, { ...caseItem, pdf_file_path: `uploads/${filename}`, pdf_file: `uploads/${filename}` });
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `inline; filename="DLR_Judgment_${caseItem.id}.pdf"`);
+      return res.end(standardizedBuf);
+    } catch (genErr) {
+      logger.error('On-demand PDF generation error:', genErr);
+      return res.redirect(`/judgment/${id}`);
+    }
   } catch (error) {
     logger.error(`Failed to fetch PDF for case ID ${req.params.id}:`, error);
     res.status(500).json({ success: false, message: 'Server error retrieving case PDF' });
+  }
+};
+
+// POST /api/cases/regenerate-pdf - Regenerate standardized legal PDF on-demand matching master template
+export const regenerateCasePdf = async (req, res) => {
+  try {
+    const caseData = req.body;
+    const uploadDir = path.join(__dirname, '../uploads');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    const appBaseUrl = process.env.APP_BASE_URL || `${req.protocol}://${req.get('host')}`;
+    const standardizedBuf = await generateStandardizedLegalPdf(caseData, { appBaseUrl });
+    const rawNo = (caseData.caseNumber || caseData.case_number || 'case').replace(/[^a-zA-Z0-9]/g, '_');
+    const filename = `standardized_${Date.now()}_${rawNo}.pdf`;
+    const fullPath = path.join(uploadDir, filename);
+    fs.writeFileSync(fullPath, standardizedBuf);
+
+    const relativeUrl = `uploads/${filename}`;
+    if (caseData.id) {
+      await updateCaseInDb(caseData.id, {
+        ...caseData,
+        pdf_file: relativeUrl,
+        pdf_file_path: relativeUrl
+      });
+    }
+
+    return res.json({
+      status: 'success',
+      pdf_file_path: relativeUrl,
+      pdf_url: relativeUrl,
+      message: 'Standardized legal PDF generated successfully matching master template'
+    });
+  } catch (error) {
+    logger.error('Failed to regenerate standardized PDF:', error);
+    return res.status(500).json({ status: 'error', message: error.message || 'Error generating standardized PDF' });
   }
 };
 
@@ -123,11 +171,22 @@ export const createCase = async (req, res) => {
 
     const newCase = await createCaseInDb(req.body);
 
-    // Stamp authentic scannable QR code on PDF so scanning immediately opens the PDF
-    if (newCase && (newCase.pdf_file || newCase.pdf_file_path)) {
-      const cleanPath = String(newCase.pdf_file_path || newCase.pdf_file).replace(/^[\\\/]+/, '').replace(/^uploads[\\\/]/i, '').replace(/^[\\\/]+/, '');
-      const fullPath = path.join(__dirname, '../uploads', cleanPath);
-      await stampJudgmentPdf(fullPath, newCase.id);
+    // Ensure standardized legal PDF is generated and saved if missing
+    if (newCase) {
+      if (!newCase.pdf_file && !newCase.pdf_file_path) {
+        try {
+          const appBaseUrl = process.env.APP_BASE_URL || `${req.protocol}://${req.get('host')}`;
+          const standardizedBuf = await generateStandardizedLegalPdf(newCase, { appBaseUrl });
+          const filename = `standardized_${newCase.id}_${Date.now()}.pdf`;
+          const fullPath = path.join(__dirname, '../uploads', filename);
+          fs.writeFileSync(fullPath, standardizedBuf);
+          newCase.pdf_file = `uploads/${filename}`;
+          newCase.pdf_file_path = `uploads/${filename}`;
+          await updateCaseInDb(newCase.id, newCase);
+        } catch (e) {
+          logger.error('Auto PDF generation on case create:', e);
+        }
+      }
     }
 
     // Fire FCM push notification to Mobile App if Published

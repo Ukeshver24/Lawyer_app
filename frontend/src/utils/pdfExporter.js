@@ -161,18 +161,11 @@ export const buildVectorLegalPDF = async (caseItem) => {
   const section = caseItem.section || '';
   const jurisdiction = caseItem.jurisdiction_type || caseItem.jurisdictionType || 'CIVIL APPELLATE JURISDICTION';
 
-  // Dynamic Typography: Professional Times New Roman vs. Original Uploaded PDF font
-  const useProfessionalFont = Boolean(caseItem.use_professional_font);
+  // Master Legal Typography: Professional Times New Roman (matching Master Reference Template)
   const rawFontFamily = String(caseItem.font_family || caseItem.fontFamily || '').toLowerCase().trim();
-  let primaryFont = 'helvetica';
-  if (useProfessionalFont) {
-    primaryFont = 'times';
-  } else if (rawFontFamily.includes('courier') || rawFontFamily.includes('mono')) {
-    primaryFont = 'courier';
-  } else if (rawFontFamily.includes('times') || rawFontFamily.includes('serif')) {
-    primaryFont = 'times';
-  } else {
-    primaryFont = 'helvetica';
+  let primaryFont = 'times';
+  if (caseItem.use_professional_font === false && rawFontFamily && !rawFontFamily.includes('times') && !rawFontFamily.includes('serif')) {
+    primaryFont = (rawFontFamily.includes('courier') || rawFontFamily.includes('mono')) ? 'courier' : 'helvetica';
   }
 
   let yPos = 0.80;

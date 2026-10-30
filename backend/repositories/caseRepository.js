@@ -13,7 +13,8 @@ export const getAllCasesFromDb = async ({ status, limit = 50, offset = 0 }) => {
     SELECT 
       id, case_number, title, petitioner, respondent, court, 
       judgment_date, year, act, section, head_note, status, citations, 
-      pdf_file, pdf_file_path, use_professional_font, font_family,
+      pdf_file, pdf_file_path, original_pdf_path, extracted_data, processing_status,
+      use_professional_font, font_family,
       created_at, updated_at 
     FROM cases
   `;
@@ -59,7 +60,8 @@ export const createCaseInDb = async (caseData) => {
   const {
     caseNumber, title, petitioner, respondent, court, judgmentDate,
     year, act, section, headNote, judgmentText, status, citations,
-    pdf_file, pdf_file_path, use_professional_font, font_family
+    pdf_file, pdf_file_path, original_pdf_path, extracted_data, processing_status,
+    use_professional_font, font_family
   } = caseData;
 
   const validDate = judgmentDate && String(judgmentDate).trim().length >= 8 
@@ -71,9 +73,10 @@ export const createCaseInDb = async (caseData) => {
     INSERT INTO cases (
       case_number, title, petitioner, respondent, court, judgment_date,
       year, act, section, head_note, judgment_text, status, citations,
-      pdf_file, pdf_file_path, use_professional_font, font_family
+      pdf_file, pdf_file_path, original_pdf_path, extracted_data, processing_status,
+      use_professional_font, font_family
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13::jsonb, $14, $15, $16, $17)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13::jsonb, $14, $15, $16, $17::jsonb, $18, $19, $20)
     RETURNING *
   `;
 
@@ -93,8 +96,11 @@ export const createCaseInDb = async (caseData) => {
     JSON.stringify(citations || []),
     pdf_file || pdf_file_path || null,
     pdf_file_path || pdf_file || null,
+    original_pdf_path || null,
+    extracted_data ? (typeof extracted_data === 'string' ? extracted_data : JSON.stringify(extracted_data)) : null,
+    processing_status || 'completed',
     use_professional_font !== undefined ? Boolean(use_professional_font) : false,
-    font_family || 'helvetica'
+    font_family || 'times'
   ];
 
   const res = await query(sql, values);
@@ -108,7 +114,8 @@ export const updateCaseInDb = async (id, caseData) => {
   const {
     caseNumber, title, petitioner, respondent, court, judgmentDate,
     year, act, section, headNote, judgmentText, status, citations,
-    pdf_file, pdf_file_path, use_professional_font, font_family
+    pdf_file, pdf_file_path, original_pdf_path, extracted_data, processing_status,
+    use_professional_font, font_family
   } = caseData;
 
   const numericId = parseInt(id, 10);
@@ -124,10 +131,13 @@ export const updateCaseInDb = async (id, caseData) => {
       court = $5, judgment_date = $6, year = $7, act = $8, section = $9,
       head_note = $10, judgment_text = $11, status = $12, citations = $13::jsonb,
       pdf_file = COALESCE($14, pdf_file), pdf_file_path = COALESCE($15, pdf_file_path),
-      use_professional_font = COALESCE($16, use_professional_font),
-      font_family = COALESCE($17, font_family),
+      original_pdf_path = COALESCE($16, original_pdf_path),
+      extracted_data = COALESCE($17::jsonb, extracted_data),
+      processing_status = COALESCE($18, processing_status),
+      use_professional_font = COALESCE($19, use_professional_font),
+      font_family = COALESCE($20, font_family),
       updated_at = CURRENT_TIMESTAMP
-    WHERE id = $18 OR id::text = $19
+    WHERE id = $21 OR id::text = $22
     RETURNING *
   `;
 
@@ -147,6 +157,9 @@ export const updateCaseInDb = async (id, caseData) => {
     JSON.stringify(citations || []),
     pdf_file || pdf_file_path || null,
     pdf_file_path || pdf_file || null,
+    original_pdf_path || null,
+    extracted_data ? (typeof extracted_data === 'string' ? extracted_data : JSON.stringify(extracted_data)) : null,
+    processing_status || null,
     use_professional_font !== undefined ? Boolean(use_professional_font) : null,
     font_family || null,
     isNaN(numericId) ? 0 : numericId,
