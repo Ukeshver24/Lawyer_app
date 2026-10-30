@@ -382,13 +382,23 @@ class PdfGeneratorService {
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.center,
                   children: [
-                    pw.Text(
-                      '— HEADNOTE —',
-                      style: pw.TextStyle(
-                        font: timesBold,
-                        fontSize: 10.5,
-                        letterSpacing: 0.5,
-                      ),
+                    pw.Row(
+                      mainAxisAlignment: pw.MainAxisAlignment.center,
+                      crossAxisAlignment: pw.CrossAxisAlignment.center,
+                      children: [
+                        pw.Container(width: 34, height: 0.9, color: PdfColors.black),
+                        pw.SizedBox(width: 8),
+                        pw.Text(
+                          'HEADNOTE',
+                          style: pw.TextStyle(
+                            font: timesBold,
+                            fontSize: 10.5,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                        pw.SizedBox(width: 8),
+                        pw.Container(width: 34, height: 0.9, color: PdfColors.black),
+                      ],
                     ),
                     pw.SizedBox(height: 6),
                     pw.Text(

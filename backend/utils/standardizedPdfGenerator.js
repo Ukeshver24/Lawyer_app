@@ -406,13 +406,23 @@ export async function generateStandardizedLegalPdf(caseItem = {}, options = {}) 
       doc.setLineWidth(0.008);
       doc.rect(margin, yPos, contentWidth, boxHeight, 'S');
 
-      // Title: Only HEADNOTE
-      const hnTitle = isFirstChunk ? "— HEADNOTE —" : "— HEADNOTE (CONTD.) —";
+      // Title: Only HEADNOTE with crisp physical horizontal lines on left and right
+      const hnText = isFirstChunk ? "HEADNOTE" : "HEADNOTE (CONTD.)";
       doc.setFont(primaryFont, "bold");
       doc.setFontSize(10);
       doc.setTextColor(15, 23, 42);
       const titleY = yPos + 0.22;
-      doc.text(hnTitle, pageWidth / 2, titleY, { align: 'center' });
+      const centerX = pageWidth / 2;
+      doc.text(hnText, centerX, titleY, { align: 'center' });
+
+      // Physical horizontal line left and right of HEADNOTE
+      const titleWidth = doc.getTextWidth(hnText);
+      const lineLen = 0.45;
+      const gap = 0.10;
+      doc.setLineWidth(0.010);
+      doc.setDrawColor(15, 23, 42);
+      doc.line(centerX - (titleWidth / 2) - gap - lineLen, titleY - 0.035, centerX - (titleWidth / 2) - gap, titleY - 0.035);
+      doc.line(centerX + (titleWidth / 2) + gap, titleY - 0.035, centerX + (titleWidth / 2) + gap + lineLen, titleY - 0.035);
 
       // Headnote text (Justified)
       doc.setFont(primaryFont, "normal");

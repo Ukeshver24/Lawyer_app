@@ -496,13 +496,31 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text(
-                  '— HEADNOTE —',
-                  style: _timesStyle(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.5,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 34,
+                      height: 1.0,
+                      color: const Color(0xFF0F172A),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'HEADNOTE',
+                      style: _timesStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      width: 34,
+                      height: 1.0,
+                      color: const Color(0xFF0F172A),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 6),
                 Text(
