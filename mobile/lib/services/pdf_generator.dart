@@ -48,16 +48,16 @@ class PdfGeneratorService {
   static Future<Uint8List?> fetchAuthenticPdfBytes(CaseModel caseItem) async {
     final candidateUrls = <String>[];
 
-    // 1. Direct PDF URL if resolved on model
-    final originalUrl = caseItem.originalPdfUrl;
-    if (originalUrl.isNotEmpty) {
-      candidateUrls.add(originalUrl);
-    }
-
-    // 2. Direct backend case stream endpoint (stamps QR code automatically)
+    // 1. Direct backend case stream endpoint (stamps QR code & serves standardized master template)
     if (caseItem.id.isNotEmpty) {
       candidateUrls.add('${ApiConfig.baseUrl}/cases/${caseItem.id}/pdf');
       candidateUrls.add('${ApiConfig.baseUrl}/public/judgment/${caseItem.id}/pdf');
+    }
+
+    // 2. Direct PDF URL if resolved on model
+    final originalUrl = caseItem.originalPdfUrl;
+    if (originalUrl.isNotEmpty) {
+      candidateUrls.add(originalUrl);
     }
 
     // 3. Fallback uploads path if pdfFile is stored as relative filename
@@ -302,10 +302,76 @@ class PdfGeneratorService {
           final List<pw.Widget> widgets = [];
 
           // ----------------------------------------------------
-          // PAGE 1: COURT TITLE, METADATA, PARTIES, & HEAD NOTE
+          // 1. TOP SECTION: CITATION (SLEEK BORDERED BOX)
           // ----------------------------------------------------
+          final displayCit = cleanCitation.isNotEmpty ? cleanCitation.replaceAll('#', ' • ').trim() : 'DLR Legal Precedent';
+          widgets.add(
+            pw.Container(
+              width: double.infinity,
+              padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+              decoration: pw.BoxDecoration(
+                border: pw.Border.all(color: PdfColors.black, width: 0.8),
+              ),
+              child: pw.RichText(
+                text: pw.TextSpan(
+                  children: [
+                    pw.TextSpan(
+                      text: 'Citation: ',
+                      style: pw.TextStyle(font: timesBold, fontSize: 10),
+                    ),
+                    pw.TextSpan(
+                      text: displayCit,
+                      style: pw.TextStyle(font: timesRoman, fontSize: 10),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+          widgets.add(pw.SizedBox(height: 10));
 
-          // 1. Top Title: Court Name from DB
+          // ----------------------------------------------------
+          // 2. SECOND SECTION: HEADNOTE (SLEEK BORDERED BOX)
+          // ----------------------------------------------------
+          if (headnoteClean.isNotEmpty) {
+            widgets.add(
+              pw.Container(
+                width: double.infinity,
+                padding: const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: pw.BoxDecoration(
+                  border: pw.Border.all(color: PdfColors.black, width: 0.8),
+                ),
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.center,
+                  children: [
+                    pw.Text(
+                      '— HEADNOTE —',
+                      style: pw.TextStyle(
+                        font: timesBold,
+                        fontSize: 10.5,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    pw.SizedBox(height: 6),
+                    pw.Text(
+                      headnoteClean,
+                      textAlign: pw.TextAlign.justify,
+                      style: pw.TextStyle(
+                        font: timesRoman,
+                        fontSize: 10,
+                        lineSpacing: 3.0,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+            widgets.add(pw.SizedBox(height: 12));
+          }
+
+          // ----------------------------------------------------
+          // 3. THIRD SECTION: COURT NAME & JURISDICTION
+          // ----------------------------------------------------
           widgets.add(
             pw.Center(
               child: pw.Text(
@@ -313,94 +379,31 @@ class PdfGeneratorService {
                 textAlign: pw.TextAlign.center,
                 style: pw.TextStyle(
                   font: timesBold,
-                  fontSize: 13.5,
+                  fontSize: 12.5,
                   letterSpacing: 0.5,
-                  color: PdfColors.black,
                 ),
               ),
             ),
           );
-          widgets.add(pw.SizedBox(height: 14));
-
-          // 2. Metadata Block (Citation, Case Number, Act(s), Date of Judgment)
+          widgets.add(pw.SizedBox(height: 3));
           widgets.add(
-            pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                if (cleanCitation.isNotEmpty) ...[
-                  pw.RichText(
-                    text: pw.TextSpan(
-                      children: [
-                        pw.TextSpan(
-                          text: 'Citation: ',
-                          style: pw.TextStyle(font: timesBold, fontSize: 10.5),
-                        ),
-                        pw.TextSpan(
-                          text: cleanCitation,
-                          style: pw.TextStyle(font: timesRoman, fontSize: 10.5),
-                        ),
-                      ],
-                    ),
-                  ),
-                  pw.SizedBox(height: 4),
-                ],
-                if (cleanCaseNumber.isNotEmpty) ...[
-                  pw.RichText(
-                    text: pw.TextSpan(
-                      children: [
-                        pw.TextSpan(
-                          text: 'Case Number: ',
-                          style: pw.TextStyle(font: timesBold, fontSize: 10.5),
-                        ),
-                        pw.TextSpan(
-                          text: cleanCaseNumber,
-                          style: pw.TextStyle(font: timesRoman, fontSize: 10.5),
-                        ),
-                      ],
-                    ),
-                  ),
-                  pw.SizedBox(height: 4),
-                ],
-                if (cleanAct.isNotEmpty) ...[
-                  pw.RichText(
-                    text: pw.TextSpan(
-                      children: [
-                        pw.TextSpan(
-                          text: 'Act(s): ',
-                          style: pw.TextStyle(font: timesBold, fontSize: 10.5),
-                        ),
-                        pw.TextSpan(
-                          text: cleanAct,
-                          style: pw.TextStyle(font: timesRoman, fontSize: 10.5),
-                        ),
-                      ],
-                    ),
-                  ),
-                  pw.SizedBox(height: 4),
-                ],
-                if (cleanDate.isNotEmpty) ...[
-                  pw.RichText(
-                    text: pw.TextSpan(
-                      children: [
-                        pw.TextSpan(
-                          text: 'Date of Judgment: ',
-                          style: pw.TextStyle(font: timesBold, fontSize: 10.5),
-                        ),
-                        pw.TextSpan(
-                          text: cleanDate,
-                          style: pw.TextStyle(font: timesRoman, fontSize: 10.5),
-                        ),
-                      ],
-                    ),
-                  ),
-                  pw.SizedBox(height: 4),
-                ],
-              ],
+            pw.Center(
+              child: pw.Text(
+                'CIVIL APPELLATE JURISDICTION',
+                textAlign: pw.TextAlign.center,
+                style: pw.TextStyle(
+                  font: timesBold,
+                  fontSize: 9.5,
+                  letterSpacing: 0.3,
+                ),
+              ),
             ),
           );
-          widgets.add(pw.SizedBox(height: 14));
+          widgets.add(pw.SizedBox(height: 12));
 
-          // 3. Parties Block (Petitioner vs Respondent)
+          // ----------------------------------------------------
+          // 4. FOURTH SECTION: PARTIES (PETITIONER VS RESPONDENT)
+          // ----------------------------------------------------
           if (petitioner.isNotEmpty || respondent.isNotEmpty) {
             widgets.add(
               pw.Column(
@@ -412,23 +415,23 @@ class PdfGeneratorService {
                       pw.Expanded(
                         child: pw.Text(
                           petitioner,
-                          style: pw.TextStyle(font: timesBold, fontSize: 11.5),
+                          style: pw.TextStyle(font: timesBold, fontSize: 10.5),
                         ),
                       ),
                       pw.Text(
-                        '......... Petitioner(s)',
-                        style: pw.TextStyle(font: timesBold, fontSize: 10.5),
+                        '......... Appellant(s) / Petitioner(s)',
+                        style: pw.TextStyle(font: timesRoman, fontSize: 9.5, color: PdfColors.grey800),
                       ),
                     ],
                   ),
-                  pw.SizedBox(height: 8),
+                  pw.SizedBox(height: 6),
                   pw.Center(
                     child: pw.Text(
                       'VERSUS',
-                      style: pw.TextStyle(font: timesBold, fontSize: 11.0),
+                      style: pw.TextStyle(font: timesBold, fontSize: 10.5, letterSpacing: 0.8),
                     ),
                   ),
-                  pw.SizedBox(height: 8),
+                  pw.SizedBox(height: 6),
                   pw.Row(
                     mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: pw.CrossAxisAlignment.end,
@@ -436,91 +439,144 @@ class PdfGeneratorService {
                       pw.Expanded(
                         child: pw.Text(
                           respondent,
-                          style: pw.TextStyle(font: timesBold, fontSize: 11.5),
+                          style: pw.TextStyle(font: timesBold, fontSize: 10.5),
                         ),
                       ),
                       pw.Text(
                         '......... Respondent(s)',
-                        style: pw.TextStyle(font: timesBold, fontSize: 10.5),
+                        style: pw.TextStyle(font: timesRoman, fontSize: 9.5, color: PdfColors.grey800),
                       ),
                     ],
                   ),
                 ],
               ),
             );
-            widgets.add(pw.SizedBox(height: 16));
+            widgets.add(pw.SizedBox(height: 12));
           }
 
-          // 4. Boxed HEAD NOTE
-          if (headnoteClean.isNotEmpty) {
+          // ----------------------------------------------------
+          // 5. FIFTH SECTION: METADATA BLOCK
+          // ----------------------------------------------------
+          widgets.add(
+            pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                if (cleanCaseNumber.isNotEmpty) ...[
+                  pw.RichText(
+                    text: pw.TextSpan(
+                      children: [
+                        pw.TextSpan(
+                          text: 'Case Number: ',
+                          style: pw.TextStyle(font: timesBold, fontSize: 10),
+                        ),
+                        pw.TextSpan(
+                          text: cleanCaseNumber,
+                          style: pw.TextStyle(font: timesRoman, fontSize: 10),
+                        ),
+                      ],
+                    ),
+                  ),
+                  pw.SizedBox(height: 3),
+                ],
+                if (cleanAct.isNotEmpty) ...[
+                  pw.RichText(
+                    text: pw.TextSpan(
+                      children: [
+                        pw.TextSpan(
+                          text: 'Act(s): ',
+                          style: pw.TextStyle(font: timesBold, fontSize: 10),
+                        ),
+                        pw.TextSpan(
+                          text: cleanAct,
+                          style: pw.TextStyle(font: timesRoman, fontSize: 10),
+                        ),
+                      ],
+                    ),
+                  ),
+                  pw.SizedBox(height: 3),
+                ],
+                if (cleanDate.isNotEmpty) ...[
+                  pw.RichText(
+                    text: pw.TextSpan(
+                      children: [
+                        pw.TextSpan(
+                          text: 'Date of Judgment: ',
+                          style: pw.TextStyle(font: timesBold, fontSize: 10),
+                        ),
+                        pw.TextSpan(
+                          text: cleanDate,
+                          style: pw.TextStyle(font: timesRoman, fontSize: 10),
+                        ),
+                      ],
+                    ),
+                  ),
+                  pw.SizedBox(height: 3),
+                ],
+                if (cleanJudge.isNotEmpty) ...[
+                  pw.RichText(
+                    text: pw.TextSpan(
+                      children: [
+                        pw.TextSpan(
+                          text: 'Bench / Coram: ',
+                          style: pw.TextStyle(font: timesBold, fontSize: 10),
+                        ),
+                        pw.TextSpan(
+                          text: cleanJudge,
+                          style: pw.TextStyle(font: timesRoman, fontSize: 10),
+                        ),
+                      ],
+                    ),
+                  ),
+                  pw.SizedBox(height: 3),
+                ],
+              ],
+            ),
+          );
+          widgets.add(pw.SizedBox(height: 12));
+
+          // ----------------------------------------------------
+          // 6. SIXTH SECTION: CONTINUOUS JUDGMENT PREAMBLE & BODY
+          // ----------------------------------------------------
+          final inscMatch = RegExp(r'(\d{4}\s+INSC\s+\d+)', caseSensitive: false).firstMatch(contentClean);
+          if (inscMatch != null) {
             widgets.add(
-              pw.Container(
-                width: double.infinity,
-                padding: const pw.EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                decoration: pw.BoxDecoration(
-                  border: pw.Border.all(color: PdfColors.black, width: 0.9),
-                ),
-                child: pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.center,
-                  children: [
-                    pw.Text(
-                      'HEAD NOTE',
-                      style: pw.TextStyle(
-                        font: timesBold,
-                        fontSize: 11.5,
-                        decoration: pw.TextDecoration.underline,
-                      ),
-                    ),
-                    pw.SizedBox(height: 8),
-                    pw.Text(
-                      headnoteClean,
-                      textAlign: pw.TextAlign.justify,
-                      style: pw.TextStyle(
-                        font: timesRoman,
-                        fontSize: 10.5,
-                        lineSpacing: 3.5,
-                      ),
-                    ),
-                  ],
+              pw.Center(
+                child: pw.Text(
+                  '${inscMatch.group(1)} REPORTABLE',
+                  style: pw.TextStyle(font: timesBold, fontSize: 10.5, letterSpacing: 0.5),
                 ),
               ),
             );
+            widgets.add(pw.SizedBox(height: 6));
           }
 
-          // ----------------------------------------------------
-          // PAGE BREAK: EXPLICITLY MOVE JUDGMENT TO PAGE 2
-          // ----------------------------------------------------
-          widgets.add(pw.NewPage());
-
-          // ----------------------------------------------------
-          // PAGE 2+: FULL JUDGMENT & ORDER
-          // ----------------------------------------------------
           widgets.add(
             pw.Center(
               child: pw.Text(
                 'J U D G M E N T',
                 style: pw.TextStyle(
                   font: timesBold,
-                  fontSize: 13.5,
-                  decoration: pw.TextDecoration.underline,
+                  fontSize: 11.5,
                   letterSpacing: 2.0,
                 ),
               ),
             ),
           );
-          widgets.add(pw.SizedBox(height: 12));
+          widgets.add(pw.SizedBox(height: 8));
 
           if (cleanJudge.isNotEmpty) {
+            final firstJudge = cleanJudge.split(',')[0].trim().toUpperCase();
+            final judgeLabel = firstJudge.endsWith(', J.') || firstJudge.endsWith(' J.') ? firstJudge : '$firstJudge, J.';
             widgets.add(
               pw.Text(
-                cleanJudge.toUpperCase(),
-                style: pw.TextStyle(font: timesBold, fontSize: 11.0),
+                judgeLabel,
+                style: pw.TextStyle(font: timesBold, fontSize: 10.5),
               ),
             );
-            widgets.add(pw.SizedBox(height: 12));
+            widgets.add(pw.SizedBox(height: 8));
           }
 
-          // Judgment Body Paragraphs (Justified, professional 10.5pt font, 3.5pt line spacing)
+          // Judgment Body Paragraphs (Continuous flow from Page 1 across pages)
           for (final para in paragraphs) {
             widgets.add(
               pw.Paragraph(

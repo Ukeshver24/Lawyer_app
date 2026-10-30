@@ -86,21 +86,31 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
 
   /// Lightning-fast, pixel-perfect A4 pagination (<3ms)
   /// Guarantees instant opening, zero overflow, and pages filled completely down to the footer.
+  /// pages[0] contains paragraphs that fit on Page 1 below the headers.
+  /// pages[1..N] contain paragraphs for subsequent pages.
   List<List<String>> _paginateJudgmentParagraphs({
     required List<String> rawParagraphs,
     required double contentWidth,
     required TextStyle style,
-    required double page2AvailableHeight,
+    required double page1AvailableHeight,
     required double subsequentPageAvailableHeight,
   }) {
     if (rawParagraphs.isEmpty) return [[]];
 
     final List<List<String>> pages = [];
     List<String> currentPageParagraphs = [];
-    double currentRemainingHeight = page2AvailableHeight;
-    const double pSpacing = 12.0;
+    double currentRemainingHeight = page1AvailableHeight;
+    bool isPage1 = true;
+    const double pSpacing = 10.0;
 
     final List<String> queue = List.from(rawParagraphs);
+
+    // If Page 1 space is too small for even 1 line of text, start body on Page 2
+    if (page1AvailableHeight < 36.0) {
+      pages.add([]);
+      currentRemainingHeight = subsequentPageAvailableHeight;
+      isPage1 = false;
+    }
 
     while (queue.isNotEmpty) {
       final text = queue.removeAt(0).trim();
@@ -132,16 +142,15 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
       // close this page and move the paragraph to the next page!
       if (availForText < 22.0) {
         tp.dispose();
-        if (currentPageParagraphs.isNotEmpty) {
-          pages.add(currentPageParagraphs);
-          currentPageParagraphs = [];
-          currentRemainingHeight = subsequentPageAvailableHeight;
-          queue.insert(0, text);
-          continue;
-        }
+        pages.add(currentPageParagraphs);
+        currentPageParagraphs = [];
+        currentRemainingHeight = subsequentPageAvailableHeight;
+        isPage1 = false;
+        queue.insert(0, text);
+        continue;
       }
 
-      // 2. High-performance single-pass line metrics splitting (<0.02ms, 0 extra layout passes!)
+      // 2. High-performance single-pass line metrics splitting (<0.02ms)
       final lineMetrics = tp.computeLineMetrics();
       double accumulatedHeight = 0.0;
       int fittedLines = 0;
@@ -175,6 +184,7 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
           pages.add(currentPageParagraphs);
           currentPageParagraphs = [];
           currentRemainingHeight = subsequentPageAvailableHeight;
+          isPage1 = false;
 
           if (secondPart.isNotEmpty) {
             queue.insert(0, secondPart);
@@ -186,25 +196,18 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
       }
 
       // If even 1 line couldn't fit or splitting wasn't possible:
-      if (currentPageParagraphs.isNotEmpty) {
-        pages.add(currentPageParagraphs);
-        currentPageParagraphs = [];
-        currentRemainingHeight = subsequentPageAvailableHeight;
-        queue.insert(0, text);
-      } else {
-        // Fallback on empty page
-        currentPageParagraphs.add(text);
-        pages.add(currentPageParagraphs);
-        currentPageParagraphs = [];
-        currentRemainingHeight = subsequentPageAvailableHeight;
-      }
+      pages.add(currentPageParagraphs);
+      currentPageParagraphs = [];
+      currentRemainingHeight = subsequentPageAvailableHeight;
+      isPage1 = false;
+      queue.insert(0, text);
     }
 
-    if (currentPageParagraphs.isNotEmpty) {
+    if (currentPageParagraphs.isNotEmpty || pages.isEmpty) {
       pages.add(currentPageParagraphs);
     }
 
-    return pages.isEmpty ? [[]] : pages;
+    return pages;
   }
 
   void _handleDownloadPdf() async {
@@ -398,14 +401,25 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
     );
   }
 
-  /// PAGE 1: Court Title, Metadata, Parties, and Boxed HEAD NOTE ONLY
+  /// PAGE 1: Master Reference Standard Layout
+  /// 1. Top Section: Boxed Citation (sleek bordered box)
+  /// 2. Second Section: Boxed Headnote (— HEADNOTE — with justified text)
+  /// 3. Third Section: Court Name & Jurisdiction
+  /// 4. Fourth Section: Parties Layout (Petitioner vs Respondent)
+  /// 5. Fifth Section: Metadata (Case Number, Act, Date, Bench)
+  /// 6. Sixth Section: Continuous Judgment Header & Body Paragraphs
   Widget _buildPage1({
     required double a4Width,
     required double a4Height,
+    required String displayCitation,
     required String courtTitle,
+    required String jurisdiction,
     required String petitioner,
     required String respondent,
     required String headnoteClean,
+    required String inscReportable,
+    required String authorJudge,
+    required List<String> paragraphs,
     required int totalPages,
     required String nowStr,
     required String judgmentUrl,
@@ -415,23 +429,14 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
     final topContent = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 1. Centered Court Name from DB (NOT person's name)
-        Center(
-          child: Text(
-            courtTitle,
-            textAlign: TextAlign.center,
-            style: _timesStyle(
-              fontSize: 13.5,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.5,
-            ),
+        // 1. TOP SECTION: CITATION (SLEEK BORDERED BOX)
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+          decoration: BoxDecoration(
+            border: Border.all(color: const Color(0xFF0F172A), width: 0.9),
           ),
-        ),
-        const SizedBox(height: 12),
-
-        // 2. Metadata Block (Citation, Case Number, Act(s), Date of Judgment)
-        if (c.citation.isNotEmpty) ...[
-          RichText(
+          child: RichText(
             text: TextSpan(
               children: [
                 TextSpan(
@@ -439,30 +444,138 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
                   style: _timesStyle(fontSize: 11.5, fontWeight: FontWeight.bold),
                 ),
                 TextSpan(
-                  text: c.citation,
+                  text: displayCitation,
                   style: _timesStyle(fontSize: 11.5),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 3),
+        ),
+        const SizedBox(height: 10),
+
+        // 2. SECOND SECTION: HEADNOTE (SLEEK BORDERED BOX)
+        if (headnoteClean.isNotEmpty) ...[
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              border: Border.all(color: const Color(0xFF0F172A), width: 0.9),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  '— HEADNOTE —',
+                  style: _timesStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  headnoteClean,
+                  textAlign: TextAlign.justify,
+                  style: _timesStyle(fontSize: 11.0, height: 1.55),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
         ],
+
+        // 3. THIRD SECTION: COURT NAME & JURISDICTION
+        Center(
+          child: Text(
+            courtTitle,
+            textAlign: TextAlign.center,
+            style: _timesStyle(
+              fontSize: 13.0,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ),
+        if (jurisdiction.isNotEmpty) ...[
+          const SizedBox(height: 4),
+          Center(
+            child: Text(
+              jurisdiction.toUpperCase(),
+              textAlign: TextAlign.center,
+              style: _timesStyle(
+                fontSize: 10.5,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.3,
+              ),
+            ),
+          ),
+        ],
+        const SizedBox(height: 12),
+
+        // 4. FOURTH SECTION: PARTIES (PETITIONER VS RESPONDENT)
+        if (petitioner.isNotEmpty || respondent.isNotEmpty) ...[
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Expanded(
+                child: Text(
+                  petitioner,
+                  style: _timesStyle(fontSize: 11.5, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                '......... Appellant(s) / Petitioner(s)',
+                style: _timesStyle(fontSize: 10.0, color: const Color(0xFF334155)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Center(
+            child: Text(
+              'VERSUS',
+              style: _timesStyle(fontSize: 11.0, fontWeight: FontWeight.bold, letterSpacing: 1.0),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Expanded(
+                child: Text(
+                  respondent,
+                  style: _timesStyle(fontSize: 11.5, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                '......... Respondent(s)',
+                style: _timesStyle(fontSize: 10.0, color: const Color(0xFF334155)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+        ],
+
+        // 5. FIFTH SECTION: METADATA BLOCK
         if (c.caseNumber.isNotEmpty) ...[
           RichText(
             text: TextSpan(
               children: [
                 TextSpan(
                   text: 'Case Number: ',
-                  style: _timesStyle(fontSize: 11.5, fontWeight: FontWeight.bold),
+                  style: _timesStyle(fontSize: 10.5, fontWeight: FontWeight.bold),
                 ),
                 TextSpan(
                   text: c.caseNumber,
-                  style: _timesStyle(fontSize: 11.5),
+                  style: _timesStyle(fontSize: 10.5),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 3),
+          const SizedBox(height: 2.5),
         ],
         if (c.act.isNotEmpty) ...[
           RichText(
@@ -470,16 +583,16 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
               children: [
                 TextSpan(
                   text: 'Act(s): ',
-                  style: _timesStyle(fontSize: 11.5, fontWeight: FontWeight.bold),
+                  style: _timesStyle(fontSize: 10.5, fontWeight: FontWeight.bold),
                 ),
                 TextSpan(
                   text: c.act,
-                  style: _timesStyle(fontSize: 11.5),
+                  style: _timesStyle(fontSize: 10.5),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 3),
+          const SizedBox(height: 2.5),
         ],
         if (c.formattedDate.isNotEmpty) ...[
           RichText(
@@ -487,92 +600,73 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
               children: [
                 TextSpan(
                   text: 'Date of Judgment: ',
-                  style: _timesStyle(fontSize: 11.5, fontWeight: FontWeight.bold),
+                  style: _timesStyle(fontSize: 10.5, fontWeight: FontWeight.bold),
                 ),
                 TextSpan(
                   text: c.formattedDate,
-                  style: _timesStyle(fontSize: 11.5),
+                  style: _timesStyle(fontSize: 10.5),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 3),
+          const SizedBox(height: 2.5),
+        ],
+        if (c.judge.isNotEmpty) ...[
+          RichText(
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: 'Bench / Coram: ',
+                  style: _timesStyle(fontSize: 10.5, fontWeight: FontWeight.bold),
+                ),
+                TextSpan(
+                  text: c.judge,
+                  style: _timesStyle(fontSize: 10.5),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 2.5),
         ],
         const SizedBox(height: 12),
 
-        // 3. Parties Block: Petitioner vs Respondent
-        if (petitioner.isNotEmpty || respondent.isNotEmpty) ...[
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Expanded(
-                child: Text(
-                  petitioner,
-                  style: _timesStyle(fontSize: 12.0, fontWeight: FontWeight.bold),
-                ),
-              ),
-              Text(
-                '......... Petitioner(s)',
-                style: _timesStyle(fontSize: 11.0, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
+        // 6. SIXTH SECTION: CONTINUOUS JUDGMENT PREAMBLE & BODY
+        if (inscReportable.isNotEmpty) ...[
           Center(
             child: Text(
-              'VERSUS',
-              style: _timesStyle(fontSize: 12.0, fontWeight: FontWeight.bold),
+              inscReportable,
+              style: _timesStyle(fontSize: 11.0, fontWeight: FontWeight.bold, letterSpacing: 0.5),
             ),
+          ),
+          const SizedBox(height: 6),
+        ],
+        Center(
+          child: Text(
+            'J U D G M E N T',
+            style: _timesStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 2.0,
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        if (authorJudge.isNotEmpty) ...[
+          Text(
+            authorJudge,
+            style: _timesStyle(fontSize: 11.5, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Expanded(
-                child: Text(
-                  respondent,
-                  style: _timesStyle(fontSize: 12.0, fontWeight: FontWeight.bold),
-                ),
-              ),
-              Text(
-                '......... Respondent(s)',
-                style: _timesStyle(fontSize: 11.0, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
         ],
 
-        // 4. Boxed HEAD NOTE (Always strictly Justified)
-        if (headnoteClean.isNotEmpty) ...[
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.black, width: 1.0),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  'HEAD NOTE',
-                  style: _timesStyle(
-                    fontSize: 12.0,
-                    fontWeight: FontWeight.bold,
-                    decoration: TextDecoration.underline,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  headnoteClean,
-                  textAlign: TextAlign.justify, // Strict Justified Alignment
-                  style: _timesStyle(fontSize: 11.5, height: 1.5),
-                ),
-              ],
-            ),
+        // Page 1 paragraphs (continuous flow)
+        for (int i = 0; i < paragraphs.length; i++) ...[
+          Text(
+            paragraphs[i],
+            textAlign: TextAlign.justify,
+            style: _timesStyle(fontSize: 12.0, height: 1.65),
           ),
+          if (i < paragraphs.length - 1) const SizedBox(height: 10),
         ],
       ],
     );
@@ -592,70 +686,7 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
     );
   }
 
-  /// PAGE 2: Centered JUDGMENT, J U D G M E N T, Judge name, and first batch of paragraphs
-  Widget _buildPage2({
-    required double a4Width,
-    required double a4Height,
-    required List<String> paragraphs,
-    required int totalPages,
-    required String nowStr,
-    required String judgmentUrl,
-  }) {
-    final c = widget.caseItem;
-
-    final topContent = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Single centered J U D G M E N T Heading (Strictly one title, zero duplicates)
-        Center(
-          child: Text(
-            'J U D G M E N T',
-            style: _timesStyle(
-              fontSize: 13.5,
-              fontWeight: FontWeight.bold,
-              decoration: TextDecoration.underline,
-              letterSpacing: 2.0,
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-
-        if (c.judge.isNotEmpty) ...[
-          Text(
-            c.judge.toUpperCase(),
-            style: _timesStyle(fontSize: 12.0, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 10),
-        ],
-
-        // Judgment Paragraphs for this page (Strictly Justified with comfortable line spacing)
-        for (int i = 0; i < paragraphs.length; i++) ...[
-          Text(
-            paragraphs[i],
-            textAlign: TextAlign.justify,
-            style: _timesStyle(fontSize: 12.5, height: 1.65),
-          ),
-          if (i < paragraphs.length - 1) const SizedBox(height: 12),
-        ],
-      ],
-    );
-
-    final bottomContent = _buildPageFooter(
-      pageNum: 2,
-      totalPages: totalPages,
-      nowStr: nowStr,
-      judgmentUrl: judgmentUrl,
-    );
-
-    return _buildA4Sheet(
-      a4Width: a4Width,
-      a4Height: a4Height,
-      topContent: topContent,
-      bottomContent: bottomContent,
-    );
-  }
-
-  /// SUBSEQUENT PAGES (Page 3+): Continued judgment paragraphs
+  /// SUBSEQUENT PAGES (Page 2+): Continued judgment paragraphs
   Widget _buildSubsequentPage({
     required double a4Width,
     required double a4Height,
@@ -672,9 +703,9 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
           Text(
             paragraphs[i],
             textAlign: TextAlign.justify,
-            style: _timesStyle(fontSize: 12.5, height: 1.65),
+            style: _timesStyle(fontSize: 12.0, height: 1.65),
           ),
-          if (i < paragraphs.length - 1) const SizedBox(height: 12),
+          if (i < paragraphs.length - 1) const SizedBox(height: 10),
         ],
       ],
     );
@@ -713,6 +744,18 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
 
     final headnoteClean = _cleanText(c.headnote);
     final rawParagraphs = _parseParagraphs(c.content);
+    final displayCitation = c.citation.isNotEmpty ? c.citation.replaceAll('#', ' • ').trim() : 'DLR Legal Precedent';
+
+    final inscMatch = RegExp(r'(\d{4}\s+INSC\s+\d+)', caseSensitive: false).firstMatch(c.content);
+    final inscReportable = inscMatch != null ? '${inscMatch.group(1)} REPORTABLE' : '';
+
+    String authorJudge = '';
+    if (c.judge.isNotEmpty) {
+      final firstJudge = c.judge.split(',')[0].trim().toUpperCase();
+      authorJudge = firstJudge.endsWith(', J.') || firstJudge.endsWith(' J.') ? firstJudge : '$firstJudge, J.';
+    }
+
+    const jurisdiction = 'CIVIL APPELLATE JURISDICTION';
 
     final nowStr = DateFormat('dd/MM/yyyy, hh:mm a').format(DateTime.now()).toLowerCase();
     final judgmentUrl = ApiConfig.getJudgmentWebUrl(c.id);
@@ -723,35 +766,71 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
     final a4Height = a4Width * 1.4142; // True A4 proportion (1 : √2)
     final contentWidth = a4Width - 48.0; // 24px horizontal padding on each side
 
-    // Dynamic calculation of Page 2 header height (J U D G M E N T, Judge name)
-    double page2HeaderHeight = 0.0;
-    final tpJudg = TextPainter(
+    // Dynamic calculation of Page 1 Header Height
+    double page1HeaderHeight = 0.0;
+
+    // 1. Citation box
+    final tpCit = TextPainter(
       text: TextSpan(
-        text: 'J U D G M E N T',
-        style: _timesStyle(fontSize: 13.5, fontWeight: FontWeight.bold, decoration: TextDecoration.underline, letterSpacing: 2.0),
+        children: [
+          TextSpan(text: 'Citation: ', style: _timesStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+          TextSpan(text: displayCitation, style: _timesStyle(fontSize: 11.5)),
+        ],
       ),
       textDirection: TextDirection.ltr,
-    )..layout(maxWidth: contentWidth);
-    page2HeaderHeight += tpJudg.height + 12.0;
-    tpJudg.dispose();
+    )..layout(maxWidth: contentWidth - 20.0);
+    page1HeaderHeight += tpCit.height + 16.0 + 10.0;
+    tpCit.dispose();
 
-    if (c.judge.isNotEmpty) {
-      final tpJudge = TextPainter(
-        text: TextSpan(
-          text: c.judge.toUpperCase(),
-          style: _timesStyle(fontSize: 12.0, fontWeight: FontWeight.bold),
-        ),
+    // 2. Headnote box
+    if (headnoteClean.isNotEmpty) {
+      final tpHn = TextPainter(
+        text: TextSpan(text: headnoteClean, style: _timesStyle(fontSize: 11.0, height: 1.55)),
+        textAlign: TextAlign.justify,
         textDirection: TextDirection.ltr,
-      )..layout(maxWidth: contentWidth);
-      page2HeaderHeight += tpJudge.height + 10.0;
-      tpJudge.dispose();
+      )..layout(maxWidth: contentWidth - 24.0);
+      page1HeaderHeight += 20.0 + 6.0 + tpHn.height + 20.0 + 14.0;
+      tpHn.dispose();
     }
 
-    // Interior padding: 20 + 20 = 40px. Compact footer: ~48.2px. Clean margin above footer: ~14px. Total: ~102.2px.
-    final subsequentPageAvailHeight = a4Height - 102.0;
-    final page2AvailHeight = subsequentPageAvailHeight - page2HeaderHeight;
+    // 3. Court and Jurisdiction
+    final tpCourt = TextPainter(
+      text: TextSpan(text: courtTitle, style: _timesStyle(fontSize: 13.0, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+      textAlign: TextAlign.center,
+      textDirection: TextDirection.ltr,
+    )..layout(maxWidth: contentWidth);
+    page1HeaderHeight += tpCourt.height + 12.0;
+    tpCourt.dispose();
 
-    final paraStyle = _timesStyle(fontSize: 12.5, height: 1.65);
+    page1HeaderHeight += 20.0; // Jurisdiction
+
+    // 4. Parties
+    if (petitioner.isNotEmpty || respondent.isNotEmpty) {
+      page1HeaderHeight += 22.0 + 20.0 + 22.0 + 12.0;
+    }
+
+    // 5. Metadata
+    int metaLines = 0;
+    if (c.caseNumber.isNotEmpty) metaLines++;
+    if (c.act.isNotEmpty) metaLines++;
+    if (c.formattedDate.isNotEmpty) metaLines++;
+    if (c.judge.isNotEmpty) metaLines++;
+    page1HeaderHeight += (metaLines * 18.0) + 12.0;
+
+    // 6. Judgment Heading
+    if (inscReportable.isNotEmpty) {
+      page1HeaderHeight += 20.0;
+    }
+    page1HeaderHeight += 24.0 + 8.0;
+    if (authorJudge.isNotEmpty) {
+      page1HeaderHeight += 20.0 + 8.0;
+    }
+
+    // Interior padding + footer height
+    final subsequentPageAvailHeight = a4Height - 102.0;
+    final page1AvailHeight = (subsequentPageAvailHeight - page1HeaderHeight).clamp(0.0, subsequentPageAvailHeight);
+
+    final paraStyle = _timesStyle(fontSize: 12.0, height: 1.65);
 
     List<List<String>> judgmentPages;
     if (_cachedJudgmentPages != null &&
@@ -763,7 +842,7 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
         rawParagraphs: rawParagraphs,
         contentWidth: contentWidth,
         style: paraStyle,
-        page2AvailableHeight: page2AvailHeight,
+        page1AvailableHeight: page1AvailHeight,
         subsequentPageAvailableHeight: subsequentPageAvailHeight,
       );
       _cachedJudgmentPages = judgmentPages;
@@ -771,7 +850,7 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
       _cachedCaseId = c.id;
     }
 
-    final totalPages = 1 + judgmentPages.length;
+    final totalPages = judgmentPages.isEmpty ? 1 : judgmentPages.length;
 
     return Scaffold(
       backgroundColor: const Color(0xFFE2E8F0), // Clean desk background
@@ -846,52 +925,39 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
           child: Column(
             children: [
               // ==========================================================
-              // PAGE 1: COURT TITLE, METADATA, PARTIES, & HEAD NOTE ONLY
+              // PAGE 1: CITATION BOX, HEADNOTE BOX, COURT, PARTIES, & BODY
               // ==========================================================
               _buildPage1(
                 a4Width: a4Width,
                 a4Height: a4Height,
+                displayCitation: displayCitation,
                 courtTitle: courtTitle,
+                jurisdiction: jurisdiction,
                 petitioner: petitioner,
                 respondent: respondent,
                 headnoteClean: headnoteClean,
+                inscReportable: inscReportable,
+                authorJudge: authorJudge,
+                paragraphs: judgmentPages.isNotEmpty ? judgmentPages[0] : const [],
                 totalPages: totalPages,
                 nowStr: nowStr,
                 judgmentUrl: judgmentUrl,
               ),
 
-              // Desk spacing between Page 1 and Page 2 (NO break tags)
-              const SizedBox(height: 20),
-
               // ==========================================================
-              // PAGE 2: JUDGMENT HEADING & FIRST BATCH OF PARAGRAPHS
-              // ==========================================================
-              if (judgmentPages.isNotEmpty) ...[
-                _buildPage2(
-                  a4Width: a4Width,
-                  a4Height: a4Height,
-                  paragraphs: judgmentPages[0],
-                  totalPages: totalPages,
-                  nowStr: nowStr,
-                  judgmentUrl: judgmentUrl,
-                ),
-                const SizedBox(height: 20),
-              ],
-
-              // ==========================================================
-              // SUBSEQUENT PAGES (PAGE 3, 4, 5...): CONTINUED PARAGRAPHS
+              // SUBSEQUENT PAGES (PAGE 2, 3, 4...): CONTINUED PARAGRAPHS
               // ==========================================================
               for (int i = 1; i < judgmentPages.length; i++) ...[
+                const SizedBox(height: 20),
                 _buildSubsequentPage(
                   a4Width: a4Width,
                   a4Height: a4Height,
-                  pageNum: i + 2,
+                  pageNum: i + 1,
                   totalPages: totalPages,
                   paragraphs: judgmentPages[i],
                   nowStr: nowStr,
                   judgmentUrl: judgmentUrl,
                 ),
-                const SizedBox(height: 20),
               ],
             ],
           ),
